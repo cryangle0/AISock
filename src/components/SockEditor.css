@@ -1,0 +1,35 @@
+.sock-editor {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  gap: 14px;
+  padding: 0 26px 22px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.canvas-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+@media (max-width: 1280px) {
+  .sock-editor { grid-template-columns: 240px 1fr 300px; }
+}
+
+@media (max-width: 1080px) {
+  .sock-editor {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    overflow-y: auto;
+  }
+  .canvas-wrap { min-height: 360px; }
+}

@@ -1,0 +1,79 @@
+.lib-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  background: var(--bg-elevated);
+  padding: 4px;
+  border-radius: 11px;
+  border: 1px solid var(--border-color);
+  width: fit-content;
+  box-shadow: var(--shadow-sm);
+}
+
+.lib-tab {
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.lib-tab:hover { color: var(--text-primary); }
+
+.lib-tab.active {
+  background: var(--bg-card);
+  color: var(--accent);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.lib-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 14px 12px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.lib-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(212, 55, 107, 0.22);
+}
+
+.lib-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 14px;
+}
+
+.lib-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.lib-tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+
+.lib-tag {
+  padding: 2px 8px;
+  background: var(--bg-hover);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--text-muted);
+}

@@ -1,0 +1,2411 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>爱花型袜版设计系统 · 高保真原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary:        #eef0f3;
+  --bg-secondary:      #fcfcfd;
+  --bg-elevated:       rgba(255,255,255,0.86);
+  --bg-card:           #ffffff;
+  --bg-hover:          #f4f5f7;
+  --bg-active:         #eceef2;
+  --border-color:      rgba(16,18,24,0.09);
+  --border-strong:     rgba(16,18,24,0.18);
+  --text-primary:      #13151a;
+  --text-secondary:    #555d6c;
+  --text-muted:        #8e97a8;
+  --icon-default:      #1f232b;
+  --icon-muted:        #616a79;
+  --accent:            #d4376b;
+  --accent-hover:      #bf2e5e;
+  --accent-soft:       rgba(212,55,107,0.10);
+  --accent-glow:       rgba(212,55,107,0.22);
+  --shadow-sm:         0 8px 20px rgba(17,20,28,0.06);
+  --shadow-md:         0 20px 42px rgba(17,20,28,0.11);
+  --shadow-lg:         0 32px 66px rgba(17,20,28,0.16);
+  --sidebar-width:     86px;
+  --topbar-height:     56px;
+  --right-panel-width: 340px;
+
+  --font-sans: 'Inter', -apple-system, 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  background:
+    radial-gradient(1000px 460px at 78% 110%, rgba(212,55,107,0.08), transparent 62%),
+    radial-gradient(840px 320px at 4% -10%, rgba(17,20,28,0.04), transparent 58%),
+    var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(140,145,160,0.35); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(120,125,140,0.55); }
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; }
+
+/* ─────────────────────────  应用骨架  ───────────────────────── */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--topbar-height) 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar main";
+  height: 100vh;
+}
+
+/* ─────────────────────────  左侧导航  ───────────────────────── */
+
+.sidebar {
+  grid-area: sidebar;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0;
+  gap: 4px;
+  z-index: 10;
+}
+
+.sidebar__logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent) 0%, #f06a8b 100%);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.04em;
+  box-shadow: 0 8px 20px var(--accent-glow);
+  margin-bottom: 18px;
+}
+
+.sidebar__item {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--icon-muted);
+  position: relative;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar__item:hover { background: var(--bg-hover); color: var(--icon-default); }
+
+.sidebar__item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sidebar__item-label {
+  font-size: 10px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.sidebar__item svg { width: 22px; height: 22px; }
+
+.sidebar__bottom { margin-top: auto; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+
+.sidebar__avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, #f6cdda 0%, #d4376b 100%);
+  border: 2px solid var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  display: grid; place-items: center;
+  color: #fff; font-size: 14px; font-weight: 600;
+}
+
+/* ─────────────────────────  顶栏  ───────────────────────── */
+
+.topbar {
+  grid-area: topbar;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 12px;
+  z-index: 10;
+}
+
+.topbar__title-group { display: flex; align-items: center; gap: 12px; }
+
+.topbar__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.topbar__edit-btn {
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: var(--icon-muted);
+  transition: background 0.15s ease;
+}
+.topbar__edit-btn:hover { background: var(--bg-hover); color: var(--icon-default); }
+.topbar__edit-btn svg { width: 14px; height: 14px; }
+
+.topbar__breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.topbar__sep { color: var(--text-muted); margin: 0 4px; }
+
+.topbar__autosave {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+}
+
+.topbar__autosave-dot {
+  width: 6px; height: 6px;
+  background: #2dbe7b;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(45,190,123,0.2);
+}
+
+.topbar__spacer { flex: 1; }
+
+.topbar__btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.topbar__btn--ghost {
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.topbar__btn--ghost:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+
+.topbar__btn--primary {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+.topbar__btn--primary:hover { background: var(--accent-hover); }
+
+.topbar__btn svg { width: 14px; height: 14px; }
+
+/* ─────────────────────────  主内容区  ───────────────────────── */
+
+.main {
+  grid-area: main;
+  overflow: auto;
+  display: none;
+}
+.main.is-active { display: block; }
+
+/* ─────────────────────────  编辑器视图  ───────────────────────── */
+
+.editor {
+  display: grid;
+  grid-template-columns: 280px 1fr var(--right-panel-width);
+  height: 100%;
+  overflow: hidden;
+}
+
+/* —— 左侧素材库 —— */
+
+.assets {
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.assets__tabs {
+  display: flex;
+  padding: 14px 14px 0;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.assets__tab {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.assets__tab.is-active { color: var(--text-primary); }
+.assets__tab.is-active::after {
+  content: ''; position: absolute;
+  left: 12px; right: 12px; bottom: -1px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+}
+
+.assets__tab:hover:not(.is-active) { color: var(--text-secondary); }
+
+.assets__prompt {
+  margin: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(16px);
+}
+
+.assets__prompt-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  resize: none;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  min-height: 60px;
+}
+.assets__prompt-input::placeholder { color: var(--text-muted); }
+
+.assets__prompt-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.assets__prompt-tags {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+
+.assets__chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--bg-active);
+  font-size: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.assets__chip:hover { background: var(--accent-soft); color: var(--accent); }
+
+.assets__generate-btn {
+  width: 100%;
+  margin-top: 10px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 4px 12px var(--accent-glow);
+  transition: background 0.15s ease;
+}
+.assets__generate-btn:hover { background: var(--accent-hover); }
+.assets__generate-btn svg { width: 13px; height: 13px; }
+
+.assets__quota {
+  display: flex; justify-content: space-between;
+  padding: 0 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.assets__quota-num { color: var(--text-primary); font-weight: 500; }
+
+.assets__list {
+  padding: 0 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  overflow: auto;
+  flex: 1;
+}
+
+.assets__item {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  position: relative;
+  cursor: grab;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.assets__item:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.assets__item:active { cursor: grabbing; }
+
+.assets__item-pattern {
+  width: 100%; height: 100%;
+}
+
+.assets__item-tag {
+  position: absolute;
+  top: 6px; left: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.assets__item-fav {
+  position: absolute;
+  bottom: 6px; right: 6px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  display: grid; place-items: center;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.assets__item:hover .assets__item-fav { opacity: 1; }
+.assets__item-fav svg { width: 11px; height: 11px; }
+
+/* —— 中央画布 —— */
+
+.canvas-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 30px;
+  background:
+    radial-gradient(800px 400px at 50% 50%, rgba(255,255,255,0.4), transparent 60%);
+}
+
+.canvas-area__inner {
+  position: relative;
+  display: flex; flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.sock-canvas {
+  width: 360px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  padding: 24px 28px;
+  position: relative;
+}
+
+.sock-canvas__label {
+  position: absolute;
+  top: -18px;
+  left: 14px;
+  padding: 3px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.sock-region {
+  position: relative;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
+}
+
+.sock-region:hover { border-color: var(--border-strong); }
+.sock-region.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--accent-soft); }
+  50%      { box-shadow: 0 0 0 6px rgba(212,55,107,0.16); }
+}
+
+.sock-region__name {
+  position: absolute;
+  top: 6px; left: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(0,0,0,0.45);
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.sock-region__pattern {
+  width: 100%; height: 100%;
+}
+
+.sock-region--welt   { height: 70px;  border-top-left-radius: 28px; border-top-right-radius: 28px; }
+.sock-region--cuff   { height: 50px; }
+.sock-region--body   { height: 130px; display: flex; gap: 4px; padding: 0; border: 2px solid transparent; }
+.sock-region--toe    { height: 76px; border-bottom-left-radius: 36px; border-bottom-right-radius: 36px; }
+
+.sock-region--body .body-side { flex: 1; height: 100%; }
+.sock-region--body .body-heel { width: 100px; height: 100%; border-radius: 6px; position: relative; overflow: hidden; cursor: pointer; }
+
+/* 画布工具条 */
+
+.canvas-toolbar {
+  display: flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  backdrop-filter: blur(16px);
+  padding: 4px;
+  gap: 2px;
+  box-shadow: var(--shadow-sm);
+}
+
+.canvas-toolbar__btn {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  display: grid; place-items: center;
+  color: var(--icon-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.canvas-toolbar__btn:hover { background: var(--bg-hover); color: var(--icon-default); }
+.canvas-toolbar__btn.is-active { background: var(--accent-soft); color: var(--accent); }
+.canvas-toolbar__btn svg { width: 14px; height: 14px; }
+
+.canvas-toolbar__sep {
+  width: 1px;
+  background: var(--border-color);
+  margin: 4px 4px;
+}
+
+.canvas-toolbar__zoom {
+  padding: 0 10px;
+  display: flex; align-items: center;
+  font-size: 11px; color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 浮动的 AI 进度提示 */
+
+.canvas-toast {
+  position: absolute;
+  top: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.canvas-toast__spinner {
+  width: 12px; height: 12px;
+  border: 2px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.canvas-toast__progress {
+  width: 80px; height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.canvas-toast__bar {
+  height: 100%;
+  width: 64%;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* —— 右侧参数面板 —— */
+
+.params {
+  border-left: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px 18px 24px;
+}
+
+.params__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.params__current-region {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.params__region-badge {
+  width: 6px; height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.params__current-region strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.params__section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.params__section-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.params__strategy {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.params__strategy-btn {
+  padding: 10px 0;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.params__strategy-btn:hover { background: var(--bg-active); }
+.params__strategy-btn.is-active {
+  background: var(--accent-soft);
+  border-color: rgba(212,55,107,0.3);
+  color: var(--accent);
+}
+
+.params__strategy-btn svg { width: 22px; height: 22px; opacity: 0.85; }
+
+.params__slider-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.params__slider-row + .params__slider-wrap { margin-bottom: 14px; }
+.params__slider-wrap:last-child { margin-bottom: 0; }
+
+.params__slider-label { color: var(--text-secondary); }
+.params__slider-value {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.params__slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px;
+  background: var(--bg-active);
+  border-radius: 2px;
+  outline: none;
+}
+
+.params__slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px;
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 旋转控制 */
+
+.params__rotation {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.params__rotation-dial {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  position: relative;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 50%, var(--bg-card) 50%, var(--bg-hover) 100%);
+}
+
+.params__rotation-dial::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 4px; height: 4px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.params__rotation-pointer {
+  position: absolute;
+  top: 4px; left: 50%;
+  width: 2px; height: 26px;
+  background: var(--accent);
+  border-radius: 1px;
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(35deg);
+}
+
+.params__rotation-info { flex: 1; }
+
+.params__rotation-angle {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 4px;
+}
+
+.params__rotation-mode {
+  display: flex; gap: 6px; font-size: 11px;
+}
+
+.params__rotation-mode-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+.params__rotation-mode-btn.is-active { background: var(--accent-soft); color: var(--accent); }
+
+/* 颜色选择 */
+
+.params__colors {
+  display: flex; gap: 8px;
+}
+
+.params__color {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 0 0 1px var(--border-color);
+  transition: transform 0.15s ease;
+}
+.params__color:hover { transform: scale(1.1); }
+.params__color.is-selected {
+  box-shadow: 0 0 0 2px var(--accent);
+  transform: scale(1.1);
+}
+
+.params__color-add {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  border: 1px dashed var(--border-strong);
+  display: grid; place-items: center;
+  color: var(--text-muted);
+}
+
+/* 款式延伸 */
+
+.params__extension {
+  background: linear-gradient(135deg, #fff 0%, #fff5f9 100%);
+  border: 1px solid rgba(212,55,107,0.15);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.params__extension::before {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  pointer-events: none;
+}
+
+.params__extension-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+  position: relative;
+}
+
+.params__extension-title svg { width: 16px; height: 16px; color: var(--accent); }
+
+.params__extension-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  position: relative;
+}
+
+.params__extension-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.params__extension-option {
+  padding: 8px 0;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+.params__extension-option.is-active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 10px var(--accent-glow);
+}
+
+.params__extension-btn {
+  width: 100%;
+  height: 38px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 6px 14px var(--accent-glow);
+  position: relative;
+  transition: all 0.15s ease;
+}
+.params__extension-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.params__extension-btn svg { width: 14px; height: 14px; }
+
+/* ─────────────────────────  设计稿列表视图  ───────────────────────── */
+
+.designs {
+  padding: 28px 36px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.designs__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.designs__title { font-size: 22px; font-weight: 600; }
+
+.designs__filters {
+  display: flex; gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 4px;
+  backdrop-filter: blur(16px);
+}
+
+.designs__filter {
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.designs__filter.is-active { background: var(--bg-card); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+
+.designs__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.design-card {
+  background: var(--bg-card);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+.design-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+.design-card__cover {
+  aspect-ratio: 4/5;
+  background: linear-gradient(135deg, #fae0e8 0%, #f6cdda 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.design-card__cover-pattern {
+  width: 100%; height: 100%;
+}
+
+.design-card__status {
+  position: absolute;
+  top: 10px; left: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.92);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.design-card__status.is-ordered {
+  background: rgba(45,190,123,0.15);
+  color: #1e8c5b;
+}
+
+.design-card__menu {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  display: grid; place-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.design-card:hover .design-card__menu { opacity: 1; }
+.design-card__menu svg { width: 14px; height: 14px; }
+
+.design-card__body {
+  padding: 12px 14px;
+}
+
+.design-card__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.design-card__meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex; justify-content: space-between;
+}
+
+/* ─────────────────────────  订单列表视图  ───────────────────────── */
+
+.orders {
+  padding: 28px 36px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.orders__title { font-size: 22px; font-weight: 600; margin-bottom: 24px; }
+
+.orders__table {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.orders__row {
+  display: grid;
+  grid-template-columns: 80px 1.4fr 1fr 0.8fr 0.8fr 0.8fr 0.8fr;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+}
+.orders__row:last-child { border-bottom: none; }
+.orders__row:hover:not(.orders__row--header) { background: var(--bg-hover); }
+
+.orders__row--header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  font-weight: 500;
+}
+
+.orders__thumb {
+  width: 56px; height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.orders__id {
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.orders__design { color: var(--text-primary); font-weight: 500; }
+
+.orders__status {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  width: fit-content;
+}
+
+.orders__status--paid { background: rgba(45,190,123,0.15); color: #1e8c5b; }
+.orders__status--pending { background: rgba(245,158,11,0.15); color: #b06d00; }
+.orders__status--shipped { background: rgba(64,124,255,0.15); color: #1e57d6; }
+
+/* ─────────────────────────  款式延伸面板 (overlay)  ───────────────────────── */
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,12,20,0.36);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 100;
+}
+.overlay.is-open { display: flex; }
+
+.modal {
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  width: 600px; max-width: 92vw;
+  max-height: 88vh;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+.modal__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.modal__title { font-size: 15px; font-weight: 600; }
+
+.modal__close {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: var(--icon-muted);
+}
+.modal__close:hover { background: var(--bg-hover); }
+.modal__close svg { width: 14px; height: 14px; }
+
+.modal__body { padding: 20px; overflow-y: auto; }
+
+.modal__footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+/* 款式延伸 gallery */
+
+.extension-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.extension-gallery__item {
+  aspect-ratio: 4/5;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.extension-gallery__item:hover { border-color: var(--accent); }
+
+.extension-gallery__item.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.extension-gallery__item-cover {
+  width: 100%; height: 100%;
+}
+
+.extension-gallery__item-pick {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: grid; place-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.extension-gallery__item.is-selected .extension-gallery__item-pick { opacity: 1; }
+.extension-gallery__item-pick svg { width: 12px; height: 12px; }
+
+.extension-gallery__item-meta {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 8px 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  color: #fff;
+  font-size: 11px;
+  display: flex; justify-content: space-between;
+}
+
+/* ─────────────────────────  订单提交模态框  ───────────────────────── */
+
+.order-form { display: flex; flex-direction: column; gap: 16px; }
+
+.order-form__group { display: flex; flex-direction: column; gap: 6px; }
+
+.order-form__label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.order-form__sizes {
+  display: flex; gap: 8px;
+}
+
+.order-form__size-chip {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.order-form__size-chip:hover { border-color: var(--border-strong); }
+.order-form__size-chip.is-active {
+  background: var(--accent-soft);
+  border-color: rgba(212,55,107,0.3);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.order-form__qty {
+  display: flex; align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  width: fit-content;
+  overflow: hidden;
+}
+
+.order-form__qty-btn {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  color: var(--icon-muted);
+}
+.order-form__qty-btn:hover { background: var(--bg-hover); color: var(--icon-default); }
+
+.order-form__qty-input {
+  width: 70px; height: 36px;
+  border: none;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  background: transparent;
+}
+
+.order-form__radios {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+
+.order-form__radio {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.order-form__radio:hover { border-color: var(--border-strong); }
+.order-form__radio.is-active {
+  background: var(--accent-soft);
+  border-color: rgba(212,55,107,0.3);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.order-form__textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+.order-form__textarea:focus {
+  border-color: rgba(212,55,107,0.4);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.order-form__summary {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-hover);
+  display: flex; justify-content: space-between;
+  font-size: 13px;
+}
+
+.order-form__summary-label { color: var(--text-secondary); }
+.order-form__summary-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* 通用按钮 */
+
+.btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+.btn--primary:hover { background: var(--accent-hover); }
+
+.btn--ghost {
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+.btn--ghost:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+
+.btn svg { width: 14px; height: 14px; }
+
+/* ─────────────────────────  小程序模拟器  ───────────────────────── */
+
+.mp-frame {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 280px;
+  height: 580px;
+  background: #000;
+  border-radius: 36px;
+  padding: 8px;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.mp-frame.is-collapsed {
+  transform: translateY(540px);
+}
+
+.mp-frame__toggle {
+  position: absolute;
+  top: -34px; left: 50%; transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.mp-frame__toggle svg { width: 12px; height: 12px; }
+
+.mp-frame__screen {
+  width: 100%; height: 100%;
+  background: var(--bg-primary);
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  display: flex; flex-direction: column;
+}
+
+.mp-frame__notch {
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 22px;
+  background: #000;
+  border-radius: 0 0 14px 14px;
+  z-index: 10;
+}
+
+.mp-status {
+  height: 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px 0 18px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mp-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 12px;
+  display: flex; flex-direction: column;
+  gap: 10px;
+}
+
+.mp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4px;
+}
+
+.mp-title { font-size: 14px; font-weight: 600; }
+
+.mp-search {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+.mp-search svg { width: 12px; height: 12px; }
+
+.mp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  flex: 1;
+  overflow: auto;
+}
+
+.mp-card {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+.mp-card__cover {
+  aspect-ratio: 4/5;
+  position: relative;
+}
+
+.mp-card__title {
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.mp-tabbar {
+  height: 56px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  padding: 0 4px;
+}
+
+.mp-tab {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.mp-tab.is-active { color: var(--accent); }
+.mp-tab svg { width: 18px; height: 18px; }
+
+/* ─────────────────────────  说明气泡 / Inspector  ───────────────────────── */
+
+.inspector-tip {
+  position: fixed;
+  bottom: 28px; left: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 360px;
+  z-index: 30;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+
+.inspector-tip__icon {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.inspector-tip__icon svg { width: 12px; height: 12px; }
+
+.inspector-tip__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.inspector-tip__close {
+  width: 18px; height: 18px;
+  margin-left: auto;
+  display: grid; place-items: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.inspector-tip__close svg { width: 12px; height: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ SVG 图标库 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/>
+    </symbol>
+    <symbol id="i-collection" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+    </symbol>
+    <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+    </symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.5 14.6 9 21 11.5l-6.4 2.5L12 20.5 9.4 14 3 11.5 9.4 9 12 2.5Z"/><path d="M19 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2Z" opacity="0.7"/><path d="M5 4l0.7 1.3L7 6l-1.3 0.7L5 8l-0.7-1.3L3 6l1.3-0.7L5 4Z" opacity="0.7"/>
+    </symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+    </symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/>
+    </symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+    </symbol>
+    <symbol id="i-stretch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+    </symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.864-.95-.083-.62-.659-1.103-1.328-1.103-.732 0-1.327.595-1.327 1.327 0 .669.483 1.245 1.103 1.327.47.062.88.395.95.864a.98.98 0 0 1-.276.837l-1.611 1.611c-.47.47-1.087.706-1.704.706s-1.233-.235-1.704-.706l-1.568-1.568a1 1 0 0 0-.878-.289c-.43.066-.751.448-.762.883a1.328 1.328 0 1 1-2.654 0c.011-.435-.331-.817-.762-.883a1 1 0 0 0-.878.289l-1.568 1.568c-.47.47-1.087.706-1.704.706s-1.233-.235-1.704-.706L1.711 13c-.47-.47-.706-1.087-.706-1.704s.235-1.233.706-1.704l1.611-1.611a.98.98 0 0 1 .837-.276c.47.07.802.48.864.95.083.62.659 1.103 1.328 1.103.732 0 1.327-.595 1.327-1.327 0-.669-.483-1.245-1.103-1.327-.47-.062-.88-.395-.95-.864a.98.98 0 0 1 .276-.837l1.611-1.611c.47-.47 1.087-.706 1.704-.706s1.233.235 1.704.706l1.568 1.568a1 1 0 0 0 .878.289c.43-.066.751-.448.762-.883a1.328 1.328 0 1 1 2.654 0c-.011.435.331.817.762.883a1 1 0 0 0 .878-.289l1.568-1.568c.47-.47 1.087-.706 1.704-.706s1.233.235 1.704.706L21.296 5"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+    </symbol>
+    <symbol id="i-mobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+    </symbol>
+    <symbol id="i-chevron-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+    </symbol>
+
+    <!-- Pattern fills (用于伪造袜版区域内的图案) -->
+    <pattern id="p-floral" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#fdebf2"/>
+      <circle cx="10" cy="10" r="6" fill="#d4376b" opacity="0.6"/>
+      <circle cx="10" cy="10" r="2" fill="#fff"/>
+      <circle cx="30" cy="30" r="6" fill="#d4376b" opacity="0.6"/>
+      <circle cx="30" cy="30" r="2" fill="#fff"/>
+      <circle cx="30" cy="10" r="3" fill="#a8204a" opacity="0.4"/>
+      <circle cx="10" cy="30" r="3" fill="#a8204a" opacity="0.4"/>
+    </pattern>
+    <pattern id="p-stripe" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#f5e0e8"/>
+      <rect width="14" height="4" fill="#d4376b" opacity="0.7"/>
+      <rect y="8" width="14" height="2" fill="#a8204a" opacity="0.5"/>
+    </pattern>
+    <pattern id="p-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="#fff5f9"/>
+      <circle cx="10" cy="10" r="3" fill="#d4376b" opacity="0.65"/>
+    </pattern>
+    <pattern id="p-checker" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#f5e9ee"/>
+      <rect width="12" height="12" fill="#d4376b" opacity="0.55"/>
+      <rect x="12" y="12" width="12" height="12" fill="#d4376b" opacity="0.55"/>
+    </pattern>
+    <pattern id="p-flower-big" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <rect width="80" height="80" fill="#fde8e8"/>
+      <g transform="translate(40,40)">
+        <circle r="12" fill="#d4376b" opacity="0.7"/>
+        <circle cx="-20" cy="0" r="10" fill="#ee85a3" opacity="0.7"/>
+        <circle cx="20" cy="0" r="10" fill="#ee85a3" opacity="0.7"/>
+        <circle cx="0" cy="-20" r="10" fill="#ee85a3" opacity="0.7"/>
+        <circle cx="0" cy="20" r="10" fill="#ee85a3" opacity="0.7"/>
+        <circle r="6" fill="#fff5b8"/>
+      </g>
+    </pattern>
+    <pattern id="p-blue-floral" x="0" y="0" width="44" height="44" patternUnits="userSpaceOnUse">
+      <rect width="44" height="44" fill="#e8f0fb"/>
+      <g transform="translate(12,12)">
+        <circle r="5" fill="#5b87d6" opacity="0.65"/>
+        <circle r="2" fill="#fff"/>
+      </g>
+      <g transform="translate(32,32)">
+        <circle r="5" fill="#5b87d6" opacity="0.65"/>
+        <circle r="2" fill="#fff"/>
+      </g>
+    </pattern>
+    <pattern id="p-monochrome" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#f4f4f6"/>
+      <circle cx="16" cy="16" r="4" fill="#1f1f24" opacity="0.55"/>
+      <circle cx="0"  cy="0"  r="2" fill="#1f1f24" opacity="0.35"/>
+      <circle cx="32" cy="32" r="2" fill="#1f1f24" opacity="0.35"/>
+    </pattern>
+    <pattern id="p-gold" x="0" y="0" width="36" height="36" patternUnits="userSpaceOnUse">
+      <rect width="36" height="36" fill="#fef0d4"/>
+      <circle cx="18" cy="18" r="6" fill="#d4a042" opacity="0.7"/>
+      <circle cx="18" cy="18" r="2" fill="#fff"/>
+    </pattern>
+    <pattern id="p-mint" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#e6f2ec"/>
+      <circle cx="10" cy="10" r="4" fill="#5fae8c" opacity="0.65"/>
+      <circle cx="30" cy="30" r="4" fill="#5fae8c" opacity="0.65"/>
+    </pattern>
+  </defs>
+</svg>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 应用骨架 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="app">
+
+  <!-- 左侧导航 -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">花</div>
+    <button class="sidebar__item is-active" data-view="editor" title="编辑器">
+      <svg><use href="#i-pen"/></svg>
+    </button>
+    <button class="sidebar__item" data-view="designs" title="我的作品">
+      <svg><use href="#i-collection"/></svg>
+    </button>
+    <button class="sidebar__item" data-view="orders" title="订单中心">
+      <svg><use href="#i-bag"/></svg>
+    </button>
+    <div class="sidebar__bottom">
+      <button class="sidebar__item" title="设置">
+        <svg><use href="#i-settings"/></svg>
+      </button>
+      <div class="sidebar__avatar">L</div>
+    </div>
+  </aside>
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar__title-group">
+      <span class="topbar__title">玫瑰碎花·春季新款</span>
+      <button class="topbar__edit-btn"><svg><use href="#i-edit"/></svg></button>
+    </div>
+    <span class="topbar__sep">·</span>
+    <span class="topbar__breadcrumb">设计稿 #DSN-2026-1428</span>
+    <span class="topbar__autosave">
+      <span class="topbar__autosave-dot"></span>
+      已自动保存 · 12 秒前
+    </span>
+    <div class="topbar__spacer"></div>
+    <button class="topbar__btn topbar__btn--ghost">
+      <svg><use href="#i-share"/></svg>分享
+    </button>
+    <button class="topbar__btn topbar__btn--ghost">
+      <svg><use href="#i-undo"/></svg>历史版本
+    </button>
+    <button class="topbar__btn topbar__btn--primary" id="open-order-btn">
+      <svg><use href="#i-bag"/></svg>提交订单
+    </button>
+  </header>
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━ 编辑器 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <main class="main is-active" id="view-editor">
+    <div class="editor">
+
+      <!-- 左侧素材库 -->
+      <aside class="assets">
+        <nav class="assets__tabs">
+          <button class="assets__tab is-active">AI 生图</button>
+          <button class="assets__tab">我的素材</button>
+          <button class="assets__tab">系统库</button>
+        </nav>
+
+        <div class="assets__prompt">
+          <textarea
+            class="assets__prompt-input"
+            placeholder="一句话描述你想要的图案..."
+          >粉色玫瑰碎花，复古浪漫风</textarea>
+          <div class="assets__prompt-bar">
+            <div class="assets__prompt-tags">
+              <span class="assets__chip">+ 复古</span>
+              <span class="assets__chip">+ 几何</span>
+              <span class="assets__chip">+ 国风</span>
+            </div>
+          </div>
+          <button class="assets__generate-btn">
+            <svg><use href="#i-sparkles"/></svg>生成 4 张
+          </button>
+        </div>
+
+        <div class="assets__quota">
+          <span>今日已用</span>
+          <span><span class="assets__quota-num">12</span> / 30 张</span>
+        </div>
+
+        <div class="assets__list">
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-floral)"/>
+            </svg>
+            <span class="assets__item-tag">AI · 刚生成</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-flower-big)"/>
+            </svg>
+            <span class="assets__item-tag">AI</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-stripe)"/>
+            </svg>
+            <span class="assets__item-tag">系统库</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-dots)"/>
+            </svg>
+            <span class="assets__item-tag">AI</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-checker)"/>
+            </svg>
+            <span class="assets__item-tag">收藏</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-blue-floral)"/>
+            </svg>
+            <span class="assets__item-tag">AI</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-mint)"/>
+            </svg>
+            <span class="assets__item-tag">AI</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+          <div class="assets__item">
+            <svg class="assets__item-pattern" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+              <rect width="100" height="100" fill="url(#p-gold)"/>
+            </svg>
+            <span class="assets__item-tag">系统库</span>
+            <button class="assets__item-fav"><svg><use href="#i-heart"/></svg></button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中央画布 -->
+      <section class="canvas-area">
+        <div class="canvas-area__inner">
+
+          <div class="canvas-toast">
+            <div class="canvas-toast__spinner"></div>
+            <span>AI 正在生成同款 ·</span>
+            <div class="canvas-toast__progress"><div class="canvas-toast__bar"></div></div>
+            <strong style="color:var(--text-primary)">64%</strong>
+          </div>
+
+          <div class="sock-canvas">
+            <span class="sock-canvas__label">袜版预览 · 800 × 600</span>
+
+            <!-- 袜口 -->
+            <div class="sock-region sock-region--welt" data-region="welt">
+              <span class="sock-region__name">袜口</span>
+              <svg class="sock-region__pattern" viewBox="0 0 320 70" preserveAspectRatio="none">
+                <rect width="320" height="70" fill="url(#p-stripe)"/>
+              </svg>
+            </div>
+
+            <!-- 螺口 -->
+            <div class="sock-region sock-region--cuff" data-region="cuff">
+              <span class="sock-region__name">螺口</span>
+              <svg class="sock-region__pattern" viewBox="0 0 320 50" preserveAspectRatio="none">
+                <rect width="320" height="50" fill="url(#p-dots)"/>
+              </svg>
+            </div>
+
+            <!-- 主体 + 袜跟 -->
+            <div class="sock-region sock-region--body">
+              <div class="body-side" data-region="body">
+                <svg class="sock-region__pattern" viewBox="0 0 220 130" preserveAspectRatio="xMidYMid slice">
+                  <rect width="220" height="130" fill="url(#p-floral)"/>
+                </svg>
+              </div>
+              <div class="body-heel sock-region is-selected" data-region="heel" style="height:130px;">
+                <span class="sock-region__name">袜跟</span>
+                <svg class="sock-region__pattern" viewBox="0 0 100 130" preserveAspectRatio="xMidYMid slice">
+                  <rect width="100" height="130" fill="url(#p-flower-big)"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- 袜头 -->
+            <div class="sock-region sock-region--toe" data-region="toe">
+              <span class="sock-region__name">袜头</span>
+              <svg class="sock-region__pattern" viewBox="0 0 320 76" preserveAspectRatio="none">
+                <rect width="320" height="76" fill="url(#p-checker)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="canvas-toolbar">
+            <button class="canvas-toolbar__btn"><svg><use href="#i-undo"/></svg></button>
+            <button class="canvas-toolbar__btn"><svg><use href="#i-redo"/></svg></button>
+            <div class="canvas-toolbar__sep"></div>
+            <button class="canvas-toolbar__btn"><svg><use href="#i-minus"/></svg></button>
+            <span class="canvas-toolbar__zoom">100%</span>
+            <button class="canvas-toolbar__btn"><svg><use href="#i-plus"/></svg></button>
+            <div class="canvas-toolbar__sep"></div>
+            <button class="canvas-toolbar__btn is-active"><svg><use href="#i-grid"/></svg></button>
+            <button class="canvas-toolbar__btn"><svg><use href="#i-image"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右侧参数面板 -->
+      <aside class="params">
+        <div class="params__header">
+          <div class="params__current-region">
+            <span class="params__region-badge"></span>
+            正在编辑：<strong>袜跟</strong>
+          </div>
+        </div>
+
+        <div class="params__section">
+          <div class="params__section-title">填充策略</div>
+          <div class="params__strategy">
+            <button class="params__strategy-btn is-active">
+              <svg><use href="#i-grid"/></svg>平铺
+            </button>
+            <button class="params__strategy-btn">
+              <svg><use href="#i-stretch"/></svg>拉伸
+            </button>
+            <button class="params__strategy-btn">
+              <svg><use href="#i-puzzle"/></svg>分块
+            </button>
+          </div>
+        </div>
+
+        <div class="params__section">
+          <div class="params__section-title">参数</div>
+
+          <div class="params__slider-row">
+            <span class="params__slider-label">密度</span>
+            <span class="params__slider-value" id="density-val">3.5×</span>
+          </div>
+          <div class="params__slider-wrap">
+            <input type="range" class="params__slider" id="density" min="10" max="100" value="42">
+          </div>
+
+          <div class="params__slider-row">
+            <span class="params__slider-label">间距</span>
+            <span class="params__slider-value" id="spacing-val">8 px</span>
+          </div>
+          <div class="params__slider-wrap">
+            <input type="range" class="params__slider" id="spacing" min="0" max="50" value="8">
+          </div>
+
+          <div class="params__section-title" style="margin-top:14px">旋转</div>
+
+          <div class="params__rotation">
+            <div class="params__rotation-dial">
+              <div class="params__rotation-pointer" id="rotation-pointer"></div>
+            </div>
+            <div class="params__rotation-info">
+              <div class="params__rotation-angle" id="rotation-val">35°</div>
+              <div class="params__rotation-mode">
+                <button class="params__rotation-mode-btn is-active">统一</button>
+                <button class="params__rotation-mode-btn">随机</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="params__section">
+          <div class="params__section-title">底色</div>
+          <div class="params__colors">
+            <div class="params__color is-selected" style="background:#ffffff"></div>
+            <div class="params__color" style="background:#13151a"></div>
+            <div class="params__color" style="background:#fde8e8"></div>
+            <div class="params__color" style="background:#e8f0fb"></div>
+            <div class="params__color" style="background:#e6f2ec"></div>
+            <div class="params__color-add"><svg width="14" height="14"><use href="#i-plus"/></svg></div>
+          </div>
+        </div>
+
+        <div class="params__extension">
+          <div class="params__extension-title">
+            <svg><use href="#i-sparkles"/></svg>款式延伸
+          </div>
+          <div class="params__extension-desc">
+            基于当前设计批量出衍生款，AI 锁定色调与纹理风格，仅在版式上变化。
+          </div>
+          <div class="params__extension-options">
+            <button class="params__extension-option">1 张</button>
+            <button class="params__extension-option">2 张</button>
+            <button class="params__extension-option is-active">4 张</button>
+          </div>
+          <button class="params__extension-btn" id="open-extension-btn">
+            <svg><use href="#i-zap"/></svg>开始生成
+          </button>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━ 我的作品 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <main class="main" id="view-designs">
+    <div class="designs">
+      <div class="designs__header">
+        <h1 class="designs__title">我的作品</h1>
+        <div class="designs__filters">
+          <button class="designs__filter is-active">全部</button>
+          <button class="designs__filter">草稿</button>
+          <button class="designs__filter">已下单</button>
+          <button class="designs__filter">已分享</button>
+        </div>
+      </div>
+
+      <div class="designs__grid">
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-floral)"/>
+            </svg>
+            <span class="design-card__status">草稿</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">玫瑰碎花·春季新款</div>
+            <div class="design-card__meta"><span>3 分钟前</span><span>v2</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-flower-big)"/>
+            </svg>
+            <span class="design-card__status is-ordered">已下单</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">大花朵中筒袜 · 限量 200 双</div>
+            <div class="design-card__meta"><span>昨天</span><span>200 双</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-stripe)"/>
+            </svg>
+            <span class="design-card__status">草稿</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">条纹运动袜·男款</div>
+            <div class="design-card__meta"><span>2 天前</span><span>v1</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-blue-floral)"/>
+            </svg>
+            <span class="design-card__status is-ordered">已下单</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">蓝色小碎花 · 中筒</div>
+            <div class="design-card__meta"><span>3 天前</span><span>500 双</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-checker)"/>
+            </svg>
+            <span class="design-card__status">已分享</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">复古格纹·日系小清新</div>
+            <div class="design-card__meta"><span>1 周前</span><span>v3</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-gold)"/>
+            </svg>
+            <span class="design-card__status is-ordered">已下单</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">金粉点缀·节日款</div>
+            <div class="design-card__meta"><span>1 周前</span><span>1000 双</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-dots)"/>
+            </svg>
+            <span class="design-card__status">草稿</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">圆点儿童袜·彩虹色</div>
+            <div class="design-card__meta"><span>2 周前</span><span>v1</span></div>
+          </div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-card__cover">
+            <svg class="design-card__cover-pattern" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+              <rect width="200" height="250" fill="url(#p-monochrome)"/>
+            </svg>
+            <span class="design-card__status">已分享</span>
+            <button class="design-card__menu"><svg><use href="#i-more"/></svg></button>
+          </div>
+          <div class="design-card__body">
+            <div class="design-card__title">极简波点 · 商务长筒</div>
+            <div class="design-card__meta"><span>3 周前</span><span>v2</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━ 订单中心 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <main class="main" id="view-orders">
+    <div class="orders">
+      <h1 class="orders__title">订单中心</h1>
+      <div class="orders__table">
+        <div class="orders__row orders__row--header">
+          <div></div>
+          <div>设计名称</div>
+          <div>订单号</div>
+          <div>数量</div>
+          <div>金额</div>
+          <div>状态</div>
+          <div>下单时间</div>
+        </div>
+        <div class="orders__row">
+          <div class="orders__thumb">
+            <svg viewBox="0 0 56 56" preserveAspectRatio="xMidYMid slice"><rect width="56" height="56" fill="url(#p-flower-big)"/></svg>
+          </div>
+          <div class="orders__design">大花朵中筒袜 · 限量 200 双</div>
+          <div class="orders__id">AHX-2026-04-1428</div>
+          <div>200 双</div>
+          <div>¥ 6,800</div>
+          <div><span class="orders__status orders__status--paid">已支付</span></div>
+          <div>昨天 14:32</div>
+        </div>
+        <div class="orders__row">
+          <div class="orders__thumb">
+            <svg viewBox="0 0 56 56" preserveAspectRatio="xMidYMid slice"><rect width="56" height="56" fill="url(#p-blue-floral)"/></svg>
+          </div>
+          <div class="orders__design">蓝色小碎花 · 中筒</div>
+          <div class="orders__id">AHX-2026-04-1392</div>
+          <div>500 双</div>
+          <div>¥ 14,500</div>
+          <div><span class="orders__status orders__status--shipped">运输中</span></div>
+          <div>3 天前</div>
+        </div>
+        <div class="orders__row">
+          <div class="orders__thumb">
+            <svg viewBox="0 0 56 56" preserveAspectRatio="xMidYMid slice"><rect width="56" height="56" fill="url(#p-gold)"/></svg>
+          </div>
+          <div class="orders__design">金粉点缀·节日款</div>
+          <div class="orders__id">AHX-2026-04-1287</div>
+          <div>1000 双</div>
+          <div>¥ 32,000</div>
+          <div><span class="orders__status orders__status--shipped">已发货</span></div>
+          <div>1 周前</div>
+        </div>
+        <div class="orders__row">
+          <div class="orders__thumb">
+            <svg viewBox="0 0 56 56" preserveAspectRatio="xMidYMid slice"><rect width="56" height="56" fill="url(#p-floral)"/></svg>
+          </div>
+          <div class="orders__design">玫瑰碎花·春季新款</div>
+          <div class="orders__id">AHX-2026-04-1456</div>
+          <div>300 双</div>
+          <div>¥ 9,600</div>
+          <div><span class="orders__status orders__status--pending">待支付</span></div>
+          <div>10 分钟前</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━ 款式延伸 modal ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="overlay" id="extension-overlay">
+  <div class="modal" style="width:680px">
+    <div class="modal__header">
+      <span class="modal__title">款式延伸 · 4 张同款变体</span>
+      <button class="modal__close" data-close="extension-overlay"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <div class="extension-gallery">
+        <div class="extension-gallery__item is-selected">
+          <svg class="extension-gallery__item-cover" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+            <rect width="200" height="250" fill="url(#p-floral)"/>
+          </svg>
+          <div class="extension-gallery__item-pick"><svg><use href="#i-check"/></svg></div>
+          <div class="extension-gallery__item-meta"><span>变体 1</span><span>密度 4×</span></div>
+        </div>
+        <div class="extension-gallery__item">
+          <svg class="extension-gallery__item-cover" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+            <rect width="200" height="250" fill="url(#p-flower-big)"/>
+          </svg>
+          <div class="extension-gallery__item-pick"><svg><use href="#i-check"/></svg></div>
+          <div class="extension-gallery__item-meta"><span>变体 2</span><span>大花布局</span></div>
+        </div>
+        <div class="extension-gallery__item">
+          <svg class="extension-gallery__item-cover" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+            <rect width="200" height="250" fill="url(#p-dots)"/>
+          </svg>
+          <div class="extension-gallery__item-pick"><svg><use href="#i-check"/></svg></div>
+          <div class="extension-gallery__item-meta"><span>变体 3</span><span>简化点状</span></div>
+        </div>
+        <div class="extension-gallery__item">
+          <svg class="extension-gallery__item-cover" viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice">
+            <rect width="200" height="250" fill="url(#p-stripe)"/>
+          </svg>
+          <div class="extension-gallery__item-pick"><svg><use href="#i-check"/></svg></div>
+          <div class="extension-gallery__item-meta"><span>变体 4</span><span>条纹版</span></div>
+        </div>
+      </div>
+      <p style="margin-top:14px; font-size:11px; color:var(--text-muted)">
+        所有变体保持原色调与纹理质感，仅版式与密度有所不同。点击应用后会替换当前画布。
+      </p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" data-close="extension-overlay">取消</button>
+      <button class="btn btn--primary"><svg><use href="#i-check"/></svg>应用到画布</button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━ 订单提交 modal ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="overlay" id="order-overlay">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">提交订单</span>
+      <button class="modal__close" data-close="order-overlay"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <form class="order-form" onsubmit="event.preventDefault();">
+        <div class="order-form__group">
+          <label class="order-form__label">尺码</label>
+          <div class="order-form__sizes">
+            <button type="button" class="order-form__size-chip">35–37</button>
+            <button type="button" class="order-form__size-chip is-active">38–40</button>
+            <button type="button" class="order-form__size-chip">41–43</button>
+            <button type="button" class="order-form__size-chip">+ 自定义</button>
+          </div>
+        </div>
+
+        <div class="order-form__group">
+          <label class="order-form__label">数量</label>
+          <div class="order-form__qty">
+            <button type="button" class="order-form__qty-btn"><svg width="14" height="14"><use href="#i-minus"/></svg></button>
+            <input type="number" class="order-form__qty-input" value="300">
+            <button type="button" class="order-form__qty-btn"><svg width="14" height="14"><use href="#i-plus"/></svg></button>
+            <span style="padding:0 12px; font-size:12px; color:var(--text-muted)">双</span>
+          </div>
+        </div>
+
+        <div class="order-form__group">
+          <label class="order-form__label">底色</label>
+          <div class="order-form__radios">
+            <button type="button" class="order-form__radio is-active">白底</button>
+            <button type="button" class="order-form__radio">黑底</button>
+            <button type="button" class="order-form__radio">浅粉</button>
+            <button type="button" class="order-form__radio">+ 自定义</button>
+          </div>
+        </div>
+
+        <div class="order-form__group">
+          <label class="order-form__label">材质</label>
+          <div class="order-form__radios">
+            <button type="button" class="order-form__radio is-active">棉</button>
+            <button type="button" class="order-form__radio">莫代尔</button>
+            <button type="button" class="order-form__radio">锦纶</button>
+            <button type="button" class="order-form__radio">混纺</button>
+          </div>
+        </div>
+
+        <div class="order-form__group">
+          <label class="order-form__label">配送地址</label>
+          <select class="order-form__textarea" style="min-height:auto; height:38px; padding:0 12px;">
+            <option>李设计师 · 浙江诸暨大唐街道工业园 27 号 · 13800138000</option>
+            <option>+ 新增地址</option>
+          </select>
+        </div>
+
+        <div class="order-form__group">
+          <label class="order-form__label">备注</label>
+          <textarea class="order-form__textarea" placeholder="特别要求请在此说明，例如包装方式、催发提醒..."></textarea>
+        </div>
+
+        <div class="order-form__summary">
+          <span class="order-form__summary-label">预计金额</span>
+          <span class="order-form__summary-value">¥ 9,600</span>
+        </div>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" data-close="order-overlay">取消</button>
+      <button class="btn btn--primary"><svg><use href="#i-bag"/></svg>提交至爱花型</button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━ 小程序模拟器 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="mp-frame is-collapsed" id="mp-frame">
+  <button class="mp-frame__toggle" id="mp-toggle">
+    <svg><use href="#i-mobile"/></svg>
+    <span>小程序预览</span>
+    <svg id="mp-arrow"><use href="#i-chevron-up"/></svg>
+  </button>
+  <div class="mp-frame__screen">
+    <div class="mp-frame__notch"></div>
+    <div class="mp-status">
+      <span>9:41</span>
+      <span style="font-size:10px">📶 5G 100%</span>
+    </div>
+    <div class="mp-content">
+      <div class="mp-header">
+        <span class="mp-title">爱花型设计</span>
+        <svg width="16" height="16" style="color:var(--icon-muted)"><use href="#i-more"/></svg>
+      </div>
+      <div class="mp-search">
+        <svg><use href="#i-search"/></svg>搜索我的设计、订单...
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button style="flex:1;height:44px;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="14" height="14"><use href="#i-sparkles"/></svg>AI 生图
+        </button>
+        <button style="flex:1;height:44px;border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid var(--border-color)">
+          <svg width="14" height="14"><use href="#i-pen"/></svg>新建
+        </button>
+      </div>
+      <div style="font-size:11px; color:var(--text-muted); padding:0 4px; display:flex; justify-content:space-between; align-items:center;">
+        <span>近期作品</span><span style="color:var(--accent)">查看全部 ›</span>
+      </div>
+      <div class="mp-grid">
+        <div class="mp-card">
+          <div class="mp-card__cover">
+            <svg viewBox="0 0 100 125" preserveAspectRatio="xMidYMid slice"><rect width="100" height="125" fill="url(#p-floral)"/></svg>
+          </div>
+          <div class="mp-card__title">玫瑰碎花·春季</div>
+        </div>
+        <div class="mp-card">
+          <div class="mp-card__cover">
+            <svg viewBox="0 0 100 125" preserveAspectRatio="xMidYMid slice"><rect width="100" height="125" fill="url(#p-flower-big)"/></svg>
+          </div>
+          <div class="mp-card__title">大花朵中筒袜</div>
+        </div>
+        <div class="mp-card">
+          <div class="mp-card__cover">
+            <svg viewBox="0 0 100 125" preserveAspectRatio="xMidYMid slice"><rect width="100" height="125" fill="url(#p-stripe)"/></svg>
+          </div>
+          <div class="mp-card__title">条纹运动袜</div>
+        </div>
+        <div class="mp-card">
+          <div class="mp-card__cover">
+            <svg viewBox="0 0 100 125" preserveAspectRatio="xMidYMid slice"><rect width="100" height="125" fill="url(#p-blue-floral)"/></svg>
+          </div>
+          <div class="mp-card__title">蓝色小碎花</div>
+        </div>
+      </div>
+    </div>
+    <div class="mp-tabbar">
+      <div class="mp-tab is-active">
+        <svg><use href="#i-collection"/></svg>作品
+      </div>
+      <div class="mp-tab">
+        <svg><use href="#i-pen"/></svg>设计
+      </div>
+      <div class="mp-tab">
+        <svg><use href="#i-bag"/></svg>订单
+      </div>
+      <div class="mp-tab">
+        <svg><use href="#i-settings"/></svg>我的
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━ Inspector tip ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="inspector-tip" id="inspector-tip">
+  <div class="inspector-tip__icon"><svg><use href="#i-info"/></svg></div>
+  <div>
+    <div class="inspector-tip__title">高保真原型 · 仅展示用</div>
+    <div>左侧切换：编辑器 / 我的作品 / 订单中心。点右下角可展开小程序预览。</div>
+  </div>
+  <div class="inspector-tip__close" id="tip-close"><svg><use href="#i-x"/></svg></div>
+</div>
+
+<script>
+// ─── 视图切换 ─────────────────────────────────────
+document.querySelectorAll('.sidebar__item[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
+    document.querySelectorAll('.sidebar__item[data-view]').forEach(b => b.classList.toggle('is-active', b === btn));
+    document.querySelectorAll('.main').forEach(m => m.classList.toggle('is-active', m.id === 'view-' + view));
+  });
+});
+
+// ─── 区域选择高亮 ───────────────────────────────────
+document.querySelectorAll('.sock-region').forEach(region => {
+  region.addEventListener('click', e => {
+    e.stopPropagation();
+    document.querySelectorAll('.sock-region').forEach(r => r.classList.remove('is-selected'));
+    region.classList.add('is-selected');
+    const name = region.querySelector('.sock-region__name')?.textContent || '区域';
+    document.querySelector('.params__current-region strong').textContent = name;
+  });
+});
+
+// ─── 滑块联动 ───────────────────────────────────────
+const densitySlider = document.getElementById('density');
+const densityVal = document.getElementById('density-val');
+densitySlider.addEventListener('input', () => {
+  const v = (1 + densitySlider.value / 100 * 7).toFixed(1);
+  densityVal.textContent = v + '×';
+});
+
+const spacingSlider = document.getElementById('spacing');
+const spacingVal = document.getElementById('spacing-val');
+spacingSlider.addEventListener('input', () => {
+  spacingVal.textContent = spacingSlider.value + ' px';
+});
+
+// ─── 旋转盘 ─────────────────────────────────────────
+const dial = document.querySelector('.params__rotation-dial');
+const pointer = document.getElementById('rotation-pointer');
+const rotationVal = document.getElementById('rotation-val');
+let dragging = false;
+const setAngle = (deg) => {
+  pointer.style.transform = `translateX(-50%) rotate(${deg}deg)`;
+  rotationVal.textContent = Math.round(deg) + '°';
+};
+const handleDial = e => {
+  if (!dragging && e.type !== 'click') return;
+  const r = dial.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - cx;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - cy;
+  let deg = Math.atan2(x, -y) * 180 / Math.PI;
+  if (deg < 0) deg += 360;
+  setAngle(deg);
+};
+dial.addEventListener('mousedown', e => { dragging = true; handleDial(e); });
+window.addEventListener('mousemove', handleDial);
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// ─── modal 切换 ─────────────────────────────────────
+document.getElementById('open-extension-btn').addEventListener('click', () => {
+  document.getElementById('extension-overlay').classList.add('is-open');
+});
+document.getElementById('open-order-btn').addEventListener('click', () => {
+  document.getElementById('order-overlay').classList.add('is-open');
+});
+document.querySelectorAll('[data-close]').forEach(b => {
+  b.addEventListener('click', () => document.getElementById(b.dataset.close).classList.remove('is-open'));
+});
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('is-open'); });
+});
+
+// ─── 款式延伸 gallery 选择 ──────────────────────────
+document.querySelectorAll('.extension-gallery__item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.extension-gallery__item').forEach(i => i.classList.toggle('is-selected', i === item));
+  });
+});
+
+// ─── 通用单选/标签切换 ─────────────────────────────
+[
+  '.params__strategy-btn',
+  '.params__rotation-mode-btn',
+  '.params__extension-option',
+  '.assets__tab',
+  '.designs__filter',
+  '.params__color',
+  '.order-form__size-chip',
+  '.order-form__radio'
+].forEach(selector => {
+  const groups = new Map();
+  document.querySelectorAll(selector).forEach(el => {
+    const parent = el.parentElement;
+    if (!groups.has(parent)) groups.set(parent, []);
+    groups.get(parent).push(el);
+  });
+  groups.forEach(items => {
+    items.forEach(item => {
+      item.addEventListener('click', () => {
+        items.forEach(i => i.classList.toggle('is-active', i === item));
+        if (selector === '.params__color') {
+          items.forEach(i => i.classList.toggle('is-selected', i === item));
+        }
+      });
+    });
+  });
+});
+
+// ─── 小程序预览展开 ─────────────────────────────────
+const mpFrame = document.getElementById('mp-frame');
+const mpToggle = document.getElementById('mp-toggle');
+const mpArrow = document.getElementById('mp-arrow');
+mpToggle.addEventListener('click', () => {
+  mpFrame.classList.toggle('is-collapsed');
+  mpArrow.querySelector('use').setAttribute('href', mpFrame.classList.contains('is-collapsed') ? '#i-chevron-up' : '#i-chevron-down');
+});
+
+// ─── inspector tip 关闭 ─────────────────────────────
+document.getElementById('tip-close').addEventListener('click', () => {
+  document.getElementById('inspector-tip').style.display = 'none';
+});
+</script>
+
+</body>
+</html>
