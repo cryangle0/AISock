@@ -1,0 +1,218 @@
+.image-tool {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 26px 26px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.it-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 14px;
+  min-height: 0;
+}
+
+.it-canvas-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px 18px 14px;
+  gap: 12px;
+}
+
+.it-canvas-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.it-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+  font-family: 'Inter', monospace;
+}
+
+.it-canvas-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background:
+    radial-gradient(420px 320px at 50% 40%, rgba(212, 55, 107, 0.06), transparent 70%),
+    var(--bg-hover);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.it-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.it-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.it-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.it-section:last-of-type { border-bottom: none; }
+
+.it-section-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.it-slider-row { display: flex; flex-direction: column; gap: 6px; }
+
+.it-slider-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.it-slider-value {
+  color: var(--accent);
+  font-weight: 500;
+  font-family: 'Inter', monospace;
+}
+
+.it-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--bg-active);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.it-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border: 3px solid var(--bg-card);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(212, 55, 107, 0.4), 0 2px 6px rgba(212, 55, 107, 0.4);
+  transition: transform 0.15s;
+}
+
+.it-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+.it-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border: 3px solid var(--bg-card);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(212, 55, 107, 0.4);
+}
+
+.it-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  border: none;
+  font-family: var(--font-sans);
+}
+
+.it-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(212, 55, 107, 0.32);
+}
+
+.it-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 6px 18px rgba(212, 55, 107, 0.4);
+  transform: translateY(-1px);
+}
+
+.it-btn-primary:disabled {
+  background: var(--bg-active);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.it-btn-ghost {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.it-btn-ghost:hover:not(:disabled) {
+  background: var(--bg-active);
+}
+
+.it-btn-ghost.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.it-btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.it-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.it-btn-full { width: 100%; }
+
+@media (max-width: 1080px) {
+  .it-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(380px, 1fr) auto;
+    overflow-y: auto;
+  }
+}
