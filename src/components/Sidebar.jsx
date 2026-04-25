@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import './Sidebar.css'
 import { Brush, FolderHeart, ShoppingBag, Layers, Sun, Moon, LogOut } from 'lucide-react'
+import { BrandLogo } from './BrandLogo'
 
 const menuItems = [
   { label: '设计', icon: Brush },
@@ -33,18 +34,9 @@ export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDa
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo" title="AISock">
+      <div className="sidebar-logo" title="爱花型">
         <div className="logo-mark">
-          <svg viewBox="0 0 32 32" width="26" height="26">
-            <defs>
-              <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#d4376b"/>
-                <stop offset="100%" stopColor="#e85a8a"/>
-              </linearGradient>
-            </defs>
-            <path d="M11 3 L21 3 Q22 3 22 4 L22 15 Q22 16.5 21 17.5 L13 25.5 Q12 26.5 12 28 L12 30 Q12 31 11 31 L4 31 Q3 31 3 30 L3 25 Q3 23.5 4 22.5 L10 16.5 Q11 15.5 11 14 Z" fill="url(#lg)"/>
-            <rect x="11" y="3" width="11" height="3" fill="#a82850" opacity="0.6"/>
-          </svg>
+          <BrandLogo size={32} uid="sb"/>
         </div>
       </div>
 

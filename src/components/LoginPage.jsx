@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import './LoginPage.css'
+import { BrandLogo } from './BrandLogo'
 
 function VisionRings() {
   return (
@@ -29,20 +30,11 @@ export default function LoginPage({ onLogin }) {
         <div className="lp-left-inner">
           <div className="lp-brand">
             <div className="lp-brand-logo">
-              <svg viewBox="0 0 32 32" width="42" height="42">
-                <defs>
-                  <linearGradient id="lp-lg" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#d4376b"/>
-                    <stop offset="100%" stopColor="#e85a8a"/>
-                  </linearGradient>
-                </defs>
-                <path d="M11 3 L21 3 Q22 3 22 4 L22 15 Q22 16.5 21 17.5 L13 25.5 Q12 26.5 12 28 L12 30 Q12 31 11 31 L4 31 Q3 31 3 30 L3 25 Q3 23.5 4 22.5 L10 16.5 Q11 15.5 11 14 Z" fill="url(#lp-lg)"/>
-                <rect x="11" y="3" width="11" height="3" fill="#a82850" opacity="0.6"/>
-              </svg>
+              <BrandLogo size={46} uid="lp"/>
             </div>
             <div className="lp-brand-info">
-              <div className="lp-brand-name">AISock</div>
-              <div className="lp-brand-sub">爱花型袜版设计系统</div>
+              <div className="lp-brand-name">爱花型</div>
+              <div className="lp-brand-sub">AI 袜版设计 · 一键下单</div>
             </div>
           </div>
 
@@ -72,7 +64,7 @@ export default function LoginPage({ onLogin }) {
         <div className="lp-form-wrap">
           {mode === 'sms' && (
             <>
-              <h2 className="lp-form-title">欢迎登录 AISock</h2>
+              <h2 className="lp-form-title">欢迎来到爱花型</h2>
               <p className="lp-form-sub">手机号验证码登录，开启你的袜款设计之旅。</p>
 
               <div className="lp-fields">
@@ -140,7 +132,7 @@ export default function LoginPage({ onLogin }) {
           )}
         </div>
 
-        <div className="lp-footer">爱花型袜业 · AISock © 2026</div>
+        <div className="lp-footer">爱花型袜业 · 2026</div>
       </div>
     </div>
   )
