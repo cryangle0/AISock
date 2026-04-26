@@ -42,7 +42,7 @@ export default function LoginPage({ onLogin }) {
             <div className="lp-badge">AI 设计 · 同款延展 · 一键下单</div>
             <h1 className="lp-headline">
               一根<em>花线</em>到成品<br/>
-              7 天交付定制袜款
+              5分钟交付定制袜款
             </h1>
             <p className="lp-desc">
               在线编辑袜版四区花型，AI 同款一键延展 1 / 2 / 4 个变体，
