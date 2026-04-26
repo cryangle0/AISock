@@ -1,72 +1,111 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import './SockEditor.css'
 import AssetPanel from './AssetPanel'
-import SockCanvas from './SockCanvas'
+import SockPrintCanvas from './SockPrintCanvas'
 import ParamsPanel from './ParamsPanel'
-import ExtensionModal from './ExtensionModal'
 import OrderModal from './OrderModal'
 
-const DEFAULT_REGIONS = {
-  welt: 'p-stripe',  // 袜口
-  cuff: 'p-floral',  // 螺口
-  body: 'p-floral',  // 主体（含袜跟）
-  toe:  'p-dots',    // 袜头
+const DEFAULT_PARAMS = {
+  density: 100,
+  tileDensity: 3,
+  rotation: 0,
+  singleMode: true,
+  debugMode: false,
 }
 
 export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
-  const [regions, setRegions] = useState(DEFAULT_REGIONS)
-  const [activeRegion, setActiveRegion] = useState('body')
-  const [params, setParams] = useState({
-    density: 60,
-    rotation: 0,
-    spacing: 50,
-    fillStrategy: 'tile', // tile | stretch | smart
-    variantCount: 2,      // 1 | 2 | 4
-  })
-  const [extensionOpen, setExtensionOpen] = useState(false)
+  const [printImage, setPrintImage] = useState(null)
+  const [printName, setPrintName] = useState('')
+  const [params, setParams] = useState(DEFAULT_PARAMS)
   const [orderOpen, setOrderOpen] = useState(false)
 
-  const setPattern = (patternId) => {
-    setRegions(prev => ({ ...prev, [activeRegion]: patternId }))
+  const canvasRef = useRef(null)
+
+  const applyImage = (url, name) => {
+    setPrintImage(url || null)
+    setPrintName(name || '')
   }
 
-  const handleGenerateExtension = () => setExtensionOpen(true)
-  const handleSubmitOrder = (data) => {
-    onPlaceOrder?.({ ...data, regions, designName: data.designName || '未命名袜版' })
+  const handleUploadFile = (file) => {
+    if (!file || !file.type?.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = (e) => applyImage(e.target.result, file.name)
+    reader.readAsDataURL(file)
+  }
+
+  const handleClearPrint = () => applyImage(null, '')
+  const handleResetParams = () => setParams(DEFAULT_PARAMS)
+  const handleDownload = () => canvasRef.current?.download?.()
+
+  const composeName = () => printName ? `${printName} 袜款` : '未命名袜版'
+
+  // 缩小 cover 尺寸 — 避免 localStorage 体积爆掉
+  const compressDataURL = (url, maxW = 280) => new Promise((resolve) => {
+    if (!url) return resolve('')
+    const img = new Image()
+    img.onload = () => {
+      const ratio = img.width / img.height
+      const w = Math.min(maxW, img.width)
+      const h = w / ratio
+      const c = document.createElement('canvas')
+      c.width = w
+      c.height = h
+      const ctx = c.getContext('2d')
+      ctx.drawImage(img, 0, 0, w, h)
+      try { resolve(c.toDataURL('image/png')) } catch { resolve('') }
+    }
+    img.onerror = () => resolve('')
+    img.src = url
+  })
+
+  const handleSave = async () => {
+    const raw = canvasRef.current?.getDataURL?.() || ''
+    const cover = await compressDataURL(raw, 280)
+    onSaveDesign?.({
+      name: composeName(),
+      coverImage: cover,
+      printName,
+      params,
+    })
+  }
+
+  const handleSubmitOrder = async (data) => {
+    const raw = canvasRef.current?.getDataURL?.() || ''
+    const cover = await compressDataURL(raw, 280)
+    onPlaceOrder?.({
+      ...data,
+      designName: data.designName || composeName(),
+      coverImage: cover,
+    })
     setOrderOpen(false)
   }
 
   return (
     <div className="sock-editor">
-      <AssetPanel
-        activePattern={regions[activeRegion]}
-        onSelectPattern={setPattern}
-      />
+      <AssetPanel onApplyImage={applyImage}/>
+
       <div className="canvas-wrap">
-        <SockCanvas
-          regions={regions}
-          activeRegion={activeRegion}
-          onSelectRegion={setActiveRegion}
+        <SockPrintCanvas
+          ref={canvasRef}
+          printImage={printImage}
+          printName={printName}
           params={params}
+          onDropImage={applyImage}
         />
       </div>
+
       <ParamsPanel
-        activeRegion={activeRegion}
+        printImage={printImage}
+        printName={printName}
         params={params}
         onParamsChange={setParams}
-        onGenerateExtension={handleGenerateExtension}
-        onSaveDesign={() => onSaveDesign?.({ name: '未命名袜版', cover: regions.body, regions })}
+        onUploadFile={handleUploadFile}
+        onClearPrint={handleClearPrint}
+        onResetParams={handleResetParams}
+        onDownload={handleDownload}
+        onSaveDesign={handleSave}
         onOpenOrder={() => setOrderOpen(true)}
       />
-
-      {extensionOpen && (
-        <ExtensionModal
-          variantCount={params.variantCount}
-          baseRegions={regions}
-          onClose={() => setExtensionOpen(false)}
-          onApply={(picked) => { setRegions(picked); setExtensionOpen(false) }}
-        />
-      )}
 
       {orderOpen && (
         <OrderModal

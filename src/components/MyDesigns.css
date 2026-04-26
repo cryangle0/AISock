@@ -82,6 +82,19 @@
   align-items: center;
   justify-content: center;
   padding: 18px 10px;
+  overflow: hidden;
+}
+
+.design-cover-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(17, 20, 28, 0.08));
+}
+
+.design-cover-empty {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .design-meta {

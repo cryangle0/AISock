@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { Upload, Download, RotateCcw, Layers, Eraser, Eye, EyeOff } from 'lucide-react'
-import './ImageTool.css'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { Image as ImageIcon, MousePointerClick } from 'lucide-react'
+import './SockPrintCanvas.css'
 
-// 静态资源路径 — Vite 会把 BASE_URL 注入为 /AISock/（生产）或 / （dev）
 const ASSET = (name) => `${import.meta.env.BASE_URL}image-tool/${name}`
 
-// 加载单张图片，转 HTMLImageElement，失败返回 null（保持初始化弹性）
 const loadImage = (src) =>
   new Promise((resolve) => {
     const img = new Image()
@@ -17,13 +15,12 @@ const loadImage = (src) =>
 
 // 从蒙版图建二值数组（白=可印=1）+ 边界
 const buildBinaryMask = (canvas, maskImg, w, h) => {
-  const tmp = canvas
-  tmp.width = w
-  tmp.height = h
-  const tctx = tmp.getContext('2d')
-  tctx.clearRect(0, 0, w, h)
-  tctx.drawImage(maskImg, 0, 0, w, h)
-  const { data } = tctx.getImageData(0, 0, w, h)
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, w, h)
+  ctx.drawImage(maskImg, 0, 0, w, h)
+  const { data } = ctx.getImageData(0, 0, w, h)
   const mask = new Uint8Array(w * h)
   let count = 0
   let minX = w
@@ -47,7 +44,6 @@ const buildBinaryMask = (canvas, maskImg, w, h) => {
   return { mask, count, bounds: { minX, minY, maxX, maxY } }
 }
 
-// 把 mask 渲染成纯白 RGBA 缓存画布，供 source-in 裁剪复用
 const buildMaskCanvas = (mask, w, h) => {
   const canvas = document.createElement('canvas')
   canvas.width = w
@@ -67,7 +63,6 @@ const buildMaskCanvas = (mask, w, h) => {
   return canvas
 }
 
-// 直方图法提取主色调（缩到 100x100，量化 RGB 到 32 一档）
 const extractDominantColor = (image) => {
   const tmp = document.createElement('canvas')
   const size = 100
@@ -97,15 +92,15 @@ const extractDominantColor = (image) => {
   return { r: (bestKey >> 16) & 0xff, g: (bestKey >> 8) & 0xff, b: bestKey & 0xff }
 }
 
-export default function ImageTool() {
+const SockPrintCanvas = forwardRef(function SockPrintCanvas(
+  { printImage, printName, params, onDropImage, onStatusChange },
+  ref,
+) {
   const canvasRef = useRef(null)
-  const containerRef = useRef(null)
-  const fileInputRef = useRef(null)
 
-  // 资源 / 蒙版数据 — 用 ref 而非 state，避免重渲染依赖
   const sockImageRef = useRef(null)
   const lineartImageRef = useRef(null)
-  const maskRef = useRef(null) // { mask, count, bounds }
+  const maskRef = useRef(null)
   const maskCanvasRef = useRef(null)
   const otherMaskRef = useRef(null)
   const sockPixelsRef = useRef(null)
@@ -113,17 +108,9 @@ export default function ImageTool() {
   const dominantColorRef = useRef(null)
 
   const [ready, setReady] = useState(false)
-  const [hasPattern, setHasPattern] = useState(false)
-  const [density, setDensity] = useState(100) // 100..300 缩放百分比
-  const [tileDensity, setTileDensity] = useState(3) // 1..10 列
-  const [rotation, setRotation] = useState(0) // 0..360
-  const [singleMode, setSingleMode] = useState(true)
-  const [debugMode, setDebugMode] = useState(false)
-  const [statusMsg, setStatusMsg] = useState('正在加载袜版资源…')
-  // 把初始化后从 ref 算出来的"渲染相关元数据"提到 state，避免 render 中读 ref
   const [meta, setMeta] = useState({ count: 0, width: 0, height: 0 })
+  const [hovering, setHovering] = useState(false)
 
-  // 主绘制 — 任一参数变化都触发
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas || !sockImageRef.current) return
@@ -134,7 +121,6 @@ export default function ImageTool() {
     ctx.clearRect(0, 0, w, h)
     ctx.drawImage(sockImageRef.current, 0, 0)
 
-    // 袜跟袜头主色填充
     const otherMask = otherMaskRef.current
     const sockPixels = sockPixelsRef.current
     const dom = dominantColorRef.current
@@ -157,7 +143,6 @@ export default function ImageTool() {
       ctx.drawImage(tmp, 0, 0)
     }
 
-    // 印花
     if (patternImageRef.current && maskRef.current) {
       const pattern = patternImageRef.current
       const { bounds } = maskRef.current
@@ -170,15 +155,15 @@ export default function ImageTool() {
       patternCanvas.width = w
       patternCanvas.height = h
       const pctx = patternCanvas.getContext('2d')
-      const rad = (rotation * Math.PI) / 180
-      const scale = density / 100
+      const rad = (params.rotation * Math.PI) / 180
+      const scale = params.density / 100
       const ratio = pattern.width / pattern.height
 
       pctx.save()
       pctx.translate(cx, cy)
       pctx.rotate(rad)
 
-      if (singleMode) {
+      if (params.singleMode) {
         let drawW
         let drawH
         const sockRatio = sockW / sockH
@@ -191,7 +176,7 @@ export default function ImageTool() {
         }
         pctx.drawImage(pattern, -drawW / 2, -drawH / 2, drawW, drawH)
       } else {
-        const baseSize = (ratio > 1 ? sockW : sockH) / tileDensity * scale
+        const baseSize = (ratio > 1 ? sockW : sockH) / params.tileDensity * scale
         const singleW = baseSize
         const singleH = baseSize / ratio
         const cols = Math.ceil(sockW / singleW) + 2
@@ -212,7 +197,6 @@ export default function ImageTool() {
       }
       pctx.restore()
 
-      // 蒙版裁剪（source-in）
       if (maskCanvasRef.current) {
         const clipped = document.createElement('canvas')
         clipped.width = w
@@ -225,7 +209,6 @@ export default function ImageTool() {
       }
     }
 
-    // 线稿叠加
     if (lineartImageRef.current) {
       ctx.save()
       ctx.globalCompositeOperation = 'multiply'
@@ -233,8 +216,7 @@ export default function ImageTool() {
       ctx.restore()
     }
 
-    // 调试蒙版（半透明绿色）
-    if (debugMode && maskRef.current) {
+    if (params.debugMode && maskRef.current) {
       const tmp = document.createElement('canvas')
       tmp.width = w
       tmp.height = h
@@ -250,11 +232,12 @@ export default function ImageTool() {
       tctx.putImageData(imgData, 0, 0)
       ctx.drawImage(tmp, 0, 0)
     }
-  }, [density, tileDensity, rotation, singleMode, debugMode])
+  }, [params])
 
-  // 初始化资源 — 仅一次
+  // 一次性加载袜版 / 蒙版资源
   useEffect(() => {
     let cancelled = false
+    onStatusChange?.('正在加载袜版资源…')
     Promise.all([
       loadImage(ASSET('sock.png')),
       loadImage(ASSET('mask.png')),
@@ -263,7 +246,7 @@ export default function ImageTool() {
     ]).then(([sock, mask, otherMask, lineart]) => {
       if (cancelled) return
       if (!sock) {
-        setStatusMsg('袜版底图加载失败，无法继续')
+        onStatusChange?.('袜版底图加载失败，无法继续')
         return
       }
       sockImageRef.current = sock
@@ -273,7 +256,6 @@ export default function ImageTool() {
       canvas.width = sock.width
       canvas.height = sock.height
 
-      // 缓存袜版原始像素（用于颜色填充判断 alpha）
       const tmpA = document.createElement('canvas')
       tmpA.width = sock.width
       tmpA.height = sock.height
@@ -281,14 +263,12 @@ export default function ImageTool() {
       tctxA.drawImage(sock, 0, 0)
       sockPixelsRef.current = tctxA.getImageData(0, 0, sock.width, sock.height).data
 
-      // 主蒙版 — 无 mask.png 时回退用底图反色
       const fallbackMask = mask || sock
       const tmpB = document.createElement('canvas')
       const built = buildBinaryMask(tmpB, fallbackMask, sock.width, sock.height)
       maskRef.current = built
       maskCanvasRef.current = buildMaskCanvas(built.mask, sock.width, sock.height)
 
-      // 颜色填充蒙版（袜跟+袜头）
       if (otherMask) {
         const tmpC = document.createElement('canvas')
         const otherBuilt = buildBinaryMask(tmpC, otherMask, sock.width, sock.height)
@@ -297,214 +277,137 @@ export default function ImageTool() {
 
       setMeta({ count: built.count, width: sock.width, height: sock.height })
       setReady(true)
-      setStatusMsg('就绪 — 上传印花图开始预览')
+      onStatusChange?.('就绪 — 拖拽花型到画布即可贴印')
     })
     return () => {
       cancelled = true
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 重绘
+  // 印花图变化时加载到 ref
   useEffect(() => {
-    if (ready) drawCanvas()
-  }, [ready, drawCanvas, hasPattern])
-
-  const handleUpload = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setStatusMsg('请选择图片文件')
+    if (!printImage) {
+      patternImageRef.current = null
+      dominantColorRef.current = null
+      if (ready) drawCanvas()
       return
     }
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const img = new Image()
-      img.onload = () => {
-        patternImageRef.current = img
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      patternImageRef.current = img
+      try {
         dominantColorRef.current = extractDominantColor(img)
-        setDensity(100)
-        setHasPattern(true)
-        setStatusMsg(`印花上传成功 ${img.width}×${img.height}`)
-        drawCanvas()
+      } catch {
+        dominantColorRef.current = { r: 200, g: 200, b: 200 }
       }
-      img.onerror = () => setStatusMsg('图片解析失败')
-      img.src = e.target.result
+      if (ready) drawCanvas()
     }
-    reader.onerror = () => setStatusMsg('文件读取失败')
-    reader.readAsDataURL(file)
-  }
+    img.src = printImage
+  }, [printImage, ready, drawCanvas])
 
-  const handleClearPattern = () => {
-    patternImageRef.current = null
-    dominantColorRef.current = null
-    setHasPattern(false)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-    setStatusMsg('印花已清除')
-    drawCanvas()
-  }
+  useEffect(() => {
+    if (ready) drawCanvas()
+  }, [ready, drawCanvas])
 
-  const handleReset = () => {
-    setDensity(100)
-    setTileDensity(3)
-    setRotation(0)
-    setStatusMsg('参数已重置')
-  }
-
-  const handleDownload = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const wasDebug = debugMode
-    if (wasDebug) {
-      setDebugMode(false)
-      // 立即重绘一帧后再导出 — 用 requestAnimationFrame
-      requestAnimationFrame(() => {
-        const link = document.createElement('a')
-        link.download = `袜版印花_${Date.now()}.png`
-        link.href = canvas.toDataURL('image/png')
-        link.click()
-        setDebugMode(true)
-      })
-    } else {
+  useImperativeHandle(ref, () => ({
+    getDataURL: () => {
+      const canvas = canvasRef.current
+      if (!canvas) return ''
+      try {
+        return canvas.toDataURL('image/png')
+      } catch {
+        return ''
+      }
+    },
+    download: (filename = `袜版印花_${Date.now()}.png`) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
       const link = document.createElement('a')
-      link.download = `袜版印花_${Date.now()}.png`
+      link.download = filename
       link.href = canvas.toDataURL('image/png')
       link.click()
+    },
+  }), [])
+
+  // 拖拽落图
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    setHovering(true)
+    e.dataTransfer.dropEffect = 'copy'
+  }
+  const handleDragLeave = (e) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return
+    setHovering(false)
+  }
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setHovering(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (ev) => onDropImage?.(ev.target.result, file.name)
+      reader.readAsDataURL(file)
+      return
     }
-    setStatusMsg('图片已导出')
+    const url = e.dataTransfer.getData('text/uri-list')
+      || e.dataTransfer.getData('application/x-aisock-pattern')
+      || e.dataTransfer.getData('text/plain')
+    const name = e.dataTransfer.getData('application/x-aisock-name') || ''
+    if (url) onDropImage?.(url, name)
   }
 
   return (
-    <div className="image-tool">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">印花工具</h1>
-          <p className="page-sub">{statusMsg}</p>
+    <div className="spc-card">
+      <div className="spc-head">
+        <div className="spc-head-left">
+          <span className="spc-title">袜版预览</span>
+          <span className="spc-tag">即印花工具</span>
         </div>
-      </header>
-
-      <div className="it-layout">
-        <section className="it-canvas-card" ref={containerRef}>
-          <div className="it-canvas-head">
-            <span>袜版预览</span>
-            {ready && meta.count > 0 && (
-              <span className="it-meta">
-                可印区域 {meta.count.toLocaleString()} px · 画布 {meta.width}×{meta.height}
-              </span>
-            )}
-          </div>
-          <div className="it-canvas-stage">
-            <canvas ref={canvasRef} className="it-canvas"/>
-          </div>
-        </section>
-
-        <aside className="it-panel">
-          <div className="it-section">
-            <div className="it-section-title">上传印花</div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleUpload}
-              hidden
-            />
-            <button
-              className="it-btn it-btn-primary"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload size={14} strokeWidth={1.8}/>
-              选择印花图片
-            </button>
-          </div>
-
-          <div className="it-section">
-            <div className="it-section-title">印花调节</div>
-
-            <Slider
-              label="图片缩放"
-              value={density}
-              onChange={setDensity}
-              min={100} max={300} unit="%"
-            />
-
-            {!singleMode && (
-              <Slider
-                label="平铺密度"
-                value={tileDensity}
-                onChange={setTileDensity}
-                min={1} max={10} unit="列"
-              />
-            )}
-
-            <Slider
-              label="图片旋转"
-              value={rotation}
-              onChange={setRotation}
-              min={0} max={360} unit="°"
-            />
-          </div>
-
-          <div className="it-section">
-            <div className="it-section-title">操作</div>
-            <div className="it-btn-row">
-              <button
-                className="it-btn it-btn-ghost"
-                onClick={() => setSingleMode((v) => !v)}
-              >
-                <Layers size={13} strokeWidth={1.8}/>
-                {singleMode ? '单张模式' : '平铺模式'}
-              </button>
-              <button className="it-btn it-btn-ghost" onClick={handleReset}>
-                <RotateCcw size={13} strokeWidth={1.8}/>
-                重置
-              </button>
-            </div>
-            <div className="it-btn-row">
-              <button
-                className="it-btn it-btn-ghost"
-                onClick={handleClearPattern}
-                disabled={!hasPattern}
-              >
-                <Eraser size={13} strokeWidth={1.8}/>
-                清除印花
-              </button>
-              <button
-                className={`it-btn it-btn-ghost ${debugMode ? 'active' : ''}`}
-                onClick={() => setDebugMode((v) => !v)}
-              >
-                {debugMode ? <EyeOff size={13} strokeWidth={1.8}/> : <Eye size={13} strokeWidth={1.8}/>}
-                {debugMode ? '关闭蒙版' : '查看蒙版'}
-              </button>
-            </div>
-            <button
-              className="it-btn it-btn-primary it-btn-full"
-              onClick={handleDownload}
-              disabled={!ready}
-            >
-              <Download size={14} strokeWidth={1.8}/>
-              导出 PNG
-            </button>
-          </div>
-        </aside>
+        {ready && meta.count > 0 && (
+          <span className="spc-meta">
+            可印区域 {meta.count.toLocaleString()} px · {meta.width}×{meta.height}
+          </span>
+        )}
       </div>
+
+      <div
+        className={`spc-stage ${hovering ? 'hovering' : ''} ${!printImage ? 'empty' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <canvas ref={canvasRef} className="spc-canvas"/>
+
+        {!printImage && (
+          <div className="spc-hint">
+            <div className="spc-hint-icon">
+              <ImageIcon size={26} strokeWidth={1.4}/>
+            </div>
+            <div className="spc-hint-title">把花型拖到这里</div>
+            <div className="spc-hint-sub">
+              <MousePointerClick size={11} strokeWidth={1.6}/>
+              从左侧素材库 / AI 生成结果直接拖入，或点右侧"上传印花"
+            </div>
+          </div>
+        )}
+
+        {hovering && (
+          <div className="spc-drop-mask">
+            <div className="spc-drop-pill">松开应用为印花</div>
+          </div>
+        )}
+      </div>
+
+      {printImage && (
+        <div className="spc-foot">
+          <span className="spc-foot-dot"/>
+          当前印花：<b>{printName || '自定义图片'}</b>
+        </div>
+      )}
     </div>
   )
-}
+})
 
-function Slider({ label, value, onChange, min, max, unit }) {
-  return (
-    <div className="it-slider-row">
-      <div className="it-slider-head">
-        <span>{label}</span>
-        <span className="it-slider-value">{value}{unit}</span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="it-slider"
-      />
-    </div>
-  )
-}
+export default SockPrintCanvas

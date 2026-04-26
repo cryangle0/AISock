@@ -24,7 +24,13 @@ export default function MyDesigns({ designs, onDelete }) {
         {filtered.map(d => (
           <div key={d.id} className="design-card">
             <div className="design-cover">
-              <SockMini regions={d.regions} uid={`d${d.id}`}/>
+              {d.coverImage ? (
+                <img src={d.coverImage} alt={d.name} className="design-cover-img"/>
+              ) : d.regions ? (
+                <SockMini regions={d.regions} uid={`d${d.id}`}/>
+              ) : (
+                <div className="design-cover-empty">暂无预览</div>
+              )}
             </div>
             <div className="design-meta">
               <div className="design-name">{d.name}</div>

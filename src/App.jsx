@@ -5,7 +5,6 @@ import SockEditor from './components/SockEditor'
 import MyDesigns from './components/MyDesigns'
 import Orders from './components/Orders'
 import AssetLibrary from './components/AssetLibrary'
-import ImageTool from './components/ImageTool'
 import LoginPage from './components/LoginPage'
 import MiniPhone from './components/MiniPhone'
 import './App.css'
@@ -45,11 +44,13 @@ function App() {
   }, [darkMode])
 
   useEffect(() => {
-    localStorage.setItem('aisock.designs', JSON.stringify(designs))
+    try { localStorage.setItem('aisock.designs', JSON.stringify(designs)) }
+    catch (e) { console.warn('saveLocal designs failed:', e?.message) }
   }, [designs])
 
   useEffect(() => {
-    localStorage.setItem('aisock.orders', JSON.stringify(orders))
+    try { localStorage.setItem('aisock.orders', JSON.stringify(orders)) }
+    catch (e) { console.warn('saveLocal orders failed:', e?.message) }
   }, [orders])
 
   const handleNewSession = () => {
@@ -114,9 +115,6 @@ function App() {
               onPlaceOrder={handlePlaceOrder}
             />
           </>
-        )}
-        {activeMenu === '印花工具' && (
-          <ImageTool/>
         )}
         {activeMenu === '我的设计' && (
           <MyDesigns designs={designs} onDelete={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}/>
