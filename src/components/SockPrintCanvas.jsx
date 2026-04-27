@@ -113,7 +113,7 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
       </div>
 
       <div
-        className={`spc-stage ${hovering ? 'hovering' : ''} ${!printImage ? 'empty' : ''}`}
+        className={`spc-stage ${hovering ? 'hovering' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -122,13 +122,15 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
 
         {!printImage && (
           <div className="spc-hint">
-            <div className="spc-hint-icon">
-              <ImageIcon size={26} strokeWidth={1.4}/>
-            </div>
-            <div className="spc-hint-title">把花型拖到这里</div>
-            <div className="spc-hint-sub">
-              <MousePointerClick size={11} strokeWidth={1.6}/>
-              从左侧素材库 / AI 生成结果直接拖入，或点右侧"上传印花"
+            <div className="spc-hint-frame">
+              <div className="spc-hint-icon">
+                <ImageIcon size={26} strokeWidth={1.4}/>
+              </div>
+              <div className="spc-hint-title">把花型拖到这里</div>
+              <div className="spc-hint-sub">
+                <MousePointerClick size={11} strokeWidth={1.6}/>
+                从左侧素材库 / AI 生成结果直接拖入，或点右侧"上传印花"
+              </div>
             </div>
           </div>
         )}

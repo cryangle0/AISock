@@ -61,21 +61,41 @@ const buildMaskCanvas = (mask, w, h) => {
   return c
 }
 
-// 把"袜身可印区"按 y 阈值切出顶部一段作为螺口，剩余作为袜身（供独立上色 + 印花裁剪用）。
-// 注意：bodyMask 用于"袜身底色 + 印花裁剪"，weltMask 用于"螺口底色"。
-const splitWeltAndBody = (fullMask, bounds, w, ratio = 0.10) => {
+// 基于 sock.png 的 alpha 通道得到"整个袜版剪影"二值数组 + y 边界。
+// 用于切出"袜子最顶端的螺口段"，避免依赖 mask.png（mask 通常只标袜身可印区，
+// 顶部 ratio 取的是袜身顶部，不是袜子最顶端）。
+const buildShapeMask = (sockPixels, w, h) => {
+  const total = w * h
+  const mask = new Uint8Array(total)
+  let minY = h
+  let maxY = 0
+  for (let i = 0; i < total; i += 1) {
+    if (sockPixels[i * 4 + 3] > 32) {
+      mask[i] = 1
+      const x = i % w
+      const y = (i - x) / w
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    }
+  }
+  return { mask, minY, maxY }
+}
+
+// 取 sockShape 的最顶端一段作为 weltMask（螺口）；
+// 同时把 weltMask 与 mask（袜身可印区）的交集从 bodyMask 中减掉，
+// 这样：印花裁剪到 bodyMask 不会盖到螺口；weltColor 单独画在 weltMask 上。
+const splitWeltAndBody = (fullMask, shape, w, ratio = 0.12) => {
   const total = fullMask.length
-  const minY = bounds.minY
-  const maxY = bounds.maxY
-  const splitY = Math.floor(minY + (maxY - minY) * ratio)
+  const splitY = Math.floor(shape.minY + (shape.maxY - shape.minY) * ratio)
   const weltMask = new Uint8Array(total)
   const bodyMask = new Uint8Array(total)
   for (let i = 0; i < total; i += 1) {
-    if (fullMask[i] !== 1) continue
     const x = i % w
     const y = (i - x) / w
-    if (y <= splitY) weltMask[i] = 1
-    else bodyMask[i] = 1
+    // 螺口 = 袜版剪影 ∩ 顶部段（不限于 mask 区，可能突出到 mask 之外）
+    if (shape.mask[i] === 1 && y <= splitY) weltMask[i] = 1
+    // 袜身 = mask 减去(螺口在 mask 内的交集)
+    if (fullMask[i] === 1 && !(shape.mask[i] === 1 && y <= splitY)) bodyMask[i] = 1
   }
   return { weltMask, bodyMask, splitY }
 }
@@ -199,8 +219,9 @@ export default function useSockResources() {
 
       const fallbackMask = maskImg || sock
       const built = buildBinaryMask(fallbackMask, w, h)
-      // 把袜身可印区切成"螺口 + 袜身"，印花仅占袜身段
-      const { weltMask, bodyMask } = splitWeltAndBody(built.mask, built.bounds, w, 0.10)
+      // 螺口段必须基于"整个袜版剪影"的最顶端来切，否则会落到袜身可印区顶部
+      const shape = buildShapeMask(sockPixels, w, h)
+      const { weltMask, bodyMask } = splitWeltAndBody(built.mask, shape, w, 0.12)
       const bodyMaskCanvas = buildMaskCanvas(bodyMask, w, h)
 
       let heelMask = null

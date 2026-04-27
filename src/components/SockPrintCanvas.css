@@ -54,18 +54,12 @@
   background:
     radial-gradient(420px 320px at 50% 40%, rgba(212, 55, 107, 0.06), transparent 70%),
     var(--bg-hover);
-  border: 1.5px dashed transparent;
   border-radius: 14px;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
   overflow: hidden;
 }
 
-.spc-stage.empty {
-  border-color: rgba(212, 55, 107, 0.22);
-}
-
 .spc-stage.hovering {
-  border-color: var(--accent);
   background:
     radial-gradient(420px 320px at 50% 40%, rgba(212, 55, 107, 0.18), transparent 70%),
     var(--accent-soft);
@@ -80,17 +74,45 @@
   pointer-events: none;
 }
 
+/* 空状态：在画布区域里居中显示一个独立、明显的拖拽框 */
 .spc-hint {
   position: absolute;
-  inset: 0;
+  inset: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.spc-hint-frame {
+  width: min(78%, 380px);
+  padding: 26px 24px 22px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  pointer-events: none;
-  color: var(--text-muted);
-  z-index: 2;
+  gap: 12px;
+  border: 2px dashed rgba(212, 55, 107, 0.45);
+  border-radius: 18px;
+  background:
+    radial-gradient(220px 140px at 50% 50%, rgba(212, 55, 107, 0.06), transparent 70%),
+    rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 10px 28px rgba(212, 55, 107, 0.08);
+  animation: spcHintBreath 2.4s ease-in-out infinite;
+}
+
+body.dark .spc-hint-frame {
+  background:
+    radial-gradient(220px 140px at 50% 50%, rgba(212, 55, 107, 0.12), transparent 70%),
+    rgba(20, 24, 33, 0.55);
+  border-color: rgba(239, 106, 150, 0.5);
+}
+
+@keyframes spcHintBreath {
+  0%, 100% { box-shadow: 0 10px 28px rgba(212, 55, 107, 0.08); transform: translateY(0); }
+  50%      { box-shadow: 0 16px 36px rgba(212, 55, 107, 0.18); transform: translateY(-2px); }
 }
 
 .spc-hint-icon {
@@ -102,23 +124,25 @@
   justify-content: center;
   background: var(--bg-card);
   color: var(--accent);
-  box-shadow: 0 8px 22px rgba(212, 55, 107, 0.18);
+  box-shadow: 0 8px 22px rgba(212, 55, 107, 0.22);
 }
 
 .spc-hint-title {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
+  letter-spacing: 0.02em;
 }
 
 .spc-hint-sub {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  color: var(--text-muted);
-  padding: 0 18px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  padding: 0 6px;
   text-align: center;
+  line-height: 1.5;
 }
 
 .spc-drop-mask {
