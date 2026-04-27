@@ -50,6 +50,13 @@
   white-space: nowrap;
 }
 
+.region-badge.muted {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+}
+
+.slider-row.disabled { opacity: 0.55; pointer-events: none; }
+
 .print-preview {
   width: 100%;
   aspect-ratio: 16 / 9;

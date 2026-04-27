@@ -7,6 +7,7 @@ import Orders from './components/Orders'
 import AssetLibrary from './components/AssetLibrary'
 import LoginPage from './components/LoginPage'
 import MiniPhone from './components/MiniPhone'
+import PaymentModal from './components/order/PaymentModal'
 import './App.css'
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
     { id: 2, name: '商务通勤款 · v2', date: '2026-04-24 修改' },
     { id: 3, name: '运动透气款', date: '2026-04-22 修改' },
   ])
+  const [pendingOrder, setPendingOrder] = useState(null) // 待支付的订单
 
   const handleLogin = () => {
     localStorage.setItem('aisock.authed', 'true')
@@ -78,15 +80,25 @@ function App() {
   }
 
   const handlePlaceOrder = (orderData) => {
+    setPendingOrder(orderData)
+  }
+
+  const handlePaymentDone = (payment) => {
+    if (!pendingOrder) return
     const id = Date.now()
     setOrders(prev => [{
       id,
       no: `AS${id.toString().slice(-8)}`,
-      ...orderData,
+      ...pendingOrder,
+      payment,
       status: '待生产',
       createdAt: new Date().toLocaleString('zh-CN'),
     }, ...prev])
+    setPendingOrder(null)
+    setActiveMenu('订单管理')
   }
+
+  const handlePaymentCancel = () => setPendingOrder(null)
 
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
@@ -127,6 +139,14 @@ function App() {
         )}
       </div>
       <MiniPhone activeMenu={activeMenu}/>
+
+      {pendingOrder && (
+        <PaymentModal
+          order={pendingOrder}
+          onCancel={handlePaymentCancel}
+          onPaid={handlePaymentDone}
+        />
+      )}
     </div>
   )
 }
@@ -144,9 +164,27 @@ function demoDesigns() {
 
 function demoOrders() {
   return [
-    { id: 1, no: 'AS20260424001', designName: '春日少女款', sizes: { S: 30, M: 50, L: 20 }, total: 100, material: '棉混纺', address: '杭州市西湖区文一路 123 号', status: '生产中', createdAt: '2026-04-24 10:32' },
-    { id: 2, no: 'AS20260422007', designName: '商务通勤款', sizes: { M: 100, L: 80 }, total: 180, material: '抗菌纤维', address: '北京市朝阳区建国路 88 号', status: '已发货', createdAt: '2026-04-22 16:18' },
-    { id: 3, no: 'AS20260418014', designName: '梦幻大花款', sizes: { S: 40, M: 60 }, total: 100, material: '羊毛', address: '深圳市南山区科技园北区', status: '已完成', createdAt: '2026-04-18 09:05' },
+    {
+      id: 1, no: 'AS20260424001', designName: '春日少女款',
+      sizes: { S: 30, M: 50, L: 20 }, total: 100,
+      material: '棉', craft: 'UV 印花',
+      address: '杭州市西湖区文一路 123 号', status: '生产中', createdAt: '2026-04-24 10:32',
+      payment: { method: '微信支付', paidAt: '2026-04-24 10:33', amount: 2800 },
+    },
+    {
+      id: 2, no: 'AS20260422007', designName: '商务通勤款',
+      sizes: { M: 100, L: 80 }, total: 180,
+      material: '尼龙', craft: '针织提花',
+      address: '北京市朝阳区建国路 88 号', status: '已发货', createdAt: '2026-04-22 16:18',
+      payment: { method: '支付宝', paidAt: '2026-04-22 16:19', amount: 7920 },
+    },
+    {
+      id: 3, no: 'AS20260418014', designName: '梦幻大花款',
+      sizes: { S: 40, M: 60 }, total: 100,
+      material: '棉', craft: '3D 印花',
+      address: '深圳市南山区科技园北区', status: '已完成', createdAt: '2026-04-18 09:05',
+      payment: { method: '银行卡', paidAt: '2026-04-18 09:06', amount: 3400 },
+    },
   ]
 }
 

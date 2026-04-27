@@ -1,0 +1,57 @@
+.base-color { display: flex; flex-direction: column; gap: 6px; }
+.base-color.disabled { opacity: 0.55; pointer-events: none; }
+
+.base-color-label {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.base-color-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+}
+
+.base-color-chip {
+  position: relative;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.16s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  padding: 0;
+}
+
+.base-color-chip:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.base-color-chip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.base-color-chip.auto {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-hover),
+    var(--bg-hover) 4px,
+    var(--bg-active) 4px,
+    var(--bg-active) 8px
+  );
+  color: var(--text-secondary);
+  grid-column: span 2;
+}
+
+.base-color-auto-label {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.base-color-chip:disabled { cursor: not-allowed; opacity: 0.5; }

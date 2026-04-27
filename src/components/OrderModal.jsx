@@ -1,19 +1,15 @@
 import { useState } from 'react'
 import { X, ShoppingBag } from 'lucide-react'
 import './Modal.css'
+import { MATERIALS, CRAFTS } from './print/printConstants'
 
 const SIZE_LIST = ['S', 'M', 'L', 'XL']
-const MATERIALS = [
-  { value: 'cotton',   label: '棉混纺' },
-  { value: 'antibac',  label: '抗菌纤维' },
-  { value: 'wool',     label: '羊毛' },
-  { value: 'bamboo',   label: '竹纤维' },
-]
 
-export default function OrderModal({ onClose, onSubmit }) {
-  const [designName, setDesignName] = useState('未命名袜版')
+export default function OrderModal({ defaultDesignName = '未命名袜版', onClose, onSubmit }) {
+  const [designName, setDesignName] = useState(defaultDesignName)
   const [sizes, setSizes] = useState({ S: 0, M: 50, L: 30, XL: 0 })
   const [material, setMaterial] = useState('cotton')
+  const [craft, setCraft] = useState('uv')
   const [address, setAddress] = useState('')
   const [contact, setContact] = useState('')
   const [phone, setPhone] = useState('')
@@ -22,18 +18,36 @@ export default function OrderModal({ onClose, onSubmit }) {
   const total = Object.values(sizes).reduce((a, b) => a + b, 0)
   const canSubmit = total > 0 && address.trim() && contact.trim() && phone.trim()
 
-  const setSize = (s, v) => setSizes(prev => ({ ...prev, [s]: Math.max(0, Number(v) || 0) }))
+  const setSize = (s, v) => setSizes((prev) => ({ ...prev, [s]: Math.max(0, Number(v) || 0) }))
+
+  const handleSubmit = () => {
+    const m = MATERIALS.find((x) => x.value === material)
+    const c = CRAFTS.find((x) => x.value === craft)
+    onSubmit({
+      designName,
+      sizes: Object.fromEntries(Object.entries(sizes).filter(([, v]) => v > 0)),
+      total,
+      material: m?.label || '棉',
+      materialValue: material,
+      craft: c?.label || 'UV 印花',
+      craftValue: craft,
+      address,
+      contact,
+      phone,
+      note,
+    })
+  }
 
   return (
     <div className="modal-mask" onClick={onClose}>
-      <div className="modal-card medium" onClick={e => e.stopPropagation()}>
+      <div className="modal-card medium" onClick={(e) => e.stopPropagation()}>
         <header className="modal-head">
           <div>
             <div className="modal-title">
               <ShoppingBag size={15} strokeWidth={1.6}/>
               提交订单
             </div>
-            <div className="modal-sub">订单将提交到爱花型工厂，约 7-10 天交付</div>
+            <div className="modal-sub">订单将提交到爱花型工厂，约 5 分钟交付</div>
           </div>
           <button className="modal-close" onClick={onClose}><X size={16} strokeWidth={1.6}/></button>
         </header>
@@ -43,21 +57,21 @@ export default function OrderModal({ onClose, onSubmit }) {
             <input
               className="field-input"
               value={designName}
-              onChange={e => setDesignName(e.target.value)}
+              onChange={(e) => setDesignName(e.target.value)}
               placeholder="给这个袜版取个名字"
             />
           </Field>
 
           <Field label="尺码与数量">
             <div className="size-grid">
-              {SIZE_LIST.map(s => (
+              {SIZE_LIST.map((s) => (
                 <div key={s} className="size-row">
                   <span className="size-label">{s}</span>
                   <input
                     type="number"
                     min="0"
                     value={sizes[s]}
-                    onChange={e => setSize(s, e.target.value)}
+                    onChange={(e) => setSize(s, e.target.value)}
                     className="field-input small"
                   />
                   <span className="size-unit">双</span>
@@ -67,15 +81,33 @@ export default function OrderModal({ onClose, onSubmit }) {
             <div className="size-total">合计：<b>{total}</b> 双</div>
           </Field>
 
-          <Field label="材质">
-            <div className="material-grid">
-              {MATERIALS.map(m => (
+          <Field label="面料材质">
+            <div className="material-grid two">
+              {MATERIALS.map((m) => (
                 <button
                   key={m.value}
+                  type="button"
                   className={`material-chip ${material === m.value ? 'active' : ''}`}
                   onClick={() => setMaterial(m.value)}
                 >
-                  {m.label}
+                  <span className="material-chip-name">{m.label}</span>
+                  <span className="material-chip-desc">{m.desc}</span>
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <Field label="工艺选型">
+            <div className="material-grid three">
+              {CRAFTS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  className={`material-chip ${craft === c.value ? 'active' : ''}`}
+                  onClick={() => setCraft(c.value)}
+                >
+                  <span className="material-chip-name">{c.label}</span>
+                  <span className="material-chip-desc">{c.desc}</span>
                 </button>
               ))}
             </div>
@@ -83,13 +115,13 @@ export default function OrderModal({ onClose, onSubmit }) {
 
           <Field label="收货信息">
             <div className="contact-grid">
-              <input className="field-input" value={contact} onChange={e => setContact(e.target.value)} placeholder="联系人姓名"/>
-              <input className="field-input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="手机号"/>
+              <input className="field-input" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="联系人姓名"/>
+              <input className="field-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="手机号"/>
             </div>
             <input
               className="field-input"
               value={address}
-              onChange={e => setAddress(e.target.value)}
+              onChange={(e) => setAddress(e.target.value)}
               placeholder="详细地址（省/市/区/街道）"
               style={{ marginTop: 8 }}
             />
@@ -99,7 +131,7 @@ export default function OrderModal({ onClose, onSubmit }) {
             <textarea
               className="field-input textarea"
               value={note}
-              onChange={e => setNote(e.target.value)}
+              onChange={(e) => setNote(e.target.value)}
               placeholder="包装要求、加急说明等"
               rows={2}
             />
@@ -111,18 +143,9 @@ export default function OrderModal({ onClose, onSubmit }) {
           <button
             className="modal-btn primary"
             disabled={!canSubmit}
-            onClick={() => onSubmit({
-              designName,
-              sizes: Object.fromEntries(Object.entries(sizes).filter(([, v]) => v > 0)),
-              total,
-              material: MATERIALS.find(m => m.value === material).label,
-              address,
-              contact,
-              phone,
-              note,
-            })}
+            onClick={handleSubmit}
           >
-            提交订单（{total} 双）
+            下一步：去支付（{total} 双）
           </button>
         </footer>
       </div>
