@@ -76,24 +76,37 @@ const buildWeltMaskFromLineart = (lineartImg, w, h, fallbackBounds) => {
   const { data } = ctx.getImageData(0, 0, w, h)
 
   const rowCounts = new Uint16Array(h)
-  for (let y = 0; y < h; y += 1) {
+  const maskWidth = fallbackBounds.maxX - fallbackBounds.minX
+  const searchTop = Math.max(0, fallbackBounds.minY - Math.round(maskWidth * 0.36))
+  const searchBottom = Math.min(h - 1, fallbackBounds.minY + Math.round(maskWidth * 0.32))
+  const searchLeft = Math.max(0, fallbackBounds.minX - Math.round(maskWidth * 0.08))
+  const searchRight = Math.min(w - 1, fallbackBounds.maxX + Math.round(maskWidth * 0.08))
+
+  for (let y = searchTop; y <= searchBottom; y += 1) {
     let count = 0
-    for (let x = 0; x < w; x += 1) {
+    for (let x = searchLeft; x <= searchRight; x += 1) {
       const idx = (y * w + x) * 4
       const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
-      if (data[idx + 3] > 20 && brightness > 150) count += 1
+      // 竖纹有浅灰和白两种层次，阈值不能太高，否则高度会截短。
+      if (data[idx + 3] > 20 && brightness > 35) count += 1
     }
     rowCounts[y] = count
   }
 
-  // 找到有足够竖纹像素的行。阈值跟 mask 宽度相关，排除脚部偶发小白点。
-  const minRowPixels = Math.max(8, Math.floor((fallbackBounds.maxX - fallbackBounds.minX) * 0.04))
+  // 找到 mask 顶边附近第一个连续的竖纹行块。只在 search window 内找，
+  // 避免脚部线稿或其他高亮点干扰。
+  const minRowPixels = Math.max(8, Math.floor(maskWidth * 0.035))
   let top = -1
   let bottom = -1
-  for (let y = 0; y < h; y += 1) {
+  let gap = 0
+  for (let y = searchTop; y <= searchBottom; y += 1) {
     if (rowCounts[y] >= minRowPixels) {
       if (top < 0) top = y
       bottom = y
+      gap = 0
+    } else if (top >= 0) {
+      gap += 1
+      if (gap > 3) break
     }
   }
   if (top < 0 || bottom < 0) return null
@@ -101,10 +114,10 @@ const buildWeltMaskFromLineart = (lineartImg, w, h, fallbackBounds) => {
   let left = w
   let right = 0
   for (let y = top; y <= bottom; y += 1) {
-    for (let x = 0; x < w; x += 1) {
+    for (let x = searchLeft; x <= searchRight; x += 1) {
       const idx = (y * w + x) * 4
       const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
-      if (data[idx + 3] > 20 && brightness > 150) {
+      if (data[idx + 3] > 20 && brightness > 35) {
         if (x < left) left = x
         if (x > right) right = x
       }
@@ -114,7 +127,7 @@ const buildWeltMaskFromLineart = (lineartImg, w, h, fallbackBounds) => {
   // 竖纹只覆盖螺口内部线条，向下扩一点形成可上色的完整螺口区域。
   const padX = 5
   const padTop = 2
-  const padBottom = Math.round((right - left) * 0.08)
+  const padBottom = Math.round((right - left) * 0.035)
   left = Math.max(0, left - padX)
   right = Math.min(w - 1, right + padX)
   top = Math.max(0, top - padTop)
