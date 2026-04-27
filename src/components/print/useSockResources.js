@@ -61,47 +61,93 @@ const buildMaskCanvas = (mask, w, h) => {
   return c
 }
 
-// 基于 sock.png 得到"整个袜版剪影"二值数组 + y 边界。
-// sock.png 是白底不透明图，不能只看 alpha；需要排除接近纯白的画布背景。
-// 用于切出"袜子最顶端的螺口段"，避免依赖 mask.png（mask 通常只标袜身可印区，
-// 顶部 ratio 取的是袜身顶部，不是袜子最顶端）。
-const buildShapeMask = (sockPixels, w, h) => {
+// 基于 lineart.png 的螺口竖纹位置定位真正的袜口区域。
+// 这是最稳定的：竖纹本身就画在袜版最顶端，不受 sock.png 白底或 mask.png 可印区影响。
+const buildWeltMaskFromLineart = (lineartImg, w, h, fallbackBounds) => {
   const total = w * h
   const mask = new Uint8Array(total)
-  let minY = h
-  let maxY = 0
-  for (let i = 0; i < total; i += 1) {
-    const idx = i * 4
-    const brightness = (sockPixels[idx] + sockPixels[idx + 1] + sockPixels[idx + 2]) / 3
-    const isSockPixel = sockPixels[idx + 3] > 32 && brightness < 245
-    if (isSockPixel) {
-      mask[i] = 1
-      const x = i % w
-      const y = (i - x) / w
-      if (y < minY) minY = y
-      if (y > maxY) maxY = y
+  if (!lineartImg) return null
+
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  const ctx = c.getContext('2d')
+  ctx.drawImage(lineartImg, 0, 0, w, h)
+  const { data } = ctx.getImageData(0, 0, w, h)
+
+  const rowCounts = new Uint16Array(h)
+  for (let y = 0; y < h; y += 1) {
+    let count = 0
+    for (let x = 0; x < w; x += 1) {
+      const idx = (y * w + x) * 4
+      const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
+      if (data[idx + 3] > 20 && brightness > 150) count += 1
+    }
+    rowCounts[y] = count
+  }
+
+  // 找到有足够竖纹像素的行。阈值跟 mask 宽度相关，排除脚部偶发小白点。
+  const minRowPixels = Math.max(8, Math.floor((fallbackBounds.maxX - fallbackBounds.minX) * 0.04))
+  let top = -1
+  let bottom = -1
+  for (let y = 0; y < h; y += 1) {
+    if (rowCounts[y] >= minRowPixels) {
+      if (top < 0) top = y
+      bottom = y
     }
   }
-  return { mask, minY, maxY }
+  if (top < 0 || bottom < 0) return null
+
+  let left = w
+  let right = 0
+  for (let y = top; y <= bottom; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const idx = (y * w + x) * 4
+      const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
+      if (data[idx + 3] > 20 && brightness > 150) {
+        if (x < left) left = x
+        if (x > right) right = x
+      }
+    }
+  }
+
+  // 竖纹只覆盖螺口内部线条，向下扩一点形成可上色的完整螺口区域。
+  const padX = 5
+  const padTop = 2
+  const padBottom = Math.round((right - left) * 0.08)
+  left = Math.max(0, left - padX)
+  right = Math.min(w - 1, right + padX)
+  top = Math.max(0, top - padTop)
+  bottom = Math.min(h - 1, bottom + padBottom)
+
+  const radius = Math.max(8, Math.round((right - left) * 0.05))
+  for (let y = top; y <= bottom; y += 1) {
+    for (let x = left; x <= right; x += 1) {
+      let include = true
+      if (y < top + radius && x < left + radius) {
+        const dx = left + radius - x
+        const dy = top + radius - y
+        include = dx * dx + dy * dy <= radius * radius
+      } else if (y < top + radius && x > right - radius) {
+        const dx = x - (right - radius)
+        const dy = top + radius - y
+        include = dx * dx + dy * dy <= radius * radius
+      }
+      if (include) mask[y * w + x] = 1
+    }
+  }
+  return mask
 }
 
-// 取 sockShape 的最顶端一段作为 weltMask（螺口）；
-// 同时把 weltMask 与 mask（袜身可印区）的交集从 bodyMask 中减掉，
-// 这样：印花裁剪到 bodyMask 不会盖到螺口；weltColor 单独画在 weltMask 上。
-const splitWeltAndBody = (fullMask, shape, w, ratio = 0.12) => {
+// bodyMask = 可印区 fullMask 去掉 weltMask 与 fullMask 的交集；
+// weltMask 用 lineart 定位，表示真正的袜版顶端螺口。
+const splitWeltAndBody = (fullMask, weltMask) => {
   const total = fullMask.length
-  const splitY = Math.floor(shape.minY + (shape.maxY - shape.minY) * ratio)
-  const weltMask = new Uint8Array(total)
   const bodyMask = new Uint8Array(total)
   for (let i = 0; i < total; i += 1) {
-    const x = i % w
-    const y = (i - x) / w
-    // 螺口 = 袜版剪影 ∩ 顶部段（不限于 mask 区，可能突出到 mask 之外）
-    if (shape.mask[i] === 1 && y <= splitY) weltMask[i] = 1
-    // 袜身 = mask 减去(螺口在 mask 内的交集)
-    if (fullMask[i] === 1 && !(shape.mask[i] === 1 && y <= splitY)) bodyMask[i] = 1
+    if (fullMask[i] === 1 && (!weltMask || weltMask[i] !== 1)) bodyMask[i] = 1
   }
-  return { weltMask, bodyMask, splitY }
+  return bodyMask
 }
 
 // 4 邻域 BFS 连通域 — 用 typed array 存 label，避免 JS 数组性能开销
@@ -223,9 +269,9 @@ export default function useSockResources() {
 
       const fallbackMask = maskImg || sock
       const built = buildBinaryMask(fallbackMask, w, h)
-      // 螺口段必须基于"整个袜版剪影"的最顶端来切，否则会落到袜身可印区顶部
-      const shape = buildShapeMask(sockPixels, w, h)
-      const { weltMask, bodyMask } = splitWeltAndBody(built.mask, shape, w, 0.12)
+      // 螺口段直接用 lineart 里的顶部竖纹定位，这是袜版视觉上的真实顶端
+      const weltMask = buildWeltMaskFromLineart(lineart, w, h, built.bounds)
+      const bodyMask = splitWeltAndBody(built.mask, weltMask)
       const bodyMaskCanvas = buildMaskCanvas(bodyMask, w, h)
 
       let heelMask = null
