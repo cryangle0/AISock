@@ -61,6 +61,25 @@ const buildMaskCanvas = (mask, w, h) => {
   return c
 }
 
+// 把"袜身可印区"按 y 阈值切出顶部一段作为螺口，剩余作为袜身（供独立上色 + 印花裁剪用）。
+// 注意：bodyMask 用于"袜身底色 + 印花裁剪"，weltMask 用于"螺口底色"。
+const splitWeltAndBody = (fullMask, bounds, w, ratio = 0.10) => {
+  const total = fullMask.length
+  const minY = bounds.minY
+  const maxY = bounds.maxY
+  const splitY = Math.floor(minY + (maxY - minY) * ratio)
+  const weltMask = new Uint8Array(total)
+  const bodyMask = new Uint8Array(total)
+  for (let i = 0; i < total; i += 1) {
+    if (fullMask[i] !== 1) continue
+    const x = i % w
+    const y = (i - x) / w
+    if (y <= splitY) weltMask[i] = 1
+    else bodyMask[i] = 1
+  }
+  return { weltMask, bodyMask, splitY }
+}
+
 // 4 邻域 BFS 连通域 — 用 typed array 存 label，避免 JS 数组性能开销
 const splitConnectedComponents = (mask, w, h) => {
   const total = w * h
@@ -130,7 +149,13 @@ const buildHeelToeMasks = (otherMask, w, h) => {
 
 /**
  * 一次性加载袜版资源并把蒙版预处理好。
- * @returns { ready, error, sockImage, lineart, mask, maskCanvas, heelMask, toeMask, sockPixels, separable, meta }
+ *
+ * 字段说明（供 sockRenderer 消费）：
+ *   - mask        — 完整袜身可印区（含螺口），含 bounds，供印花居中/缩放定位
+ *   - bodyMask    — 袜身（去掉顶部螺口段），供"袜身底色 + 印花裁剪"
+ *   - weltMask    — 螺口段（顶部一段），供"螺口底色"独立上色
+ *   - heelMask/toeMask — 袜跟/袜头（来自 othermask 连通域拆分）
+ *   - bodyMaskCanvas   — bodyMask 的 RGBA 画布缓存，给印花做 source-in 裁剪
  */
 export default function useSockResources() {
   const [state, setState] = useState({
@@ -139,7 +164,9 @@ export default function useSockResources() {
     sockImage: null,
     lineart: null,
     mask: null,
-    maskCanvas: null,
+    bodyMask: null,
+    weltMask: null,
+    bodyMaskCanvas: null,
     heelMask: null,
     toeMask: null,
     sockPixels: null,
@@ -172,7 +199,9 @@ export default function useSockResources() {
 
       const fallbackMask = maskImg || sock
       const built = buildBinaryMask(fallbackMask, w, h)
-      const maskCanvas = buildMaskCanvas(built.mask, w, h)
+      // 把袜身可印区切成"螺口 + 袜身"，印花仅占袜身段
+      const { weltMask, bodyMask } = splitWeltAndBody(built.mask, built.bounds, w, 0.10)
+      const bodyMaskCanvas = buildMaskCanvas(bodyMask, w, h)
 
       let heelMask = null
       let toeMask = null
@@ -191,7 +220,9 @@ export default function useSockResources() {
         sockImage: sock,
         lineart,
         mask: built,
-        maskCanvas,
+        bodyMask,
+        weltMask,
+        bodyMaskCanvas,
         heelMask,
         toeMask,
         sockPixels,

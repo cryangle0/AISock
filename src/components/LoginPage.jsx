@@ -30,7 +30,7 @@ export default function LoginPage({ onLogin }) {
         <div className="lp-left-inner">
           <div className="lp-brand">
             <div className="lp-brand-logo">
-              <BrandLogo size={46} uid="lp"/>
+              <BrandLogo size={46}/>
             </div>
             <div className="lp-brand-info">
               <div className="lp-brand-name">爱花型</div>

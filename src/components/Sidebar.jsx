@@ -36,7 +36,7 @@ export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDa
     <aside className="sidebar">
       <div className="sidebar-logo" title="爱花型">
         <div className="logo-mark">
-          <BrandLogo size={32} uid="sb"/>
+          <BrandLogo size={32}/>
         </div>
       </div>
 

@@ -2,11 +2,12 @@
 // 入参：canvas + 资源 + 印花图 + 颜色与参数；出参：在 canvas 上完成绘制。
 // 渲染顺序：
 //   1) sock.png 底图
-//   2) bodyColor 或 dom 自动 → mask 区域底色
-//   3) heelColor / toeColor 或 dom 自动 → heelMask/toeMask 区域上色
-//   4) 印花（按 maskCanvas 裁剪）
-//   5) lineart multiply 叠加
-//   6) debug 蒙版（开发态）
+//   2) bodyColor → bodyMask 区域（袜身，不含螺口）
+//   3) weltColor → weltMask 区域（螺口）
+//   4) heelColor / toeColor 或 dom 自动 → heelMask/toeMask 区域上色
+//   5) 印花（按 bodyMaskCanvas 裁剪，因此印花不会盖到螺口）
+//   6) lineart multiply 叠加
+//   7) debug 蒙版（开发态）
 
 const HEX_RGB_CACHE = new Map()
 const hexToRgb = (hex) => {
@@ -152,12 +153,16 @@ const drawDebugMask = (ctx, mask, w, h) => {
  * @param {HTMLCanvasElement} canvas
  * @param {Object} resources  来自 useSockResources 的状态
  * @param {HTMLImageElement|null} patternImage  当前印花
- * @param {Object} colors  { bodyHex, heelHex, toeHex }  null/undefined 表示走自动
+ * @param {Object} colors  { bodyHex, weltHex, heelHex, toeHex }  null/undefined 表示走自动
  * @param {Object} params  { density, tileDensity, rotation, singleMode, debugMode }
  */
 export function renderSock(canvas, resources, patternImage, colors, params) {
   if (!canvas || !resources?.sockImage) return
-  const { sockImage, lineart, mask, maskCanvas, heelMask, toeMask, sockPixels } = resources
+  const {
+    sockImage, lineart,
+    mask, bodyMask, weltMask, bodyMaskCanvas,
+    heelMask, toeMask, sockPixels,
+  } = resources
   const ctx = canvas.getContext('2d')
   const w = canvas.width
   const h = canvas.height
@@ -168,40 +173,38 @@ export function renderSock(canvas, resources, patternImage, colors, params) {
   // 计算 dom 色（自动模式 fallback）
   const dom = patternImage ? extractDominantColor(patternImage) : null
 
-  // 1) bodyColor — 在 mask 主可印区铺底色（patternImage 会盖住印花区，相当于"非印花处的底色"）
+  // 1) bodyColor — 仅袜身（不含螺口）
   const bodyHex = colors?.bodyHex
-  if (bodyHex && mask?.mask && sockPixels) {
+  if (bodyHex && bodyMask && sockPixels) {
     const rgb = hexToRgb(bodyHex)
-    if (rgb) {
-      const layer = fillMaskWithColor(mask.mask, sockPixels, rgb, w, h)
-      ctx.drawImage(layer, 0, 0)
-    }
+    if (rgb) ctx.drawImage(fillMaskWithColor(bodyMask, sockPixels, rgb, w, h), 0, 0)
   }
 
-  // 2) heelColor / toeColor — 各自蒙版上色；指定颜色优先，否则用印花主色（保留旧行为）
+  // 2) weltColor — 螺口段
+  const weltHex = colors?.weltHex
+  if (weltHex && weltMask && sockPixels) {
+    const rgb = hexToRgb(weltHex)
+    if (rgb) ctx.drawImage(fillMaskWithColor(weltMask, sockPixels, rgb, w, h), 0, 0)
+  }
+
+  // 3) heelColor / toeColor — 各自蒙版上色；指定颜色优先，否则用印花主色（保留旧行为）
   const heelHex = colors?.heelHex
   const toeHex = colors?.toeHex
   if (heelMask && sockPixels) {
     const rgb = heelHex ? hexToRgb(heelHex) : dom
-    if (rgb) {
-      const layer = fillMaskWithColor(heelMask, sockPixels, rgb, w, h)
-      ctx.drawImage(layer, 0, 0)
-    }
+    if (rgb) ctx.drawImage(fillMaskWithColor(heelMask, sockPixels, rgb, w, h), 0, 0)
   }
   if (toeMask && sockPixels) {
     const rgb = toeHex ? hexToRgb(toeHex) : dom
-    if (rgb) {
-      const layer = fillMaskWithColor(toeMask, sockPixels, rgb, w, h)
-      ctx.drawImage(layer, 0, 0)
-    }
+    if (rgb) ctx.drawImage(fillMaskWithColor(toeMask, sockPixels, rgb, w, h), 0, 0)
   }
 
-  // 3) 印花主图
-  if (patternImage && mask) {
-    drawPatternOnRegion(ctx, patternImage, mask, maskCanvas, params, w, h)
+  // 4) 印花主图（按 bodyMaskCanvas 裁剪 → 不会盖到螺口/袜跟/袜头）
+  if (patternImage && mask && bodyMaskCanvas) {
+    drawPatternOnRegion(ctx, patternImage, mask, bodyMaskCanvas, params, w, h)
   }
 
-  // 4) lineart 叠加
+  // 5) lineart 叠加
   if (lineart) {
     ctx.save()
     ctx.globalCompositeOperation = 'multiply'
@@ -209,7 +212,7 @@ export function renderSock(canvas, resources, patternImage, colors, params) {
     ctx.restore()
   }
 
-  // 5) debug 半透明绿色蒙版
+  // 6) debug 半透明绿色蒙版
   if (params?.debugMode && mask) {
     drawDebugMask(ctx, mask.mask, w, h)
   }

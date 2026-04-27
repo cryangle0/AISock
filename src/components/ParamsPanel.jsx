@@ -121,6 +121,11 @@ export default function ParamsPanel({
           onChange={(v) => updateColor('bodyHex', v)}
           allowAuto
         />
+        <BaseColorPicker
+          label="螺口"
+          value={colors.weltHex}
+          onChange={(v) => updateColor('weltHex', v)}
+        />
         {showHeelToeSeparate ? (
           <>
             <BaseColorPicker
@@ -169,10 +174,10 @@ export default function ParamsPanel({
             className="action-btn ghost"
             onClick={onAiExtend}
             disabled={!printImage}
-            title="基于当前印花生成 4 个延伸方向"
+            title="基于当前完整设计生成 1/2/4 套全新款式（AI 图生图）"
           >
             <Sparkles size={13} strokeWidth={1.6}/>
-            同款延伸
+            款式衍生
           </button>
           <button
             className="action-btn ghost"

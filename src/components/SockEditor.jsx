@@ -24,6 +24,7 @@ const DEFAULT_PARAMS = {
 
 const DEFAULT_COLORS = {
   bodyHex: null,
+  weltHex: null,
   heelHex: null,
   toeHex: null,
 }
@@ -43,10 +44,10 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const [orderOpen, setOrderOpen] = useState(false)
   const [aiExtendOpen, setAiExtendOpen] = useState(false)
   const [familyPairOpen, setFamilyPairOpen] = useState(false)
-  const [separable, setSeparable] = useState(false)
+  // 把袜版资源放进 state，以便 modal 可以在 render 中安全读取
+  const [resources, setResources] = useState(null)
 
   const canvasRef = useRef(null)
-  const resourcesRef = useRef(null)
 
   // 当前生效的"映射缓存键"
   const mappingKey = useMemo(() => {
@@ -94,10 +95,8 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const handleResetParams = () => setParams(DEFAULT_PARAMS)
   const handleDownload = () => canvasRef.current?.download?.()
 
-  const handleResourceReady = (r) => {
-    resourcesRef.current = r
-    setSeparable(isHeelToeSeparable(r))
-  }
+  const handleResourceReady = (r) => setResources(r)
+  const separable = isHeelToeSeparable(resources)
 
   const composeName = () => printName ? `${printName} 袜款` : '未命名袜版'
 
@@ -130,7 +129,7 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const handleSaveFamilyPair = async (items) => {
     setFamilyPairOpen(false)
     for (const item of items) {
-      const raw = await renderSockToDataURL(resourcesRef.current, item.url, colors, params)
+      const raw = await renderSockToDataURL(resources, item.url, colors, params)
       const cover = await compressDataURL(raw, 280)
       onSaveDesign?.({
         name: item.name,
@@ -192,11 +191,16 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
 
       {aiExtendOpen && (
         <AiExtendModal
-          basePrintImage={finalPrintImage}
-          basePrintName={printName}
+          baseDesign={{ printImage: finalPrintImage, printName, colors, params }}
+          resources={resources}
           onClose={() => setAiExtendOpen(false)}
-          onApply={(url, name) => {
-            applyImage(url, name)
+          onApply={(design) => {
+            // 把整套设计一次性应用：印花 + 颜色 + 调节
+            setPrintImage(design.printImage)
+            setPrintName(design.printName || '')
+            setColors({ ...DEFAULT_COLORS, ...design.colors })
+            setParams({ ...DEFAULT_PARAMS, ...design.params })
+            setPaletteId(null)
             setAiExtendOpen(false)
           }}
         />
