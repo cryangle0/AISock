@@ -61,7 +61,8 @@ const buildMaskCanvas = (mask, w, h) => {
   return c
 }
 
-// 基于 sock.png 的 alpha 通道得到"整个袜版剪影"二值数组 + y 边界。
+// 基于 sock.png 得到"整个袜版剪影"二值数组 + y 边界。
+// sock.png 是白底不透明图，不能只看 alpha；需要排除接近纯白的画布背景。
 // 用于切出"袜子最顶端的螺口段"，避免依赖 mask.png（mask 通常只标袜身可印区，
 // 顶部 ratio 取的是袜身顶部，不是袜子最顶端）。
 const buildShapeMask = (sockPixels, w, h) => {
@@ -70,7 +71,10 @@ const buildShapeMask = (sockPixels, w, h) => {
   let minY = h
   let maxY = 0
   for (let i = 0; i < total; i += 1) {
-    if (sockPixels[i * 4 + 3] > 32) {
+    const idx = i * 4
+    const brightness = (sockPixels[idx] + sockPixels[idx + 1] + sockPixels[idx + 2]) / 3
+    const isSockPixel = sockPixels[idx + 3] > 32 && brightness < 245
+    if (isSockPixel) {
       mask[i] = 1
       const x = i % w
       const y = (i - x) / w
