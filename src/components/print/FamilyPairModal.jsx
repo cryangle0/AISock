@@ -28,13 +28,13 @@ export default function FamilyPairModal({
         id: 'demo-1',
         name: '亲子套装示例 1',
         scheme: '温馨配色 · 成人 + 儿童',
-        demoImage: '/family-demo1.webp',
+        demoImage: `${import.meta.env.BASE_URL}family-demo1.webp`,
       },
       {
         id: 'demo-2',
         name: '亲子套装示例 2',
         scheme: '活力配色 · 成人 + 儿童',
-        demoImage: '/family-demo2.webp',
+        demoImage: `${import.meta.env.BASE_URL}family-demo2.webp`,
       },
     ]
     setPairs(demoPairs)
