@@ -257,14 +257,14 @@
 /* 亲子袜 Demo 图片样式 */
 .family-pair-demo-image {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 16/9;
   background: var(--bg-card);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 12px;
 }
 
 .family-pair-demo-image img {
