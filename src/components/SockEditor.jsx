@@ -138,14 +138,19 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const handleSaveFamilyPair = async (items) => {
     setFamilyPairOpen(false)
     for (const item of items) {
-      const raw = await renderSockToDataURL(resources, item.url, colors, params)
+      const raw = item.cover || await renderSockToDataURL(
+        resources,
+        item.url,
+        item.colors || colors,
+        item.params || params,
+      )
       const cover = await compressDataURL(raw, 280)
       onSaveDesign?.({
         name: item.name,
         coverImage: cover,
         printName: item.name,
-        params,
-        colors,
+        params: item.params || params,
+        colors: item.colors || colors,
         paletteId,
         familyTag: item.tag,
       })
@@ -218,11 +223,15 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
 
       {familyPairOpen && (
         <FamilyPairModal
-          basePrintImage={finalPrintImage}
-          basePrintName={printName}
+          baseDesign={{ printImage: finalPrintImage, printName, colors, params }}
+          resources={resources}
           onClose={() => setFamilyPairOpen(false)}
-          onApply={(url, name) => {
-            applyImage(url, name)
+          onApply={(design) => {
+            setPrintImage(design.printImage)
+            setPrintName(design.printName || '')
+            setColors({ ...DEFAULT_COLORS, ...design.colors })
+            setParams({ ...DEFAULT_PARAMS, ...design.params })
+            setPaletteId(null)
             setFamilyPairOpen(false)
           }}
           onSavePair={handleSaveFamilyPair}
