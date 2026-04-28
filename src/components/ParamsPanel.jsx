@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import './ParamsPanel.css'
 import {
   Save, ShoppingBag, Upload, Eraser, RotateCcw, Eye, EyeOff,
@@ -27,8 +27,11 @@ export default function ParamsPanel({
   onOpenOrder,
   onAiExtend,
   onFamilyPair,
+  onModifyPrintBackground,
 }) {
   const fileInputRef = useRef(null)
+  const [bgEditorOpen, setBgEditorOpen] = useState(false)
+  const [bgPrompt, setBgPrompt] = useState('将底色修改成绿色')
   const updateParam = (k, v) => onParamsChange({ ...params, [k]: v })
   const updateColor = (k, v) => onColorsChange({ ...colors, [k]: v })
 
@@ -43,9 +46,20 @@ export default function ParamsPanel({
     <aside className="params-panel">
       {/* ── 当前印花 ───────────── */}
       <div className="params-section">
-        <div className="section-title">
-          当前印花
-          {printImage && <span className="region-badge ellipsis">{printName || '自定义'}</span>}
+        <div className="section-title print-section-title">
+          <span>当前印花</span>
+          <span className="print-title-actions">
+            {printImage && <span className="region-badge ellipsis">{printName || '自定义'}</span>}
+            {printImage && (
+              <button
+                type="button"
+                className="print-bg-edit-btn"
+                onClick={() => setBgEditorOpen((v) => !v)}
+              >
+                修改底色
+              </button>
+            )}
+          </span>
         </div>
         <div className="print-preview">
           {printImage ? (
@@ -57,6 +71,35 @@ export default function ParamsPanel({
             </div>
           )}
         </div>
+        {printImage && bgEditorOpen && (
+          <div className="print-bg-editor">
+            <div className="print-bg-editor-label">AI 指令</div>
+            <input
+              className="print-bg-editor-input"
+              value={bgPrompt}
+              onChange={(e) => setBgPrompt(e.target.value)}
+            />
+            <div className="print-bg-editor-actions">
+              <button
+                type="button"
+                className="print-bg-editor-btn ghost"
+                onClick={() => setBgEditorOpen(false)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="print-bg-editor-btn primary"
+                onClick={() => {
+                  onModifyPrintBackground?.(bgPrompt)
+                  setBgEditorOpen(false)
+                }}
+              >
+                确认修改
+              </button>
+            </div>
+          </div>
+        )}
         <input
           ref={fileInputRef}
           type="file"

@@ -60,6 +60,28 @@ export function patternToImageURL(patternId, size = 240) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
+// 演示用：把"大花"花型底色改成抹茶绿。后续接真实 AI/图像编辑 API 时，
+// 可以把这个函数替换成服务端返回的新图片 URL。
+export function matchaBigFlowerImageURL(size = 512) {
+  const svg = `<svg viewBox="0 0 60 60" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="p-flower-big" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <rect width="60" height="60" fill="#a8d5ba"></rect>
+      <g transform="translate(30 30)" fill="#e85a8a">
+        <ellipse cx="0" cy="-12" rx="6" ry="10"></ellipse>
+        <ellipse cx="0" cy="12" rx="6" ry="10"></ellipse>
+        <ellipse cx="-12" cy="0" rx="10" ry="6"></ellipse>
+        <ellipse cx="12" cy="0" rx="10" ry="6"></ellipse>
+      </g>
+      <circle cx="30" cy="30" r="5" fill="#fff0a8"></circle>
+      <circle cx="30" cy="30" r="2.6" fill="#d4376b"></circle>
+    </pattern>
+  </defs>
+  <rect width="60" height="60" rx="8" fill="url(#p-flower-big)"></rect>
+</svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
 // AI 生成（mock）— 用 prompt 关键字命中色调，落点到本地 patterns，再做 hue-rotate / 缩放变体
 const PROMPT_HINTS = [
   { keys: ['樱花', '春', '少女', '粉'], pid: 'p-flower-big', hue: 0 },

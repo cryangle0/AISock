@@ -33,6 +33,37 @@
   letter-spacing: 0.05em;
 }
 
+.print-section-title {
+  gap: 8px;
+}
+
+.print-title-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.print-bg-edit-btn {
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid rgba(212, 55, 107, 0.28);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+
+.print-bg-edit-btn:hover {
+  border-color: rgba(212, 55, 107, 0.45);
+  background: rgba(212, 55, 107, 0.18);
+}
+
 .region-badge {
   padding: 3px 9px;
   background: var(--accent-soft);
@@ -82,6 +113,75 @@
   gap: 6px;
   color: var(--text-muted);
   font-size: 11px;
+}
+
+.print-bg-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(212, 55, 107, 0.18);
+  border-radius: 12px;
+  background:
+    radial-gradient(180px 90px at 100% 0%, rgba(212, 55, 107, 0.08), transparent 70%),
+    var(--bg-hover);
+}
+
+.print-bg-editor-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.print-bg-editor-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+}
+
+.print-bg-editor-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.print-bg-editor-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.print-bg-editor-btn {
+  height: 32px;
+  border: none;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.print-bg-editor-btn.ghost {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+
+.print-bg-editor-btn.ghost:hover {
+  color: var(--text-primary);
+}
+
+.print-bg-editor-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.print-bg-editor-btn.primary:hover {
+  background: var(--accent-hover);
 }
 
 .seg-control.two {

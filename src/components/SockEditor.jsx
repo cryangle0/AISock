@@ -8,6 +8,7 @@ import AiExtendModal from './print/AiExtendModal'
 import FamilyPairModal from './print/FamilyPairModal'
 import { applyPaletteMapping } from './print/colorMapping'
 import { PALETTE_MAP } from './print/colorPalettes'
+import { matchaBigFlowerImageURL } from './patternImage'
 import {
   isHeelToeSeparable,
   renderSockToDataURL,
@@ -89,6 +90,14 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
 
   const handleClearPrint = () => {
     applyImage(null, '')
+    setPaletteId(null)
+  }
+
+  const handleModifyPrintBackground = () => {
+    // 演示用：把当前印花改成"大花 · 抹茶绿底"。这里不解析指令，
+    // 只模拟 AI 图像编辑返回新花型图，确保当前印花和袜版预览同步更新。
+    setPrintImage(matchaBigFlowerImageURL(512))
+    setPrintName('大花 · 抹茶绿底')
     setPaletteId(null)
   }
 
@@ -179,6 +188,7 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
         onOpenOrder={() => setOrderOpen(true)}
         onAiExtend={() => setAiExtendOpen(true)}
         onFamilyPair={() => setFamilyPairOpen(true)}
+        onModifyPrintBackground={handleModifyPrintBackground}
       />
 
       {orderOpen && (
