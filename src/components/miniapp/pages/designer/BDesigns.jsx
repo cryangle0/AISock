@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 
 const FILTERS = ['全部', '草稿', '已下单']
 
@@ -23,16 +24,26 @@ export default function BDesigns({ onNavigate }) {
 
   return (
     <div className="mp-page mp-page-designs">
-      <div className="mp-filter-tabs">
-        {FILTERS.map(f => (
-          <button
-            key={f}
-            className={`mp-filter-tab ${filter === f ? 'active' : ''}`}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </button>
-        ))}
+      <div className="mp-designs-header">
+        <div className="mp-filter-tabs">
+          {FILTERS.map(f => (
+            <button
+              key={f}
+              className={`mp-filter-tab ${filter === f ? 'active' : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        <button
+          className="mp-new-design-btn"
+          onClick={() => onNavigate('b-editor')}
+          aria-label="新建袜版"
+        >
+          <Plus size={12} strokeWidth={2.4} />
+          新建
+        </button>
       </div>
 
       <div className="mp-designs-grid">

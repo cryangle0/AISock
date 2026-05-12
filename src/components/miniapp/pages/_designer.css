@@ -680,6 +680,44 @@
 .mp-fab:hover { transform: scale(1.08); }
 
 /* ---- BDesigns ---- */
+.mp-designs-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mp-designs-header .mp-filter-tabs {
+  flex: 1;
+  margin: 0;
+}
+
+.mp-new-design-btn {
+  appearance: none;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 10px;
+  background: #3a6fb0;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(58, 111, 176, 0.28);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.mp-new-design-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 9px rgba(58, 111, 176, 0.36);
+}
+
+.phone-shell-full .mp-new-design-btn { font-size: 12px; padding: 6px 14px; gap: 4px; }
+
 .mp-designs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
