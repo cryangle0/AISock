@@ -11,6 +11,12 @@ import COrder from './consumer/COrder'
 import CPaySuccess from './consumer/CPaySuccess'
 import CMine from './consumer/CMine'
 import COrderDetail from './consumer/COrderDetail'
+import CMyOrders from './consumer/CMyOrders'
+import CFavorites from './consumer/CFavorites'
+import CAddresses from './consumer/CAddresses'
+import CCoupons from './consumer/CCoupons'
+import CSupport from './consumer/CSupport'
+import CSettings from './consumer/CSettings'
 
 import BWorkspace from './designer/BWorkspace'
 import BEditor from './designer/BEditor'
@@ -32,6 +38,12 @@ export const PAGE_COMPONENTS = {
   'c-pay-success': CPaySuccess,
   'c-mine': CMine,
   'c-order-detail': COrderDetail,
+  'c-my-orders': CMyOrders,
+  'c-favorites': CFavorites,
+  'c-addresses': CAddresses,
+  'c-coupons': CCoupons,
+  'c-support': CSupport,
+  'c-settings': CSettings,
 
   'b-workspace': BWorkspace,
   'b-editor': BEditor,
