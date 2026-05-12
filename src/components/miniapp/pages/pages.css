@@ -1,0 +1,8 @@
+/**
+ * pages.css — 模块化入口
+ * 各模块按关注点拆分：base / shared / consumer / designer
+ */
+@import './_base.css';
+@import './_shared.css';
+@import './_consumer.css';
+@import './_designer.css';

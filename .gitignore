@@ -27,3 +27,4 @@ dist-ssr
 ~$*.docx
 ~$*.xlsx
 ~$*.pptx
+.superpowers/

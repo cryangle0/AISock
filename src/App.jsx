@@ -6,7 +6,7 @@ import MyDesigns from './components/MyDesigns'
 import Orders from './components/Orders'
 import AssetLibrary from './components/AssetLibrary'
 import LoginPage from './components/LoginPage'
-import MiniPhone from './components/MiniPhone'
+import MiniAppPrototype from './components/miniapp/MiniAppPrototype'
 import PaymentModal from './components/order/PaymentModal'
 import './App.css'
 
@@ -138,7 +138,7 @@ function App() {
           <AssetLibrary/>
         )}
       </div>
-      <MiniPhone activeMenu={activeMenu}/>
+      <MiniAppPrototype />
 
       {pendingOrder && (
         <PaymentModal

@@ -1,0 +1,373 @@
+/* ===================== 共享组件样式（通用 UI 元素） ===================== */
+
+/* ---- 商品卡（C 端商城 / 分类复用） ---- */
+.mp-product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.mp-product-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.mp-product-card {
+  appearance: none;
+  border: none;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.mp-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 15, 20, 0.1);
+}
+
+.mp-product-img {
+  aspect-ratio: 1;
+  background: #fce8ef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4376b;
+  position: relative;
+}
+
+.mp-product-placeholder {
+  width: 45%;
+  height: 55%;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 30% 30% 16px 16px;
+}
+
+.mp-product-info {
+  padding: 6px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mp-product-name {
+  font-size: 10px;
+  color: #2c3140;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-shell-full .mp-product-name { font-size: 12px; }
+
+.mp-product-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.mp-product-price {
+  color: #d4376b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.phone-shell-full .mp-product-price { font-size: 14px; }
+
+.mp-product-sales {
+  font-size: 9px;
+  color: #9ba3b3;
+}
+
+/* ---- 花型横滑区 ---- */
+.mp-pattern-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+.mp-pattern-scroll::-webkit-scrollbar { display: none; }
+
+.mp-pattern-item {
+  appearance: none;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  cursor: pointer;
+  flex: 0 0 50px;
+  transition: all 0.15s;
+}
+
+.phone-shell-full .mp-pattern-item { flex: 0 0 62px; padding: 8px; }
+
+.mp-pattern-item.active {
+  border-color: var(--accent, #d4376b);
+  box-shadow: 0 2px 6px rgba(212, 55, 107, 0.2);
+}
+
+.mp-pattern-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #f3f4f7;
+}
+
+.mp-pattern-item span {
+  font-size: 9px;
+  color: #6c7385;
+}
+
+/* ---- 通用底部按钮组 ---- */
+.mp-footer-btn {
+  appearance: none;
+  border: none;
+  padding: 9px 0;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.phone-shell-full .mp-footer-btn { padding: 11px 0; font-size: 13px; }
+
+.mp-footer-btn.primary {
+  background: var(--accent, #d4376b);
+  color: #fff;
+}
+
+.mp-footer-btn.primary:hover:not(:disabled) {
+  background: #b82c5c;
+  transform: translateY(-1px);
+}
+
+.mp-footer-btn.primary:disabled {
+  background: #c5c9d1;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mp-footer-btn.secondary {
+  background: #fff;
+  color: #2c3140;
+  border: 1px solid rgba(16,18,24,0.1);
+}
+
+.mp-footer-btn.secondary:hover {
+  border-color: var(--accent, #d4376b);
+  color: var(--accent, #d4376b);
+}
+
+.mp-footer-btn.outline {
+  background: transparent;
+  color: #6c7385;
+  border: 1px solid rgba(16,18,24,0.12);
+}
+
+/* ---- 通用 section（订单/提交表单复用） ---- */
+.mp-od-section {
+  background: #fff;
+  border-radius: 11px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mp-od-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c7385;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mp-od-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #2c3140;
+}
+
+.mp-od-row > span:first-child {
+  color: #9ba3b3;
+}
+
+.mp-od-row.total {
+  padding-top: 6px;
+  margin-top: 2px;
+  border-top: 1px dashed #eaecf3;
+  font-weight: 600;
+}
+
+.mp-od-row.total > span:last-child {
+  color: var(--accent, #d4376b);
+  font-size: 13px;
+}
+
+.mp-od-copy {
+  font-family: 'Inter', monospace;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #3a6fb0;
+}
+
+/* ---- 画布预览（袜子 SVG） ---- */
+.mp-sock-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- 操作按钮组（编辑器底部） ---- */
+.mp-editor-actions {
+  display: flex;
+  gap: 6px;
+  padding-top: 4px;
+  margin-top: auto;
+}
+
+.mp-action-btn {
+  appearance: none;
+  flex: 1;
+  background: #fff;
+  border: 1px solid rgba(16,18,24,0.08);
+  color: #525968;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: all 0.15s;
+}
+
+.phone-shell-full .mp-action-btn { font-size: 12px; padding: 10px 6px; }
+
+.mp-action-btn:hover {
+  border-color: var(--accent, #d4376b);
+  color: var(--accent, #d4376b);
+}
+
+.mp-action-btn.primary {
+  background: var(--accent, #d4376b);
+  color: #fff;
+  border-color: var(--accent, #d4376b);
+}
+
+.mp-action-btn.primary:hover {
+  background: #b82c5c;
+  color: #fff;
+}
+
+/* ---- 主 CTA 大按钮 ---- */
+.mp-cta-btn {
+  appearance: none;
+  background: var(--accent, #d4376b);
+  color: #fff;
+  border: none;
+  padding: 12px 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  transition: all 0.15s;
+}
+
+.mp-cta-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(212, 55, 107, 0.3);
+}
+
+.mp-cta-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mp-cta-btn.ai {
+  background: linear-gradient(135deg, #d4376b, #7c3aed);
+}
+
+/* ---- 芯片组 ---- */
+.mp-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.mp-chip {
+  appearance: none;
+  background: #f3f4f7;
+  border: 1px solid transparent;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #525968;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mp-chip.active {
+  background: var(--accent-soft, #fce8ef);
+  color: var(--accent, #d4376b);
+  border-color: rgba(212, 55, 107, 0.3);
+  font-weight: 600;
+}
+
+/* ---- textarea ---- */
+.mp-textarea {
+  width: 100%;
+  min-height: 60px;
+  border: 1px solid rgba(16,18,24,0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #2c3140;
+  font-family: inherit;
+  resize: vertical;
+  background: #fafbfc;
+}
+
+.mp-textarea:focus {
+  outline: none;
+  border-color: var(--accent, #d4376b);
+  background: #fff;
+}
+
+/* ---- 动画 ---- */
+@keyframes mp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.mp-spin { animation: mp-spin 1s linear infinite; }

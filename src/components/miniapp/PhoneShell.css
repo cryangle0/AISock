@@ -1,0 +1,192 @@
+/* ===================== Phone Shell 外框 ===================== */
+.phone-shell {
+  background: #0e0f12;
+  border-radius: 28px;
+  padding: 8px 8px 6px;
+  box-shadow:
+    0 30px 60px rgba(13, 15, 20, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.phone-shell-mini {
+  width: 232px;
+  height: 460px;
+}
+
+.phone-shell-full {
+  width: auto;
+  aspect-ratio: 9 / 19;
+  height: 100%;
+  max-height: 100%;
+  padding: 10px 10px 8px;
+  border-radius: 34px;
+}
+
+/* 刘海 */
+.phone-shell-notch {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 14px;
+  background: #0e0f12;
+  border-radius: 0 0 12px 12px;
+  z-index: 5;
+}
+
+.phone-shell-full .phone-shell-notch {
+  width: 88px;
+  height: 18px;
+  top: 10px;
+}
+
+/* 状态栏 */
+.phone-shell-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 18px 6px;
+  font-size: 10px;
+  color: #fff;
+  font-family: 'Inter', monospace;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.phone-shell-full .phone-shell-status {
+  padding: 6px 24px 8px;
+  font-size: 12px;
+}
+
+.phone-shell-status-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* 标题栏 */
+.phone-shell-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #fff;
+  text-align: center;
+  font-size: 11px;
+  padding: 7px 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.phone-shell-titlebar.role-consumer {
+  background: #d4376b;
+}
+
+.phone-shell-titlebar.role-designer {
+  background: #3a6fb0;
+}
+
+.phone-shell-full .phone-shell-titlebar {
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.phone-shell-title-text {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phone-shell-back,
+.phone-shell-expand {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.phone-shell-back { left: 8px; }
+.phone-shell-expand { right: 8px; }
+
+.phone-shell-back:hover,
+.phone-shell-expand:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.phone-shell-full .phone-shell-back,
+.phone-shell-full .phone-shell-expand {
+  width: 28px;
+  height: 28px;
+}
+
+.phone-shell-full .phone-shell-back { left: 12px; }
+.phone-shell-full .phone-shell-expand { right: 12px; }
+
+/* 屏幕 */
+.phone-shell-screen {
+  flex: 1;
+  background: #f3f4f7;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.phone-shell-screen::-webkit-scrollbar {
+  width: 2px;
+}
+.phone-shell-screen::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+/* tabBar */
+.phone-shell-tabbar {
+  background: #fff;
+  border-top: 1px solid rgba(16, 18, 24, 0.08);
+  display: grid;
+  flex-shrink: 0;
+}
+
+.phone-shell-tab {
+  background: transparent;
+  border: none;
+  padding: 7px 0 9px;
+  font-size: 10px;
+  color: #9ba3b3;
+  cursor: pointer;
+  transition: color 0.18s;
+  font-weight: 500;
+}
+
+.phone-shell-full .phone-shell-tab {
+  padding: 10px 0 12px;
+  font-size: 12px;
+}
+
+.phone-shell-tabbar.role-consumer .phone-shell-tab.active {
+  color: #d4376b;
+  font-weight: 600;
+}
+
+.phone-shell-tabbar.role-designer .phone-shell-tab.active {
+  color: #3a6fb0;
+  font-weight: 600;
+}

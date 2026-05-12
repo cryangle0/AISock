@@ -1,0 +1,120 @@
+/* ===================== 基础页面容器 ===================== */
+.mp-page {
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100%;
+}
+
+/* 全屏模式下加大间距 */
+.phone-shell-full .mp-page {
+  padding: 14px 14px 18px;
+  gap: 14px;
+}
+
+/* 区块标题 */
+.mp-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.mp-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2c3140;
+  letter-spacing: 0.02em;
+}
+
+.phone-shell-full .mp-section-title {
+  font-size: 13px;
+}
+
+.mp-section-more {
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  color: #9ba3b3;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.mp-section-more:hover {
+  color: var(--accent, #d4376b);
+}
+
+.phone-shell-full .mp-section-more { font-size: 12px; }
+
+/* 通用 tab 行 */
+.mp-filter-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0;
+  scrollbar-width: none;
+}
+.mp-filter-tabs::-webkit-scrollbar { display: none; }
+
+.mp-filter-tab {
+  appearance: none;
+  flex: none;
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  color: #6c7385;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.phone-shell-full .mp-filter-tab { font-size: 12px; padding: 6px 14px; }
+
+.mp-filter-tab.active {
+  background: #fff;
+  color: #2c3140;
+  font-weight: 600;
+  border-color: rgba(16, 18, 24, 0.08);
+}
+
+.mp-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.mp-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid rgba(16,18,24,0.08);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 10px;
+  color: #6c7385;
+  cursor: pointer;
+}
+
+.mp-filter-count {
+  font-size: 10px;
+  color: #9ba3b3;
+}
+
+/* 空状态 */
+.mp-empty-state {
+  padding: 40px 12px;
+  text-align: center;
+  color: #9ba3b3;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
