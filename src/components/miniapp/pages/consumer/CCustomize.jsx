@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { ShoppingCart, Check } from 'lucide-react'
+import Toast from '../../ui/Toast'
+import useToast from '../../ui/useToast'
 
 const PATTERNS = [
   { id: 1, name: '碎花', color: '#fce8ef' },
@@ -14,16 +17,33 @@ const PATTERNS = [
 
 const BASE_COLORS = [
   { id: 'white', color: '#ffffff', name: '白' },
-  { id: 'pink', color: '#fce8ef', name: '粉' },
-  { id: 'blue', color: '#e8f0fc', name: '蓝' },
+  { id: 'pink',  color: '#fce8ef', name: '粉' },
+  { id: 'blue',  color: '#e8f0fc', name: '蓝' },
   { id: 'black', color: '#2c3140', name: '黑' },
 ]
+
+const BASE_PRICE = 28
+const CUSTOM_FEE = 8
 
 export default function CCustomize({ onNavigate }) {
   const [selectedPattern, setSelectedPattern] = useState(1)
   const [baseColor, setBaseColor] = useState('white')
+  const [adding, setAdding] = useState(false)
+  const { toast, show } = useToast()
 
   const currentBase = BASE_COLORS.find(c => c.id === baseColor)?.color || '#fff'
+  const currentPattern = PATTERNS[selectedPattern - 1]
+  const totalPrice = BASE_PRICE + CUSTOM_FEE
+
+  const handleAddToCart = () => {
+    if (adding) return
+    setAdding(true)
+    show('已加入购物车')
+    setTimeout(() => {
+      setAdding(false)
+      onNavigate('c-cart')
+    }, 900)
+  }
 
   return (
     <div className="mp-page mp-page-customize">
@@ -37,16 +57,34 @@ export default function CCustomize({ onNavigate }) {
           </defs>
           <g clipPath="url(#c-sock-clip)">
             <rect x="40" y="20" width="120" height="286" fill={currentBase} />
-            <rect x="40" y="20" width="120" height="30" fill={PATTERNS[selectedPattern - 1]?.color} opacity="0.8" />
-            <rect x="40" y="50" width="120" height="40" fill={PATTERNS[selectedPattern - 1]?.color} opacity="0.6" />
-            <rect x="40" y="90" width="120" height="150" fill={PATTERNS[selectedPattern - 1]?.color} opacity="0.4" />
-            <rect x="40" y="240" width="120" height="66" fill={PATTERNS[selectedPattern - 1]?.color} opacity="0.7" />
+            <rect x="40" y="20"  width="120" height="30"  fill={currentPattern?.color} opacity="0.8" />
+            <rect x="40" y="50"  width="120" height="40"  fill={currentPattern?.color} opacity="0.6" />
+            <rect x="40" y="90"  width="120" height="150" fill={currentPattern?.color} opacity="0.4" />
+            <rect x="40" y="240" width="120" height="66"  fill={currentPattern?.color} opacity="0.7" />
           </g>
           <path
             d="M40 20 L160 20 L160 200 Q160 230 148 245 L95 298 Q87 306 78 306 L50 306 Q40 306 40 296 Z"
             fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5"
           />
         </svg>
+      </div>
+
+      {/* 当前选择摘要 */}
+      <div className="mp-customize-summary">
+        <div className="mp-customize-summary-row">
+          <span className="mp-customize-label">花型</span>
+          <span className="mp-customize-value">{currentPattern?.name}</span>
+        </div>
+        <div className="mp-customize-summary-row">
+          <span className="mp-customize-label">底色</span>
+          <span className="mp-customize-value">
+            <span
+              className="mp-customize-dot"
+              style={{ background: currentBase }}
+            />
+            {BASE_COLORS.find(c => c.id === baseColor)?.name}
+          </span>
+        </div>
       </div>
 
       {/* 花型选择 */}
@@ -76,6 +114,7 @@ export default function CCustomize({ onNavigate }) {
             key={c.id}
             className={`mp-base-color-btn ${baseColor === c.id ? 'active' : ''}`}
             onClick={() => setBaseColor(c.id)}
+            aria-label={`选择${c.name}色`}
           >
             <div className="mp-base-swatch" style={{ background: c.color }} />
             <span>{c.name}</span>
@@ -83,12 +122,30 @@ export default function CCustomize({ onNavigate }) {
         ))}
       </div>
 
-      {/* 底部操作 */}
-      <div className="mp-customize-footer">
-        <button className="mp-footer-btn primary" onClick={() => onNavigate('c-cart')}>
-          加购定制款
+      {/* 底部固定工具栏 */}
+      <div className="mp-customize-bar">
+        <div className="mp-customize-bar-price">
+          <span className="mp-customize-bar-label">定制价</span>
+          <span className="mp-customize-bar-total">
+            ¥{totalPrice}
+            <span className="mp-customize-bar-sub">
+              （基础 ¥{BASE_PRICE} + 定制费 ¥{CUSTOM_FEE}）
+            </span>
+          </span>
+        </div>
+        <button
+          className={`mp-customize-bar-btn ${adding ? 'adding' : ''}`}
+          onClick={handleAddToCart}
+          disabled={adding}
+        >
+          {adding
+            ? <><Check size={14} /> 已加入</>
+            : <><ShoppingCart size={14} /> 加购定制款</>
+          }
         </button>
       </div>
+
+      <Toast message={toast} />
     </div>
   )
 }
