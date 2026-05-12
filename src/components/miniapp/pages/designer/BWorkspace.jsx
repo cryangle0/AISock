@@ -1,10 +1,48 @@
-import { Plus, TrendingUp, Package, Palette, DollarSign } from 'lucide-react'
+import { Plus, TrendingUp, Package, Palette, Coins, ArrowUpRight } from 'lucide-react'
 
+/**
+ * 数据块 — 乐高积木 bento 布局
+ * 每块定义 size（决定 grid span）+ color（主题色）
+ */
 const STATS = [
-  { label: '今日订单', value: '12', icon: Package, color: '#d4376b' },
-  { label: '进行中', value: '5', icon: TrendingUp, color: '#3a6fb0' },
-  { label: '库存款', value: '38', icon: Palette, color: '#5fb18a' },
-  { label: '本月收入', value: '¥28k', icon: DollarSign, color: '#b8893a' },
+  {
+    key: 'today',
+    label: '今日订单',
+    value: '12',
+    delta: '+12%',
+    hint: '较昨日',
+    icon: Package,
+    size: 'hero',      // 占 2 列 2 行
+    color: 'pink',
+  },
+  {
+    key: 'progress',
+    label: '进行中',
+    value: '5',
+    hint: '待处理',
+    icon: TrendingUp,
+    size: 'tall',      // 占 1 列 2 行
+    color: 'blue',
+  },
+  {
+    key: 'stock',
+    label: '库存款',
+    value: '38',
+    hint: '可售',
+    icon: Palette,
+    size: 'small',     // 占 1 列 1 行
+    color: 'green',
+  },
+  {
+    key: 'income',
+    label: '本月收入',
+    value: '¥28k',
+    delta: '+15%',
+    hint: '较上月',
+    icon: Coins,
+    size: 'wide',      // 占 2 列 1 行
+    color: 'gold',
+  },
 ]
 
 const RECENT_DESIGNS = [
@@ -15,20 +53,21 @@ const RECENT_DESIGNS = [
 export default function BWorkspace({ onNavigate }) {
   return (
     <div className="mp-page mp-page-workspace">
-      {/* 数据卡 */}
-      <div className="mp-stats-grid">
+      {/* 乐高积木 bento 数据区 */}
+      <div className="mp-bento">
         {STATS.map(s => (
-          <div key={s.label} className="mp-stat-card">
-            <s.icon size={16} style={{ color: s.color }} />
-            <div className="mp-stat-value">{s.value}</div>
-            <div className="mp-stat-label">{s.label}</div>
-          </div>
+          <BentoBrick key={s.key} stat={s} onClick={() => onNavigate('b-orders')} />
         ))}
       </div>
 
       {/* 新建 CTA */}
-      <button className="mp-cta-btn" onClick={() => onNavigate('b-editor')}>
-        <Plus size={16} /> 新建袜版设计
+      <button className="mp-cta-brick" onClick={() => onNavigate('b-editor')}>
+        <span className="mp-cta-studs">
+          <i /><i /><i />
+        </span>
+        <Plus size={18} />
+        <span className="mp-cta-text">新建袜版设计</span>
+        <ArrowUpRight size={16} className="mp-cta-arrow" />
       </button>
 
       {/* 最近设计 */}
@@ -64,5 +103,43 @@ export default function BWorkspace({ onNavigate }) {
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * BentoBrick — 单块积木，职责单一
+ */
+function BentoBrick({ stat, onClick }) {
+  const Icon = stat.icon
+  return (
+    <button
+      className={`mp-brick mp-brick-${stat.size} mp-brick-${stat.color}`}
+      onClick={onClick}
+      aria-label={`${stat.label} ${stat.value}`}
+    >
+      {/* LEGO 圆凸点装饰 */}
+      <span className="mp-brick-studs" aria-hidden="true">
+        <i /><i /><i /><i />
+      </span>
+
+      <span className="mp-brick-icon">
+        <Icon size={16} strokeWidth={2} />
+      </span>
+
+      <div className="mp-brick-body">
+        <div className="mp-brick-value">{stat.value}</div>
+        <div className="mp-brick-label">{stat.label}</div>
+        {stat.delta && (
+          <div className="mp-brick-delta">
+            <TrendingUp size={9} strokeWidth={2.5} />
+            {stat.delta}
+            <span className="mp-brick-hint">{stat.hint}</span>
+          </div>
+        )}
+        {!stat.delta && stat.hint && (
+          <div className="mp-brick-hint solo">{stat.hint}</div>
+        )}
+      </div>
+    </button>
   )
 }
