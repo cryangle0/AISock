@@ -100,6 +100,18 @@ function App() {
 
   const handlePaymentCancel = () => setPendingOrder(null)
 
+  // 小程序内部完整处理"下单 + 支付"，最后直接落库
+  const handleAddOrder = (order) => {
+    const id = Date.now()
+    setOrders(prev => [{
+      id,
+      no: `AS${id.toString().slice(-8)}`,
+      status: '待生产',
+      createdAt: new Date().toLocaleString('zh-CN'),
+      ...order,
+    }, ...prev])
+  }
+
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
   return (
@@ -138,7 +150,24 @@ function App() {
           <AssetLibrary/>
         )}
       </div>
-      <MiniAppPrototype />
+      <MiniAppPrototype
+        designs={designs}
+        orders={orders}
+        sessions={sessions}
+        currentSession={currentSession}
+        pendingOrder={pendingOrder}
+        onSaveDesign={handleSaveDesign}
+        onPlaceOrder={handlePlaceOrder}
+        onAddOrder={handleAddOrder}
+        onPaymentDone={handlePaymentDone}
+        onPaymentCancel={handlePaymentCancel}
+        onDeleteDesign={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}
+        onSelectSession={setCurrentSession}
+        onNewSession={handleNewSession}
+        onRenameSession={handleRenameSession}
+        onDeleteSession={handleDeleteSession}
+        onLogout={handleLogout}
+      />
 
       {pendingOrder && (
         <PaymentModal

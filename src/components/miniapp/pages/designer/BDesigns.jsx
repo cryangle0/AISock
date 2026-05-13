@@ -1,72 +1,104 @@
+/**
+ * BDesigns — 我的设计（对齐 web MyDesigns）
+ * 直接读 App 透传的 designs 列表，用真实 cover 显示，支持搜索 + 删除
+ */
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Search, Trash2, Sparkles } from 'lucide-react'
+import SockMiniSvg from '../../../SockMiniSvg'
 
-const FILTERS = ['全部', '草稿', '已下单']
+export default function BDesigns({ designs = [], onDeleteDesign, onNavigate }) {
+  const [query, setQuery] = useState('')
+  const filtered = designs.filter((d) => !query || (d.name || '').includes(query))
 
-const DESIGNS = [
-  { id: 1, name: '春日碎花款', time: '2 小时前', status: 'draft', color: '#fce8ef' },
-  { id: 2, name: '商务条纹款', time: '昨天', status: 'ordered', color: '#e8f0fc' },
-  { id: 3, name: '运动透气款', time: '3 天前', status: 'draft', color: '#eaf6f0' },
-  { id: 4, name: '梦幻大花款', time: '5 天前', status: 'ordered', color: '#fce8ef' },
-  { id: 5, name: '海蓝度假款', time: '1 周前', status: 'draft', color: '#e8f0fc' },
-  { id: 6, name: '金色奢华款', time: '2 周前', status: 'ordered', color: '#fff8e7' },
-]
-
-export default function BDesigns({ onNavigate }) {
-  const [filter, setFilter] = useState('全部')
-
-  const filtered = DESIGNS.filter(d => {
-    if (filter === '全部') return true
-    if (filter === '草稿') return d.status === 'draft'
-    if (filter === '已下单') return d.status === 'ordered'
-    return true
-  })
+  if (designs.length === 0) {
+    return (
+      <div className="mp-page mp-page-designs">
+        <EmptyState onNavigate={onNavigate} />
+      </div>
+    )
+  }
 
   return (
     <div className="mp-page mp-page-designs">
-      <div className="mp-designs-header">
-        <div className="mp-filter-tabs">
-          {FILTERS.map(f => (
-            <button
-              key={f}
-              className={`mp-filter-tab ${filter === f ? 'active' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-        <button
-          className="mp-new-design-btn"
-          onClick={() => onNavigate('b-editor')}
-          aria-label="新建袜版"
-        >
-          <Plus size={12} strokeWidth={2.4} />
-          新建
-        </button>
+      <div className="mp-search-bar">
+        <Search size={12} />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索设计名称"
+        />
+      </div>
+
+      <div className="mp-designs-summary">
+        已保存 {designs.length} 个袜版
       </div>
 
       <div className="mp-designs-grid">
-        {filtered.map(d => (
-          <button key={d.id} className="mp-design-card" onClick={() => onNavigate('b-editor')}>
-            <div className="mp-design-cover" style={{ background: d.color }}>
-              <span className={`mp-design-badge ${d.status}`}>
-                {d.status === 'draft' ? '草稿' : '已下单'}
-              </span>
-            </div>
-            <div className="mp-design-info">
-              <span className="mp-design-name">{d.name}</span>
-              <span className="mp-design-time">{d.time}</span>
-            </div>
-          </button>
+        {filtered.map((d) => (
+          <DesignCard
+            key={d.id}
+            design={d}
+            onDelete={() => onDeleteDesign?.(d.id)}
+            onClick={() => onNavigate?.('b-editor')}
+          />
         ))}
       </div>
 
       {filtered.length === 0 && (
         <div className="mp-empty-state">
-          <p>暂无{filter}的设计</p>
+          <p>没有匹配的设计</p>
         </div>
       )}
+    </div>
+  )
+}
+
+function DesignCard({ design, onDelete, onClick }) {
+  return (
+    <div className="mp-design-card-v2">
+      <button className="mp-design-cover-v2" onClick={onClick}>
+        {design.coverImage ? (
+          <img src={design.coverImage} alt={design.name} />
+        ) : design.regions ? (
+          <SockMiniSvg regions={design.regions} uid={`bd${design.id}`} />
+        ) : (
+          <div className="mp-design-cover-empty">暂无预览</div>
+        )}
+        {design.familyTag && (
+          <span className="mp-design-tag">{design.familyTag}</span>
+        )}
+      </button>
+      <div className="mp-design-meta-v2">
+        <div className="mp-design-name-v2">{design.name}</div>
+        <div className="mp-design-time-v2">{design.savedAt}</div>
+      </div>
+      <div className="mp-design-actions-v2">
+        <button className="mp-icon-btn-v2" onClick={onClick} title="再创作">
+          <Sparkles size={11} />
+        </button>
+        <button
+          className="mp-icon-btn-v2 danger"
+          onClick={(e) => { e.stopPropagation(); onDelete?.() }}
+          title="删除"
+        >
+          <Trash2 size={11} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function EmptyState({ onNavigate }) {
+  return (
+    <div className="mp-empty-state">
+      <div style={{ fontSize: 32 }}>🧦</div>
+      <p>暂无设计稿</p>
+      <button
+        className="mp-cta-primary"
+        onClick={() => onNavigate?.('b-editor')}
+      >
+        去创建第一个袜版
+      </button>
     </div>
   )
 }

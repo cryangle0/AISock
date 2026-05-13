@@ -1,119 +1,302 @@
+/**
+ * BEditor — 小程序版袜版编辑器
+ *
+ * 状态由 MiniAppPrototype 通过 props 注入（editor + canvasRef），
+ * 这样在切换 tab 时，编辑进度不会丢失。
+ *
+ * 严格复刻 web 端 SockEditor 的全部功能：
+ *   - 真实的袜版渲染（复用 useSockResources + sockRenderer）
+ *   - 印花上传 / 内置花型选择 / AI 修改背景
+ *   - 调节（缩放/旋转/单张-平铺/平铺密度/蒙版）
+ *   - 4 区颜色（袜身/螺口/袜跟/袜头）
+ *   - 色卡映射 + 强度
+ *   - 款式衍生（AI 图生图）
+ *   - 亲子袜
+ *   - 保存设计 / 下单（提交订单 → 支付 → 落库）
+ */
 import { useState } from 'react'
-import { Sparkles, Users, ShoppingCart } from 'lucide-react'
+import {
+  Save, ShoppingBag, Sparkles, Heart, Download,
+} from 'lucide-react'
+import MiniSockCanvas from '../../editor/MiniSockCanvas'
+import SessionBar from '../../editor/SessionBar'
+import PrintSheet from '../../editor/PrintSheet'
+import AdjustSheet from '../../editor/AdjustSheet'
+import ColorSheet from '../../editor/ColorSheet'
+import PaletteSheet from '../../editor/PaletteSheet'
+import OrderSheet from '../../editor/OrderSheet'
+import PaymentSheet from '../../editor/PaymentSheet'
+import AiExtendSheet from '../../editor/AiExtendSheet'
+import FamilySheet from '../../editor/FamilySheet'
+import Toast from '../../ui/Toast'
+import useToast from '../../ui/useToast'
+import { matchaBigFlowerImageURL } from '../../../patternImage'
+import {
+  isHeelToeSeparable, renderSockToDataURL, compressDataURL,
+} from '../../../print/sockRenderer'
 
-const REGIONS = [
-  { key: 'welt', label: '袜口' },
-  { key: 'cuff', label: '螺口' },
-  { key: 'body', label: '主体' },
-  { key: 'toe', label: '袜头' },
+const TABS = [
+  { key: 'print',   label: '印花' },
+  { key: 'adjust',  label: '调节' },
+  { key: 'color',   label: '颜色' },
+  { key: 'palette', label: '色卡' },
 ]
 
-const PATTERNS = [
-  { id: 1, name: '碎花', color: '#fce8ef' },
-  { id: 2, name: '条纹', color: '#e8f0fc' },
-  { id: 3, name: '圆点', color: '#fdf3f8' },
-  { id: 4, name: '方格', color: '#f3f4f7' },
-  { id: 5, name: '大花', color: '#fff7fa' },
-  { id: 6, name: '蓝花', color: '#eef4fb' },
-  { id: 7, name: '薄荷', color: '#eaf6f0' },
-  { id: 8, name: '金色', color: '#fff8e7' },
-]
+export default function BEditor({
+  editor,
+  canvasRef,
+  currentSession,
+  sessions = [],
+  onSelectSession,
+  onNewSession,
+  onRenameSession,
+  onDeleteSession,
+  onSaveDesign,
+  onAddOrder,
+}) {
+  const [activeSheet, setActiveSheet] = useState('print')
+  const [resources, setResources] = useState(null)
 
-export default function BEditor({ onNavigate }) {
-  const [activeRegion, setActiveRegion] = useState('body')
-  const [regionPatterns, setRegionPatterns] = useState({
-    welt: 2, cuff: 1, body: 1, toe: 3,
-  })
-  const [density, setDensity] = useState(50)
+  // 顶层弹层 sheet
+  const [orderOpen, setOrderOpen] = useState(false)
+  const [pendingOrder, setPendingOrder] = useState(null)
+  const [aiOpen, setAiOpen] = useState(false)
+  const [familyOpen, setFamilyOpen] = useState(false)
 
-  const handlePatternSelect = (patternId) => {
-    setRegionPatterns(prev => ({ ...prev, [activeRegion]: patternId }))
+  const { toast, show } = useToast()
+
+  const composeName = () => editor.printName
+    ? `${editor.printName} 袜款`
+    : (currentSession?.name || '未命名袜版')
+
+  const handleModifyBg = () => {
+    editor.setPrintImage(matchaBigFlowerImageURL(512))
+    editor.setPrintName('大花 · 抹茶绿底')
+    editor.setPaletteId(null)
   }
+
+  const handleSave = async () => {
+    const raw = canvasRef.current?.getDataURL?.() || ''
+    if (!raw) { show('画布尚未就绪'); return }
+    const cover = await compressDataURL(raw, 280)
+    onSaveDesign?.({
+      name: composeName(),
+      coverImage: cover,
+      printName: editor.printName,
+      params: editor.params,
+      colors: editor.colors,
+      paletteId: editor.paletteId,
+    })
+    show('已保存到我的设计')
+  }
+
+  const handleDownload = () => {
+    canvasRef.current?.download?.()
+    show('已下载到本地')
+  }
+
+  const handleOpenOrder = () => {
+    if (!editor.printImage) { show('请先选择印花'); return }
+    setOrderOpen(true)
+  }
+
+  const handleOrderSubmit = async (orderData) => {
+    const raw = canvasRef.current?.getDataURL?.() || ''
+    const cover = await compressDataURL(raw, 280)
+    setPendingOrder({
+      ...orderData,
+      designName: orderData.designName || composeName(),
+      coverImage: cover,
+    })
+    setOrderOpen(false)
+  }
+
+  const handlePaid = (payment) => {
+    onAddOrder?.({ ...pendingOrder, payment })
+    setPendingOrder(null)
+    show('支付成功，订单已提交')
+  }
+
+  // 亲子套装一起保存
+  const handleSaveFamilyPair = async (items) => {
+    setFamilyOpen(false)
+    for (const item of items) {
+      const raw = item.cover || await renderSockToDataURL(
+        resources, item.url, item.colors || editor.colors, item.params || editor.params,
+      )
+      const cover = await compressDataURL(raw, 280)
+      onSaveDesign?.({
+        name: item.name,
+        coverImage: cover,
+        printName: item.name,
+        params: item.params || editor.params,
+        colors: item.colors || editor.colors,
+        paletteId: editor.paletteId,
+        familyTag: item.tag,
+      })
+    }
+    show('亲子套装已保存')
+  }
+
+  const separable = isHeelToeSeparable(resources)
 
   return (
     <div className="mp-page mp-page-editor">
-      {/* 袜版预览 */}
-      <div className="mp-editor-canvas">
-        <svg viewBox="0 0 200 320" className="mp-sock-svg">
-          <defs>
-            <clipPath id="b-sock-clip">
-              <path d="M40 20 L160 20 L160 200 Q160 230 148 245 L95 298 Q87 306 78 306 L50 306 Q40 306 40 296 Z" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#b-sock-clip)">
-            <rect x="40" y="20" width="120" height="30" fill={PATTERNS[regionPatterns.welt - 1]?.color} />
-            <rect x="40" y="50" width="120" height="40" fill={PATTERNS[regionPatterns.cuff - 1]?.color} />
-            <rect x="40" y="90" width="120" height="150" fill={PATTERNS[regionPatterns.body - 1]?.color} />
-            <rect x="40" y="240" width="120" height="66" fill={PATTERNS[regionPatterns.toe - 1]?.color} />
-          </g>
-          <path
-            d="M40 20 L160 20 L160 200 Q160 230 148 245 L95 298 Q87 306 78 306 L50 306 Q40 306 40 296 Z"
-            fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5"
-          />
-          {/* 区域高亮 */}
-          {activeRegion === 'welt' && <rect x="40" y="20" width="120" height="30" fill="rgba(58,111,176,0.15)" stroke="#3a6fb0" strokeWidth="1" strokeDasharray="3" />}
-          {activeRegion === 'cuff' && <rect x="40" y="50" width="120" height="40" fill="rgba(58,111,176,0.15)" stroke="#3a6fb0" strokeWidth="1" strokeDasharray="3" />}
-          {activeRegion === 'body' && <rect x="40" y="90" width="120" height="150" fill="rgba(58,111,176,0.15)" stroke="#3a6fb0" strokeWidth="1" strokeDasharray="3" />}
-          {activeRegion === 'toe' && <rect x="40" y="240" width="120" height="66" fill="rgba(58,111,176,0.15)" stroke="#3a6fb0" strokeWidth="1" strokeDasharray="3" />}
-        </svg>
-      </div>
+      {/* 顶部会话切换 */}
+      <SessionBar
+        currentSession={currentSession}
+        sessions={sessions}
+        onSelect={onSelectSession}
+        onNew={onNewSession}
+        onRename={onRenameSession}
+        onDelete={onDeleteSession}
+      />
 
-      {/* 区域 tab */}
-      <div className="mp-region-tabs">
-        {REGIONS.map(r => (
-          <button
-            key={r.key}
-            className={`mp-region-tab ${activeRegion === r.key ? 'active' : ''}`}
-            onClick={() => setActiveRegion(r.key)}
-          >
-            {r.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 花型选择 */}
-      <div className="mp-section-header">
-        <span className="mp-section-title">花型</span>
-      </div>
-      <div className="mp-pattern-scroll">
-        {PATTERNS.map(p => (
-          <button
-            key={p.id}
-            className={`mp-pattern-item ${regionPatterns[activeRegion] === p.id ? 'active' : ''}`}
-            onClick={() => handlePatternSelect(p.id)}
-          >
-            <div className="mp-pattern-swatch" style={{ background: p.color }} />
-            <span>{p.name}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* 密度滑块 */}
-      <div className="mp-slider-group">
-        <span className="mp-slider-label">密度</span>
-        <input
-          type="range"
-          min="10"
-          max="100"
-          value={density}
-          onChange={e => setDensity(e.target.value)}
-          className="mp-slider"
+      {/* 上半屏：袜版预览 */}
+      <div className="mp-editor-canvas-wrap">
+        <MiniSockCanvas
+          ref={canvasRef}
+          printImage={editor.finalPrintImage}
+          params={editor.params}
+          colors={editor.colors}
+          onDropImage={editor.applyImage}
+          onResourceReady={setResources}
         />
-        <span className="mp-slider-value">{density}%</span>
       </div>
 
-      {/* 底部操作 */}
-      <div className="mp-editor-actions">
-        <button className="mp-action-btn" onClick={() => onNavigate('b-ai-extend')}>
-          <Sparkles size={13} /> AI 同款
+      {/* 顶部小操作栏 */}
+      <div className="mp-editor-quick">
+        <button
+          className="mp-quick-btn"
+          onClick={() => setAiOpen(true)}
+          disabled={!editor.printImage || !resources}
+        >
+          <Sparkles size={12} /> 款式衍生
         </button>
-        <button className="mp-action-btn" onClick={() => onNavigate('b-family')}>
-          <Users size={13} /> 亲子袜
+        <button
+          className="mp-quick-btn"
+          onClick={() => setFamilyOpen(true)}
+          disabled={!editor.printImage}
+        >
+          <Heart size={12} /> 亲子袜
         </button>
-        <button className="mp-action-btn primary" onClick={() => onNavigate('b-submit')}>
-          <ShoppingCart size={13} /> 下单
+        <button
+          className="mp-quick-btn"
+          onClick={handleDownload}
+          disabled={!editor.printImage}
+        >
+          <Download size={12} /> 导出
         </button>
       </div>
+
+      {/* 中段 sheet 切换 */}
+      <div className="mp-sheet-tabs">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            className={`mp-sheet-tab ${activeSheet === t.key ? 'active' : ''}`}
+            onClick={() => setActiveSheet(t.key)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mp-sheet-card">
+        {activeSheet === 'print' && (
+          <PrintSheet
+            printImage={editor.printImage}
+            printName={editor.printName}
+            history={editor.aiHistory}
+            onHistoryAdd={editor.addAiHistory}
+            onApplyImage={editor.applyImage}
+            onClearPrint={editor.clearPrint}
+            onModifyBg={handleModifyBg}
+          />
+        )}
+        {activeSheet === 'adjust' && (
+          <AdjustSheet
+            params={editor.params}
+            onParamsChange={editor.setParams}
+            onResetParams={editor.resetParams}
+            disabled={!editor.printImage}
+          />
+        )}
+        {activeSheet === 'color' && (
+          <ColorSheet
+            colors={editor.colors}
+            onColorsChange={editor.setColors}
+            showHeelToeSeparate={separable}
+          />
+        )}
+        {activeSheet === 'palette' && (
+          <PaletteSheet
+            paletteId={editor.paletteId}
+            onChange={editor.setPaletteId}
+            strength={editor.paletteStrength}
+            onStrengthChange={editor.setPaletteStrength}
+            disabled={!editor.printImage}
+          />
+        )}
+      </div>
+
+      {/* 底部固定 CTA */}
+      <div className="mp-editor-cta">
+        <button className="mp-cta-secondary" onClick={handleSave}>
+          <Save size={13} /> 保存
+        </button>
+        <button className="mp-cta-primary" onClick={handleOpenOrder}>
+          <ShoppingBag size={13} /> 立即下单
+        </button>
+      </div>
+
+      {/* 各种弹层 sheet */}
+      {orderOpen && (
+        <OrderSheet
+          defaultDesignName={composeName()}
+          onClose={() => setOrderOpen(false)}
+          onSubmit={handleOrderSubmit}
+        />
+      )}
+
+      {pendingOrder && (
+        <PaymentSheet
+          order={pendingOrder}
+          onCancel={() => setPendingOrder(null)}
+          onPaid={handlePaid}
+        />
+      )}
+
+      {aiOpen && (
+        <AiExtendSheet
+          baseDesign={{
+            printImage: editor.finalPrintImage,
+            printName: editor.printName,
+            colors: editor.colors,
+            params: editor.params,
+          }}
+          resources={resources}
+          onClose={() => setAiOpen(false)}
+          onApply={(d) => { editor.applyDerivedDesign(d); setAiOpen(false) }}
+        />
+      )}
+
+      {familyOpen && (
+        <FamilySheet
+          baseDesign={{
+            printImage: editor.finalPrintImage,
+            printName: editor.printName,
+            colors: editor.colors,
+            params: editor.params,
+          }}
+          resources={resources}
+          onClose={() => setFamilyOpen(false)}
+          onApply={(d) => { editor.applyDerivedDesign(d); setFamilyOpen(false) }}
+          onSavePair={handleSaveFamilyPair}
+        />
+      )}
+
+      <Toast message={toast} />
     </div>
   )
 }

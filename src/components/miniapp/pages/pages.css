@@ -1,9 +1,10 @@
 /**
  * pages.css — 模块化入口
- * 各模块按关注点拆分：base / shared / consumer / designer
+ * 严格对齐 web 端 4 个 tab 后，结构精简：
+ *   _base       — 通用页面容器、section、空状态
+ *   _shared     — 通用控件（按钮、tab、textarea、商品卡）
+ *   _designer   — 设计师模块（编辑器、设计稿、订单、素材）
  */
 @import './_base.css';
 @import './_shared.css';
-@import './_consumer.css';
 @import './_designer.css';
-@import './_mine.css';

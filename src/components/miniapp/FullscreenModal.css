@@ -35,9 +35,9 @@
 
 /* 顶部控件 */
 .fs-modal-top {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   color: #fff;
   gap: 16px;
 }
@@ -47,15 +47,6 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-}
-
-.fs-modal-no {
-  font-family: 'Inter', monospace;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.08);
-  padding: 3px 10px;
-  border-radius: 4px;
 }
 
 .fs-modal-title-text {
@@ -68,7 +59,6 @@
 }
 
 .fs-modal-close {
-  justify-self: end;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -87,38 +77,24 @@
   transform: rotate(90deg);
 }
 
-/* 主舞台 */
+/* 主舞台 — 居中放大手机 */
 .fs-modal-stage {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 0;
   overflow: hidden;
 }
 
 .fs-modal-phone-wrap {
+  height: 100%;
   display: flex;
   align-items: stretch;
   justify-content: center;
   min-height: 0;
 }
 
-/* 响应式：窄屏改上下布局 */
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .fs-modal-overlay { padding: 16px; }
-  .fs-modal-top {
-    grid-template-columns: auto 1fr auto;
-    gap: 8px;
-  }
   .fs-modal-title-text { font-size: 13px; }
-  .fs-modal-stage {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
-  }
-  .fs-modal-phone-wrap { aspect-ratio: 9 / 19; height: auto; max-height: 60vh; }
-  .annot-panel { max-height: 30vh; }
-}
-
-@media (max-width: 560px) {
-  .fs-modal-no { display: none; }
 }

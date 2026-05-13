@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X, Heart, Users, Wand2 } from 'lucide-react'
 import '../Modal.css'
 import './AiExtendModal.css'
@@ -7,40 +7,25 @@ import './AiExtendModal.css'
  * 亲子袜套装 — 使用与"款式衍生"一致的弹框布局。
  * 每个卡片是一组亲子设计：成人款大袜子 + 儿童款小袜子。
  *
- * @param {Object} baseDesign     { printImage, printName, colors, params }
- * @param {Object} resources      useSockResources 返回值
- * @param {()=>void} onClose
- * @param {(design:Object)=>void} onApply
- * @param {(items:{url:string,name:string,tag:string}[])=>void} onSavePair
+ * 当前为 demo 模式：仅展示 2 组静态示例图片，应用/保存暂为提示。
  */
-export default function FamilyPairModal({
-  baseDesign, resources, onClose, onApply, onSavePair,
-}) {
-  const [count, setCount] = useState(2)
-  const [pairs, setPairs] = useState([])
-  const [picked, setPicked] = useState(null)
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    // 直接使用静态demo图片
-    const demoPairs = [
-      {
-        id: 'demo-1',
-        name: '亲子套装示例 1',
-        scheme: '温馨配色 · 成人 + 儿童',
-        demoImage: `${import.meta.env.BASE_URL}family-demo1.webp`,
-      },
-      {
-        id: 'demo-2',
-        name: '亲子套装示例 2',
-        scheme: '活力配色 · 成人 + 儿童',
-        demoImage: `${import.meta.env.BASE_URL}family-demo2.webp`,
-      },
-    ]
-    setPairs(demoPairs)
-    setPicked(demoPairs[0]?.id ?? null)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+export default function FamilyPairModal({ onClose }) {
+  const [pairs] = useState(() => [
+    {
+      id: 'demo-1',
+      name: '亲子套装示例 1',
+      scheme: '温馨配色 · 成人 + 儿童',
+      demoImage: `${import.meta.env.BASE_URL}family-demo1.webp`,
+    },
+    {
+      id: 'demo-2',
+      name: '亲子套装示例 2',
+      scheme: '活力配色 · 成人 + 儿童',
+      demoImage: `${import.meta.env.BASE_URL}family-demo2.webp`,
+    },
+  ])
+  const [picked, setPicked] = useState(pairs[0]?.id ?? null)
+  const count = 2
 
   const handleApply = () => {
     // Demo模式下不执行应用操作
