@@ -6,7 +6,6 @@ import ParamsPanel from './ParamsPanel'
 import OrderModal from './OrderModal'
 import AiExtendModal from './print/AiExtendModal'
 import FamilyPairModal from './print/FamilyPairModal'
-import SockTypeSelector from './print/SockTypeSelector'
 import { applyPaletteMapping } from './print/colorMapping'
 import { PALETTE_MAP } from './print/colorPalettes'
 import { matchaBigFlowerImageURL } from './patternImage'
@@ -177,17 +176,13 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
 
   return (
     <div className="sock-editor">
-      <AssetPanel onApplyImage={applyImage}/>
+      <AssetPanel
+        onApplyImage={applyImage}
+        sockTypeId={sockTypeId}
+        onSockTypeChange={setSockTypeId}
+      />
 
       <div className="canvas-wrap">
-        <div className="sock-type-bar">
-          <span className="sock-type-bar-label">袜版形状</span>
-          <SockTypeSelector
-            value={sockTypeId}
-            onChange={setSockTypeId}
-            variant="full"
-          />
-        </div>
         <SockPrintCanvas
           ref={canvasRef}
           sockTypeId={sockTypeId}

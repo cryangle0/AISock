@@ -15,6 +15,7 @@ import { PATTERN_LIST } from '../../patternConstants'
 import { PatternDefs } from '../../patterns'
 import { patternToImageURL, aiGenerateImage } from '../../patternImage'
 import ImageUploadButton from './ImageUploadButton'
+import SockTypeSelector from '../../print/SockTypeSelector'
 
 const TABS = [
   { key: 'library', label: '公共库' },
@@ -37,6 +38,8 @@ export default function PrintSheet({
   userAssets,
   onUploadUserAsset,
   onRemoveUserAsset,
+  sockTypeId,
+  onSockTypeChange,
 }) {
   const [tab, setTab] = useState('library')
   const [query, setQuery] = useState('')
@@ -132,6 +135,8 @@ export default function PrintSheet({
           query={query}
           onQueryChange={setQuery}
           onApply={onApplyImage}
+          sockTypeId={sockTypeId}
+          onSockTypeChange={onSockTypeChange}
         />
       )}
 
@@ -227,40 +232,72 @@ function BgEditor({ editing, prompt, onPromptChange, onToggle, onConfirm }) {
   )
 }
 
-function PublicView({ items, query, onQueryChange, onApply }) {
+function PublicView({ items, query, onQueryChange, onApply, sockTypeId, onSockTypeChange }) {
+  const [sub, setSub] = useState('pattern')   // pattern | shape
+
   return (
     <>
-      <div className="mp-asset-mini-search">
-        <Search size={11} />
-        <input
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="搜索花型"
-        />
+      <div className="mp-print-subtabs">
+        <button
+          className={`mp-print-subtab ${sub === 'pattern' ? 'active' : ''}`}
+          onClick={() => setSub('pattern')}
+        >
+          花型
+        </button>
+        <button
+          className={`mp-print-subtab ${sub === 'shape' ? 'active' : ''}`}
+          onClick={() => setSub('shape')}
+        >
+          袜型
+        </button>
       </div>
-      <div className="mp-pattern-strip">
-        {items.map((p) => (
-          <button
-            key={p.id}
-            className="mp-pattern-tile"
-            onClick={() => {
-              const url = p.svg ? patternToImageURL(p.id, 240) : p.url
-              onApply?.(url, p.name)
-            }}
-            title={p.name}
-          >
-            {p.svg ? (
-              <svg viewBox="0 0 60 60" width="100%" height="100%">
-                <PatternDefs uid={`mp-${p.id}`} />
-                <rect width="60" height="60" rx="6" fill={`url(#${p.id}-mp-${p.id})`} />
-              </svg>
-            ) : (
-              <img src={p.url} alt={p.name} className="mp-pattern-tile-img" />
-            )}
-            <span>{p.name}</span>
-          </button>
-        ))}
-      </div>
+
+      {sub === 'pattern' ? (
+        <>
+          <div className="mp-asset-mini-search">
+            <Search size={11} />
+            <input
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+              placeholder="搜索花型"
+            />
+          </div>
+          <div className="mp-pattern-strip">
+            {items.map((p) => (
+              <button
+                key={p.id}
+                className="mp-pattern-tile"
+                onClick={() => {
+                  const url = p.svg ? patternToImageURL(p.id, 240) : p.url
+                  onApply?.(url, p.name)
+                }}
+                title={p.name}
+              >
+                {p.svg ? (
+                  <svg viewBox="0 0 60 60" width="100%" height="100%">
+                    <PatternDefs uid={`mp-${p.id}`} />
+                    <rect width="60" height="60" rx="6" fill={`url(#${p.id}-mp-${p.id})`} />
+                  </svg>
+                ) : (
+                  <img src={p.url} alt={p.name} className="mp-pattern-tile-img" />
+                )}
+                <span>{p.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="mp-shape-view">
+          <div className="mp-shape-tip">
+            选择袜版形状，画布会自动加载对应蒙版与线稿
+          </div>
+          <SockTypeSelector
+            value={sockTypeId}
+            onChange={onSockTypeChange}
+            variant="compact"
+          />
+        </div>
+      )}
     </>
   )
 }

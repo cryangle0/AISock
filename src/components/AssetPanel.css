@@ -464,3 +464,43 @@
   white-space: nowrap;
   max-width: 100%;
 }
+
+
+/* ==================== 公共库内部子 tab（花型 / 袜型） ==================== */
+.asset-subtabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-elev, #f6f7f9);
+  padding: 3px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.asset-subtab {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  font-size: 11px;
+  color: var(--text-secondary, #6c7385);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.asset-subtab.active {
+  background: var(--bg-card, #fff);
+  color: var(--accent, #d4376b);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(13, 15, 20, 0.06);
+}
+
+.asset-shape {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.asset-shape .sock-type-selector {
+  /* 在窄面板里压成 2 列 */
+  grid-template-columns: repeat(2, 1fr);
+}

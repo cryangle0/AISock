@@ -31,14 +31,12 @@ import FamilySheet from '../../editor/FamilySheet'
 import Toast from '../../ui/Toast'
 import useToast from '../../ui/useToast'
 import useAssetLibrary from '../../../assets/useAssetLibrary'
-import SockTypeSelector from '../../../print/SockTypeSelector'
 import { matchaBigFlowerImageURL } from '../../../patternImage'
 import {
   isHeelToeSeparable, renderSockToDataURL, compressDataURL,
 } from '../../../print/sockRenderer'
 
 const TABS = [
-  { key: 'shape',   label: '袜型' },
   { key: 'print',   label: '印花' },
   { key: 'adjust',  label: '调节' },
   { key: 'color',   label: '颜色' },
@@ -210,19 +208,6 @@ export default function BEditor({
       </div>
 
       <div className="mp-sheet-card">
-        {activeSheet === 'shape' && (
-          <div className="mp-sheet-body mp-shape-sheet">
-            <div className="mp-sheet-section-title">选择袜版形状</div>
-            <SockTypeSelector
-              value={editor.sockTypeId}
-              onChange={editor.setSockTypeId}
-              variant="compact"
-            />
-            <div className="mp-shape-tip">
-              切换袜型后，画布会重新加载对应的蒙版与线稿，四区独立编辑保持一致体验。
-            </div>
-          </div>
-        )}
         {activeSheet === 'print' && (
           <PrintSheet
             printImage={editor.printImage}
@@ -236,6 +221,8 @@ export default function BEditor({
             onApplyImage={editor.applyImage}
             onClearPrint={editor.clearPrint}
             onModifyBg={handleModifyBg}
+            sockTypeId={editor.sockTypeId}
+            onSockTypeChange={editor.setSockTypeId}
           />
         )}
         {activeSheet === 'adjust' && (
