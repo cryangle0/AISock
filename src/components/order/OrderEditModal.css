@@ -1,0 +1,256 @@
+/* ==================== OrderEditModal — 详情 + 编辑 ==================== */
+.oem-card {
+  width: min(900px, 92vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.oem-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+}
+
+/* ── 状态进度条 ── */
+.oem-steps {
+  display: flex;
+  position: relative;
+  padding: 4px 6px 0;
+}
+
+.oem-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.oem-step > span {
+  font-size: 11px;
+  color: var(--text-tertiary, #c5c9d1);
+  margin-top: 8px;
+}
+
+.oem-step.done > span,
+.oem-step.active > span {
+  color: var(--text-primary, #2c3140);
+  font-weight: 600;
+}
+
+.oem-step-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-elev, #eaecf3);
+  color: var(--text-tertiary, #c5c9d1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.oem-step.done .oem-step-dot,
+.oem-step.active .oem-step-dot {
+  background: var(--accent, #d4376b);
+  color: #fff;
+}
+
+.oem-step-line {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--bg-elev, #eaecf3);
+  z-index: 0;
+}
+.oem-step.done .oem-step-line {
+  background: var(--accent, #d4376b);
+}
+
+/* ── section 通用 ── */
+.oem-section {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #eaecf3);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.oem-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6c7385);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.oem-section-action {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--accent, #d4376b);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.oem-section-action:hover {
+  background: var(--accent-soft, #fce8ef);
+}
+
+/* ── 网格 ── */
+.oem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 720px) {
+  .oem-grid { grid-template-columns: 1fr; }
+}
+
+/* ── 设计稿 ── */
+.oem-design-card {
+  display: flex;
+  gap: 12px;
+}
+
+.oem-design-img-wrap {
+  width: 110px;
+  aspect-ratio: 3 / 4;
+  background: var(--bg-elev, #f6f7f9);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.oem-design-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.oem-design-empty {
+  font-size: 11px;
+  color: var(--text-tertiary, #c5c9d1);
+}
+
+.oem-design-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* ── 尺码分布 ── */
+.oem-size-dist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oem-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.oem-dist-size {
+  width: 22px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #525968);
+  text-align: center;
+  flex-shrink: 0;
+}
+.oem-dist-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-elev, #f0f1f5);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.oem-dist-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent, #d4376b), #f0759a);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.oem-dist-qty {
+  font-size: 10px;
+  color: var(--text-secondary, #6c7385);
+  font-family: 'Inter', monospace;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* ── 信息行 ── */
+.oem-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oem-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-primary, #2c3140);
+}
+.oem-row-label {
+  color: var(--text-tertiary, #9ba3b3);
+  flex-shrink: 0;
+}
+.oem-row-value {
+  text-align: right;
+  word-break: break-all;
+  max-width: 70%;
+}
+.oem-row.highlight {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color, #eaecf3);
+  font-weight: 600;
+}
+.oem-row.highlight .oem-row-label {
+  color: var(--text-primary, #2c3140);
+}
+.oem-amount {
+  color: var(--accent, #d4376b);
+  font-size: 14px;
+}
+
+.oem-muted { color: var(--text-tertiary, #c5c9d1); }
+
+.oem-mono {
+  font-family: 'Inter', monospace;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #3a6fb0;
+}
+.oem-icon { opacity: 0.6; }
+
+/* ── 编辑区 ── */
+.oem-edit-area,
+.oem-view-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
