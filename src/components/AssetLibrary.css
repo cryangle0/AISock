@@ -77,3 +77,183 @@
   font-size: 10px;
   color: var(--text-muted);
 }
+
+
+/* ==================== AssetLibrary v2 — 公共/我的 + 管理 ==================== */
+.lib-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 12px;
+  margin: 14px 0 18px;
+  flex-wrap: wrap;
+}
+
+.lib-scopes {
+  display: flex;
+  gap: 6px;
+  background: var(--bg-elev, #f6f7f9);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.lib-scope {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+  transition: all 0.15s;
+}
+.lib-scope > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6c7385);
+}
+.lib-scope > small {
+  font-size: 9px;
+  color: var(--text-tertiary, #9ba3b3);
+}
+.lib-scope.active {
+  background: var(--bg-card, #fff);
+  box-shadow: 0 1px 4px rgba(13, 15, 20, 0.06);
+}
+.lib-scope.active > span { color: var(--accent, #d4376b); }
+
+.lib-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lib-admin-toggle {
+  appearance: none;
+  background: var(--bg-elev, #f6f7f9);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--text-secondary, #6c7385);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.lib-admin-toggle.on {
+  background: rgba(212, 55, 107, 0.1);
+  color: var(--accent, #d4376b);
+  border-color: rgba(212, 55, 107, 0.3);
+}
+
+.lib-upload-btn {
+  appearance: none;
+  background: var(--accent, #d4376b);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.lib-upload-btn:hover { background: #b82c5c; transform: translateY(-1px); }
+
+.lib-thumb-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.lib-card { position: relative; }
+.lib-card.offline {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.lib-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.lib-card:hover .lib-card-actions { opacity: 1; }
+.lib-card-actions button {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(13, 15, 20, 0.08);
+  color: var(--text-secondary, #6c7385);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(13, 15, 20, 0.1);
+}
+.lib-card-actions button:hover {
+  color: var(--text-primary, #2c3140);
+}
+.lib-card-actions button.danger:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.lib-tag.admin {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+.lib-tag.mine {
+  background: rgba(58, 111, 176, 0.12);
+  color: #3a6fb0;
+}
+.lib-tag.offline {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+.lib-tag.light {
+  background: rgba(13, 15, 20, 0.04);
+  color: var(--text-tertiary, #9ba3b3);
+}
+.lib-time {
+  font-size: 9px;
+  color: var(--text-tertiary, #9ba3b3);
+  font-family: 'Inter', monospace;
+  margin-left: auto;
+}
+
+.lib-mine-empty {
+  text-align: center;
+  padding: 80px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-tertiary, #9ba3b3);
+}
+.lib-mine-empty h3 {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: var(--text-primary, #2c3140);
+}
+.lib-mine-empty p {
+  margin: 0;
+  font-size: 12px;
+}
+.lib-mine-empty .lib-upload-btn { margin-top: 8px; }

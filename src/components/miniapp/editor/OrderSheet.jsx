@@ -3,10 +3,19 @@
  * 复用 web 端 MATERIALS / CRAFTS 常量，确保业务参数一致
  */
 import { useMemo, useState } from 'react'
+import { Paperclip, Trash2, FileText } from 'lucide-react'
 import BottomSheet from './BottomSheet'
+import ImageUploadButton from './ImageUploadButton'
 import { MATERIALS, CRAFTS } from '../../print/printConstants'
 
 const SIZE_LIST = ['S', 'M', 'L', 'XL']
+
+const fileToDataURL = (file) => new Promise((resolve, reject) => {
+  const r = new FileReader()
+  r.onload = (e) => resolve(e.target.result)
+  r.onerror = reject
+  r.readAsDataURL(file)
+})
 
 export default function OrderSheet({ defaultDesignName, onClose, onSubmit }) {
   const [designName, setDesignName] = useState(defaultDesignName || '未命名袜版')
@@ -17,6 +26,7 @@ export default function OrderSheet({ defaultDesignName, onClose, onSubmit }) {
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [note, setNote] = useState('')
+  const [attachments, setAttachments] = useState([])
 
   const total = useMemo(
     () => Object.values(sizes).reduce((a, b) => a + b, 0),
@@ -39,9 +49,24 @@ export default function OrderSheet({ defaultDesignName, onClose, onSubmit }) {
       materialValue: material,
       craft: c?.label || 'UV 印花',
       craftValue: craft,
-      contact, phone, address, note,
+      contact, phone, address, note, attachments,
     })
   }
+
+  const handleAddFile = async (file) => {
+    if (!file) return
+    const item = {
+      id: `a-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: file.name || '附件',
+      type: file.type,
+      size: file.size,
+      isImage: file.type?.startsWith('image/'),
+      url: file.type?.startsWith('image/') ? await fileToDataURL(file) : null,
+    }
+    setAttachments((prev) => [...prev, item])
+  }
+  const handleRemoveAttachment = (id) =>
+    setAttachments((prev) => prev.filter((a) => a.id !== id))
 
   return (
     <BottomSheet
@@ -154,6 +179,42 @@ export default function OrderSheet({ defaultDesignName, onClose, onSubmit }) {
             placeholder="包装要求、加急说明等"
             rows={2}
           />
+        </Field>
+
+        <Field label={
+          <span className="mp-form-label-with-icon">
+            <Paperclip size={11} /> 附件（选填，可拍照 / 相册 / 文件）
+          </span>
+        }>
+          <ImageUploadButton
+            onPick={handleAddFile}
+            label="添加附件"
+            variant="block"
+          />
+          {attachments.length > 0 && (
+            <div className="mp-attach-list">
+              {attachments.map((a) => (
+                <div key={a.id} className="mp-attach-item">
+                  {a.isImage && a.url ? (
+                    <img src={a.url} alt={a.name} className="mp-attach-thumb" />
+                  ) : (
+                    <span className="mp-attach-icon">
+                      <FileText size={12} strokeWidth={1.6} />
+                    </span>
+                  )}
+                  <span className="mp-attach-name" title={a.name}>{a.name}</span>
+                  <button
+                    type="button"
+                    className="mp-attach-remove"
+                    onClick={() => handleRemoveAttachment(a.id)}
+                    aria-label="移除"
+                  >
+                    <Trash2 size={10} strokeWidth={1.8} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </Field>
       </div>
     </BottomSheet>

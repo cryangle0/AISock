@@ -15,6 +15,7 @@ export default function ParamsPanel({
   paletteId,
   paletteStrength,
   showHeelToeSeparate,
+  activeRegion,
   onParamsChange,
   onColorsChange,
   onPaletteChange,
@@ -157,17 +158,22 @@ export default function ParamsPanel({
 
       {/* ── 颜色 ───────────── */}
       <div className="params-section">
-        <div className="section-title">颜色</div>
+        <div className="section-title">
+          颜色
+          <span className="region-badge muted">提示：单击袜版可定位区域</span>
+        </div>
         <BaseColorPicker
           label="袜身底色"
           value={colors.bodyHex}
           onChange={(v) => updateColor('bodyHex', v)}
           allowAuto
+          highlight={activeRegion === 'body'}
         />
         <BaseColorPicker
           label="螺口"
           value={colors.weltHex}
           onChange={(v) => updateColor('weltHex', v)}
+          highlight={activeRegion === 'welt'}
         />
         {showHeelToeSeparate ? (
           <>
@@ -175,11 +181,13 @@ export default function ParamsPanel({
               label="袜跟"
               value={colors.heelHex}
               onChange={(v) => updateColor('heelHex', v)}
+              highlight={activeRegion === 'heel'}
             />
             <BaseColorPicker
               label="袜头"
               value={colors.toeHex}
               onChange={(v) => updateColor('toeHex', v)}
+              highlight={activeRegion === 'toe'}
             />
           </>
         ) : (
@@ -190,6 +198,7 @@ export default function ParamsPanel({
               updateColor('heelHex', v)
               updateColor('toeHex', v)
             }}
+            highlight={activeRegion === 'heel' || activeRegion === 'toe'}
           />
         )}
       </div>

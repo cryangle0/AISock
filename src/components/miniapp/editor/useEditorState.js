@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { applyPaletteMapping } from '../../print/colorMapping'
 import { PALETTE_MAP } from '../../print/colorPalettes'
+import { DEFAULT_SOCK_TYPE_ID } from '../../print/sockTypes'
 
 export const DEFAULT_PARAMS = {
   density: 100, tileDensity: 3, rotation: 0, singleMode: true, debugMode: false,
@@ -25,6 +26,7 @@ export default function useEditorState() {
   const [paletteId, setPaletteId] = useState(null)
   const [paletteStrength, setPaletteStrength] = useState(DEFAULT_PALETTE_STRENGTH)
   const [paletteResult, setPaletteResult] = useState({ key: '', url: null })
+  const [sockTypeId, setSockTypeId] = useState(DEFAULT_SOCK_TYPE_ID)
   // AI 生成历史 — 与 web AssetPanel 行为一致，最多保留 24 条
   const [aiHistory, setAiHistory] = useState([])
   const addAiHistory = (item) => {
@@ -77,10 +79,10 @@ export default function useEditorState() {
   return {
     // values
     printImage, printName, params, colors, paletteId, paletteStrength,
-    finalPrintImage, aiHistory,
+    finalPrintImage, aiHistory, sockTypeId,
     // setters
     setPrintImage, setPrintName, setParams, setColors,
-    setPaletteId, setPaletteStrength,
+    setPaletteId, setPaletteStrength, setSockTypeId,
     // helpers
     applyImage, clearPrint, resetParams, applyDerivedDesign, addAiHistory,
   }

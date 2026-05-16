@@ -2,8 +2,12 @@
  * BOrderDetail — 订单详情（基于真实订单数据）
  * 状态进度条 + 设计稿大图 + 尺码分布 + 支付/物流
  */
-import { useMemo } from 'react'
-import { Copy, Headphones, CheckCircle, Clock, Truck, Package } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  Copy, Headphones, CheckCircle, Clock, Truck, Package,
+  Paperclip, Pencil, Save, FileText, Trash2,
+} from 'lucide-react'
+import ImageUploadButton from '../../editor/ImageUploadButton'
 
 const STATUS_FLOW = ['待生产', '生产中', '已发货', '已完成']
 
@@ -14,11 +18,48 @@ const STATUS_ICONS = {
   '已完成': CheckCircle,
 }
 
-export default function BOrderDetail({ orders = [], params = {}, onNavigate }) {
+export default function BOrderDetail({ orders = [], params = {}, onNavigate, onUpdateOrder }) {
   const order = useMemo(
     () => orders.find((o) => o.id === params.orderId) || orders[0],
     [orders, params.orderId],
   )
+
+  const [editing, setEditing] = useState(false)
+  const [draftNote, setDraftNote] = useState('')
+  const [draftAttachments, setDraftAttachments] = useState([])
+
+  // 进入编辑态时初始化草稿
+  const startEdit = () => {
+    setDraftNote(order?.note || '')
+    setDraftAttachments(order?.attachments || [])
+    setEditing(true)
+  }
+
+  const handleAddAttachment = async (file) => {
+    if (!file) return
+    const fileToDataURL = (f) => new Promise((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = (e) => resolve(e.target.result)
+      r.onerror = reject
+      r.readAsDataURL(f)
+    })
+    const item = {
+      id: `a-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: file.name || '附件',
+      type: file.type,
+      size: file.size,
+      isImage: file.type?.startsWith('image/'),
+      url: file.type?.startsWith('image/') ? await fileToDataURL(file) : null,
+    }
+    setDraftAttachments((prev) => [...prev, item])
+  }
+  const handleRemoveDraftAttachment = (id) =>
+    setDraftAttachments((prev) => prev.filter((a) => a.id !== id))
+
+  const handleSaveEdit = () => {
+    onUpdateOrder?.(order.id, { note: draftNote, attachments: draftAttachments })
+    setEditing(false)
+  }
 
   if (!order) {
     return (
@@ -127,16 +168,111 @@ export default function BOrderDetail({ orders = [], params = {}, onNavigate }) {
             <span>收货地址</span><span style={{ textAlign: 'right', maxWidth: '60%' }}>{order.address}</span>
           </div>
         )}
-        {order.note && (
-          <div className="mp-od-row">
-            <span>备注</span><span>{order.note}</span>
-          </div>
-        )}
         {order.payment?.amount != null && (
           <div className="mp-od-row total">
             <span>订单金额</span>
             <span>¥{Number(order.payment.amount).toFixed(2)}</span>
           </div>
+        )}
+      </div>
+
+      {/* 备注 / 附件（可编辑） */}
+      <div className="mp-od-section">
+        <div className="mp-od-section-title">
+          <Paperclip size={12} /> 备注与附件
+          {!editing ? (
+            <button
+              className="mp-mini-btn"
+              style={{ marginLeft: 'auto' }}
+              onClick={startEdit}
+            >
+              <Pencil size={10} /> 编辑
+            </button>
+          ) : (
+            <button
+              className="mp-mini-btn primary"
+              style={{ marginLeft: 'auto' }}
+              onClick={handleSaveEdit}
+            >
+              <Save size={10} /> 保存
+            </button>
+          )}
+        </div>
+
+        {editing ? (
+          <>
+            <div className="mp-od-note-edit">
+              <textarea
+                value={draftNote}
+                onChange={(e) => setDraftNote(e.target.value)}
+                placeholder="包装要求、加急说明、修改建议等"
+                rows={3}
+              />
+            </div>
+            <ImageUploadButton
+              onPick={handleAddAttachment}
+              label="添加附件（拍照 / 相册 / 文件）"
+              variant="block"
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+            />
+            {draftAttachments.length > 0 && (
+              <div className="mp-attach-list">
+                {draftAttachments.map((a) => (
+                  <div key={a.id} className="mp-attach-item">
+                    {a.isImage && a.url ? (
+                      <img src={a.url} alt={a.name} className="mp-attach-thumb" />
+                    ) : (
+                      <span className="mp-attach-icon">
+                        <FileText size={12} strokeWidth={1.6} />
+                      </span>
+                    )}
+                    <span className="mp-attach-name" title={a.name}>{a.name}</span>
+                    <button
+                      type="button"
+                      className="mp-attach-remove"
+                      onClick={() => handleRemoveDraftAttachment(a.id)}
+                      aria-label="移除"
+                    >
+                      <Trash2 size={10} strokeWidth={1.8} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {order.note ? (
+              <div className="mp-od-row" style={{ alignItems: 'flex-start' }}>
+                <span>备注</span>
+                <span style={{ textAlign: 'right', maxWidth: '70%' }}>{order.note}</span>
+              </div>
+            ) : (
+              <div className="mp-od-row">
+                <span>备注</span><span style={{ color: '#c5c9d1' }}>暂无</span>
+              </div>
+            )}
+            {(order.attachments?.length || 0) > 0 ? (
+              <div className="mp-od-attach-grid">
+                {order.attachments.map((a) => (
+                  a.isImage && a.url ? (
+                    <img key={a.id} src={a.url} alt={a.name} className="mp-od-attach-img" />
+                  ) : (
+                    <div key={a.id} className="mp-attach-item">
+                      <span className="mp-attach-icon">
+                        <FileText size={12} strokeWidth={1.6} />
+                      </span>
+                      <span className="mp-attach-name">{a.name}</span>
+                    </div>
+                  )
+                ))}
+              </div>
+            ) : (
+              <div className="mp-od-row">
+                <span>附件</span><span style={{ color: '#c5c9d1' }}>暂无</span>
+              </div>
+            )}
+          </>
         )}
       </div>
 

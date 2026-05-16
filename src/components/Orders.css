@@ -203,3 +203,72 @@
   .order-no::before { content: '订单号：'; color: var(--text-muted); margin-right: 6px; }
   .order-addr::before { content: '地址：'; color: var(--text-muted); margin-right: 6px; }
 }
+
+
+/* ==================== 订单编辑（备注 / 附件） ==================== */
+.orders-row-clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.orders-row-clickable:hover {
+  background: var(--bg-hover, #f6f7f9);
+}
+
+.order-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.order-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.order-attach-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--accent-soft, #fce8ef);
+  color: var(--accent, #d4376b);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.order-note-preview {
+  font-size: 10px;
+  color: var(--text-tertiary, #9ba3b3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.order-edit-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--text-tertiary, #9ba3b3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  opacity: 0;
+  transition: all 0.15s;
+}
+.orders-row:hover .order-edit-btn {
+  opacity: 1;
+}
+.order-edit-btn:hover {
+  background: var(--accent-soft, #fce8ef);
+  color: var(--accent, #d4376b);
+}

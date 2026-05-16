@@ -6,9 +6,11 @@ import ParamsPanel from './ParamsPanel'
 import OrderModal from './OrderModal'
 import AiExtendModal from './print/AiExtendModal'
 import FamilyPairModal from './print/FamilyPairModal'
+import SockTypeSelector from './print/SockTypeSelector'
 import { applyPaletteMapping } from './print/colorMapping'
 import { PALETTE_MAP } from './print/colorPalettes'
 import { matchaBigFlowerImageURL } from './patternImage'
+import { DEFAULT_SOCK_TYPE_ID } from './print/sockTypes'
 import {
   isHeelToeSeparable,
   renderSockToDataURL,
@@ -39,6 +41,7 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const [colors, setColors] = useState(DEFAULT_COLORS)
   const [paletteId, setPaletteId] = useState(null)
   const [paletteStrength, setPaletteStrength] = useState(DEFAULT_PALETTE_STRENGTH)
+  const [sockTypeId, setSockTypeId] = useState(DEFAULT_SOCK_TYPE_ID)
   // 色卡映射缓存：{ key, url } —— key 由"原图+色卡+强度"组成
   const [paletteResult, setPaletteResult] = useState({ key: '', url: null })
 
@@ -47,6 +50,8 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const [familyPairOpen, setFamilyPairOpen] = useState(false)
   // 把袜版资源放进 state，以便 modal 可以在 render 中安全读取
   const [resources, setResources] = useState(null)
+  // 当前在颜色面板中高亮的区域（点击袜版后短暂高亮）
+  const [activeRegion, setActiveRegion] = useState(null)
 
   const canvasRef = useRef(null)
 
@@ -107,6 +112,18 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
   const handleResourceReady = (r) => setResources(r)
   const separable = isHeelToeSeparable(resources)
 
+  // 单击袜版区域 → 高亮对应颜色行 + 滚动到可见
+  const handleRegionClick = (region) => {
+    setActiveRegion(region)
+    setTimeout(() => {
+      const target = document.querySelector(`.params-panel [data-region="${regionLabel(region, separable)}"]`)
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 30)
+    // 1.4s 后自然淡出高亮
+    window.clearTimeout(handleRegionClick._t)
+    handleRegionClick._t = window.setTimeout(() => setActiveRegion(null), 1400)
+  }
+
   const composeName = () => printName ? `${printName} 袜款` : '未命名袜版'
 
   // 保存当前画布快照为缩略图
@@ -120,6 +137,7 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
       params,
       colors,
       paletteId,
+      sockTypeId,
     })
   }
 
@@ -162,14 +180,24 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
       <AssetPanel onApplyImage={applyImage}/>
 
       <div className="canvas-wrap">
+        <div className="sock-type-bar">
+          <span className="sock-type-bar-label">袜版形状</span>
+          <SockTypeSelector
+            value={sockTypeId}
+            onChange={setSockTypeId}
+            variant="full"
+          />
+        </div>
         <SockPrintCanvas
           ref={canvasRef}
+          sockTypeId={sockTypeId}
           printImage={finalPrintImage}
           printName={printName}
           params={params}
           colors={colors}
           onDropImage={applyImage}
           onResourceReady={handleResourceReady}
+          onRegionClick={handleRegionClick}
         />
       </div>
 
@@ -181,6 +209,7 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
         paletteId={paletteId}
         paletteStrength={paletteStrength}
         showHeelToeSeparate={separable}
+        activeRegion={activeRegion}
         onParamsChange={setParams}
         onColorsChange={setColors}
         onPaletteChange={setPaletteId}
@@ -239,4 +268,17 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
       )}
     </div>
   )
+}
+
+// 从 region key 推 BaseColorPicker 的 label，用于滚动定位
+function regionLabel(region, separable) {
+  if (region === 'body') return '袜身底色'
+  if (region === 'welt') return '螺口'
+  if (separable) {
+    if (region === 'heel') return '袜跟'
+    if (region === 'toe') return '袜头'
+  } else if (region === 'heel' || region === 'toe') {
+    return '袜跟+袜头'
+  }
+  return ''
 }

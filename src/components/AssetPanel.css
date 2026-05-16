@@ -242,3 +242,225 @@
   transition: all 0.18s;
 }
 .history-apply:hover { background: var(--accent); color: #fff; }
+
+
+/* ==================== AssetPanel v2 — 我的 / AI 延申扩展 ==================== */
+.asset-item-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.asset-item-removable { position: relative; }
+.asset-item-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(13, 15, 20, 0.55);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.asset-item-removable:hover .asset-item-remove { opacity: 1; }
+
+/* 我的 tab */
+.asset-mine {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mine-upload-btn {
+  appearance: none;
+  background: var(--accent, #d4376b);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.mine-upload-btn:hover { background: #b82c5c; transform: translateY(-1px); }
+
+.mine-empty {
+  text-align: center;
+  padding: 40px 12px;
+  color: var(--text-tertiary, #9ba3b3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.mine-empty p { margin: 0; font-size: 12px; color: var(--text-secondary, #6c7385); }
+.mine-empty small { font-size: 10px; }
+
+/* AI 延申 — 参考图 */
+.ai-ref {
+  background: var(--bg-elev, #f6f7f9);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.ai-ref-label {
+  font-size: 10px;
+  color: var(--text-tertiary, #9ba3b3);
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+.ai-ref-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card, #fff);
+  border-radius: 8px;
+  padding: 6px;
+  position: relative;
+}
+.ai-ref-card img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.ai-ref-meta { flex: 1; min-width: 0; }
+.ai-ref-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary, #2c3140);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-ref-tip { font-size: 9px; color: var(--text-tertiary, #9ba3b3); }
+.ai-ref-clear {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(13, 15, 20, 0.06);
+  border: none;
+  color: var(--text-secondary, #6c7385);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ai-ref-clear:hover { background: rgba(13, 15, 20, 0.12); }
+
+.ai-ref-empty { display: flex; gap: 6px; }
+.ai-ref-btn {
+  flex: 1;
+  appearance: none;
+  background: var(--bg-card, #fff);
+  border: 1px dashed rgba(13, 15, 20, 0.18);
+  border-radius: 8px;
+  padding: 8px 6px;
+  font-size: 10px;
+  color: var(--text-secondary, #6c7385);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.ai-ref-btn:hover:not(:disabled) {
+  border-color: var(--accent, #d4376b);
+  color: var(--accent, #d4376b);
+  border-style: solid;
+}
+.ai-ref-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* 个人库 picker */
+.mine-picker-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 15, 20, 0.5);
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.mine-picker {
+  background: var(--bg-card, #fff);
+  border-radius: 14px;
+  width: 480px;
+  max-width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mine-picker header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, #eaecf3);
+  font-weight: 600;
+  font-size: 13px;
+}
+.mine-picker header button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary, #6c7385);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mine-picker header button:hover { background: var(--bg-elev, #f6f7f9); }
+.mine-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+.mine-picker-item {
+  appearance: none;
+  background: var(--bg-elev, #f6f7f9);
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.mine-picker-item:hover { border-color: var(--accent, #d4376b); }
+.mine-picker-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.mine-picker-item span {
+  font-size: 9px;
+  color: var(--text-secondary, #6c7385);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}

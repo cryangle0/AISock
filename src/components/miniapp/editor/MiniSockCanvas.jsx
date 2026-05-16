@@ -24,13 +24,13 @@ const loadImage = (src) => new Promise((resolve) => {
 })
 
 const MiniSockCanvas = forwardRef(function MiniSockCanvas(
-  { printImage, params, colors, onDropImage, onResourceReady },
+  { sockTypeId, printImage, params, colors, onDropImage, onResourceReady },
   ref,
 ) {
   const canvasRef = useRef(null)
   const patternRef = useRef(null)
   const [hovering, setHovering] = useState(false)
-  const resources = useSockResources()
+  const resources = useSockResources(sockTypeId)
 
   // 资源就绪 → 设置画布尺寸 + 通知外部
   useEffect(() => {

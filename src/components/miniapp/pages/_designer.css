@@ -1456,3 +1456,417 @@
   padding: 6px;
   box-sizing: content-box;
 }
+
+
+/* ==================== 袜型 sheet ==================== */
+.mp-shape-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mp-shape-tip {
+  font-size: 10px;
+  color: #9ba3b3;
+  background: #f6f7f9;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+/* ==================== 印花 sheet 新增（公共库图片 / 我的） ==================== */
+.mp-pattern-tile-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.mp-mine-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mp-mine-upload { width: 100%; }
+
+.mp-mine-empty-tip {
+  text-align: center;
+  padding: 20px 12px;
+  font-size: 10px;
+  color: #9ba3b3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.mp-mine-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.mp-mine-tile {
+  appearance: none;
+  background: #f6f7f9;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+}
+.mp-mine-tile-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  cursor: pointer;
+}
+.mp-mine-tile-name {
+  font-size: 9px;
+  color: #6c7385;
+  padding: 3px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-mine-tile-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(13, 15, 20, 0.55);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* AI 延申参考图 */
+.mp-ai-ref {
+  background: #f6f7f9;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.mp-ai-ref-label {
+  font-size: 9px;
+  color: #9ba3b3;
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+.mp-ai-ref-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px;
+  position: relative;
+}
+.mp-ai-ref-card img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.mp-ai-ref-meta { flex: 1; min-width: 0; }
+.mp-ai-ref-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #2c3140;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-ai-ref-tip { font-size: 8px; color: #9ba3b3; }
+.mp-ai-ref-clear {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(13, 15, 20, 0.06);
+  border: none;
+  color: #6c7385;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mp-ai-ref-empty { display: flex; gap: 4px; }
+.mp-ai-ref-empty .mp-mini-btn {
+  flex: 1;
+  border-radius: 6px;
+  padding: 6px 4px;
+  background: #fff;
+  border: 1px dashed rgba(13, 15, 20, 0.18);
+}
+
+/* 素材页 - 我的 tab */
+.mp-asset-thumb-img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.mp-asset-card { position: relative; }
+.mp-asset-tag.admin {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+.mp-asset-tag.mine {
+  background: rgba(58, 111, 176, 0.12);
+  color: #3a6fb0;
+}
+.mp-asset-tag.light {
+  background: rgba(13, 15, 20, 0.04);
+  color: #c5c9d1;
+}
+.mp-asset-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(13, 15, 20, 0.55);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.mp-asset-upload-fab {
+  position: sticky;
+  bottom: 12px;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #d4376b;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(212, 55, 107, 0.4);
+  align-self: flex-end;
+}
+
+.mp-mine-empty p {
+  font-size: 11px;
+  color: #6c7385;
+  margin: 4px 0 0;
+}
+
+
+/* ==================== 图片上传来源菜单（拍照 / 相册） ==================== */
+.mp-upload-source-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 15, 20, 0.45);
+  z-index: 70;
+  display: flex;
+  align-items: flex-end;
+  animation: mp-mask-fade 0.16s ease-out;
+}
+
+.mp-upload-source {
+  width: 100%;
+  background: #f3f4f7;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: mp-sheet-up 0.2s cubic-bezier(0.22, 0.9, 0.35, 1.01);
+}
+
+.mp-upload-source-item {
+  appearance: none;
+  background: #fff;
+  border: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font-size: 12px;
+  color: #2c3140;
+}
+.mp-upload-source-item:hover { background: #f6f7f9; }
+.mp-upload-source-item span {
+  font-weight: 600;
+}
+.mp-upload-source-item small {
+  margin-left: auto;
+  font-size: 10px;
+  color: #9ba3b3;
+}
+
+.mp-upload-source-cancel {
+  appearance: none;
+  background: #fff;
+  border: none;
+  padding: 11px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #6c7385;
+  margin-top: 4px;
+}
+.mp-upload-source-cancel:hover { color: #d4376b; }
+
+
+/* 我的素材库 sticky 上传按钮 */
+.mp-asset-fab-wrap {
+  position: sticky;
+  bottom: 8px;
+  margin: auto -10px -12px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(243, 244, 247, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(16, 18, 24, 0.06);
+  display: flex;
+  z-index: 8;
+}
+.mp-asset-fab-wrap > button { width: 100%; }
+
+
+/* ==================== 订单附件 / 备注编辑（小程序） ==================== */
+.mp-form-label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mp-attach-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.mp-attach-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: #f6f7f9;
+  border-radius: 6px;
+  font-size: 10px;
+}
+.mp-attach-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.mp-attach-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c7385;
+  flex-shrink: 0;
+}
+.mp-attach-name {
+  flex: 1;
+  min-width: 0;
+  color: #2c3140;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-attach-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: #c5c9d1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mp-attach-remove:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+/* 订单详情备注编辑入口 */
+.mp-od-note-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f6f7f9;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+.mp-od-note-edit textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 11px;
+  color: #2c3140;
+  min-height: 36px;
+}
+
+.mp-od-attach-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.mp-od-attach-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f6f7f9;
+}
+
+
+/* 订单卡 - 备注/附件 meta */
+.mp-order-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.mp-order-card-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(212, 55, 107, 0.1);
+  color: #d4376b;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.mp-order-card-note {
+  font-size: 9px;
+  color: #9ba3b3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}

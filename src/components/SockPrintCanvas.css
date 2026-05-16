@@ -195,3 +195,12 @@ body.dark .spc-hint-frame {
   background: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
+
+
+/* 单击命中区域时 cursor 变手指 */
+.spc-stage.clickable {
+  cursor: pointer;
+}
+.spc-stage.clickable:hover .spc-canvas {
+  filter: brightness(1.02);
+}

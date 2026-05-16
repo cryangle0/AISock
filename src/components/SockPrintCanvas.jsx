@@ -3,6 +3,7 @@ import { Image as ImageIcon, MousePointerClick } from 'lucide-react'
 import './SockPrintCanvas.css'
 import useSockResources from './print/useSockResources'
 import { renderSock } from './print/sockRenderer'
+import { hitTestRegion } from './print/hitTest'
 
 const loadImage = (src) => new Promise((resolve) => {
   if (!src) return resolve(null)
@@ -14,13 +15,13 @@ const loadImage = (src) => new Promise((resolve) => {
 })
 
 const SockPrintCanvas = forwardRef(function SockPrintCanvas(
-  { printImage, printName, params, colors, onDropImage, onResourceReady },
+  { sockTypeId, printImage, printName, params, colors, onDropImage, onResourceReady, onRegionClick },
   ref,
 ) {
   const canvasRef = useRef(null)
   const patternRef = useRef(null)
   const [hovering, setHovering] = useState(false)
-  const resources = useSockResources()
+  const resources = useSockResources(sockTypeId)
 
   // 资源就绪 → 设置画布尺寸 + 通知外部
   useEffect(() => {
@@ -72,6 +73,20 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
     },
   }), [])
 
+  // 点击袜版命中区域 → 通知外部跳到对应颜色行
+  const handleClick = (e) => {
+    if (!resources.ready || !onRegionClick) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const sx = canvas.width / rect.width
+    const sy = canvas.height / rect.height
+    const x = (e.clientX - rect.left) * sx
+    const y = (e.clientY - rect.top) * sy
+    const region = hitTestRegion(resources, x, y)
+    if (region) onRegionClick(region)
+  }
+
   const handleDragOver = (e) => {
     e.preventDefault()
     setHovering(true)
@@ -113,10 +128,11 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
       </div>
 
       <div
-        className={`spc-stage ${hovering ? 'hovering' : ''}`}
+        className={`spc-stage ${hovering ? 'hovering' : ''} ${onRegionClick ? 'clickable' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={handleClick}
       >
         <canvas ref={canvasRef} className="spc-canvas"/>
 

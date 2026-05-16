@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
+import { resolveAssetKey } from './sockTypes'
 
-const ASSET = (name) => `${import.meta.env.BASE_URL}image-tool/${name}`
+const ASSET = (assetKey, name) => {
+  // assetKey === 'default' 时回退到原路径，新袜型可以放到 image-tool/<assetKey>/<name>
+  const prefix = assetKey === 'default'
+    ? `${import.meta.env.BASE_URL}image-tool/`
+    : `${import.meta.env.BASE_URL}image-tool/${assetKey}/`
+  return `${prefix}${name}`
+}
 
 const loadImage = (src) => new Promise((resolve) => {
   const img = new Image()
@@ -240,7 +247,7 @@ const buildHeelToeMasks = (otherMask, w, h) => {
  *   - heelMask/toeMask — 袜跟/袜头（来自 othermask 连通域拆分）
  *   - bodyMaskCanvas   — bodyMask 的 RGBA 画布缓存，给印花做 source-in 裁剪
  */
-export default function useSockResources() {
+export default function useSockResources(sockTypeId = 'crew') {
   const [state, setState] = useState({
     ready: false,
     error: null,
@@ -259,11 +266,12 @@ export default function useSockResources() {
 
   useEffect(() => {
     let cancelled = false
+    const assetKey = resolveAssetKey(sockTypeId)
     Promise.all([
-      loadImage(ASSET('sock.png')),
-      loadImage(ASSET('mask.png')),
-      loadImage(ASSET('othermask.png')),
-      loadImage(ASSET('lineart.png')),
+      loadImage(ASSET(assetKey, 'sock.png')),
+      loadImage(ASSET(assetKey, 'mask.png')),
+      loadImage(ASSET(assetKey, 'othermask.png')),
+      loadImage(ASSET(assetKey, 'lineart.png')),
     ]).then(([sock, maskImg, otherMaskImg, lineart]) => {
       if (cancelled) return
       if (!sock) {
@@ -317,7 +325,7 @@ export default function useSockResources() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [sockTypeId])
 
   return state
 }

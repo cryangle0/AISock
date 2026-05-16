@@ -30,12 +30,15 @@ import AiExtendSheet from '../../editor/AiExtendSheet'
 import FamilySheet from '../../editor/FamilySheet'
 import Toast from '../../ui/Toast'
 import useToast from '../../ui/useToast'
+import useAssetLibrary from '../../../assets/useAssetLibrary'
+import SockTypeSelector from '../../../print/SockTypeSelector'
 import { matchaBigFlowerImageURL } from '../../../patternImage'
 import {
   isHeelToeSeparable, renderSockToDataURL, compressDataURL,
 } from '../../../print/sockRenderer'
 
 const TABS = [
+  { key: 'shape',   label: '袜型' },
   { key: 'print',   label: '印花' },
   { key: 'adjust',  label: '调节' },
   { key: 'color',   label: '颜色' },
@@ -56,6 +59,8 @@ export default function BEditor({
 }) {
   const [activeSheet, setActiveSheet] = useState('print')
   const [resources, setResources] = useState(null)
+
+  const lib = useAssetLibrary()
 
   // 顶层弹层 sheet
   const [orderOpen, setOrderOpen] = useState(false)
@@ -86,6 +91,7 @@ export default function BEditor({
       params: editor.params,
       colors: editor.colors,
       paletteId: editor.paletteId,
+      sockTypeId: editor.sockTypeId,
     })
     show('已保存到我的设计')
   }
@@ -156,6 +162,7 @@ export default function BEditor({
       <div className="mp-editor-canvas-wrap">
         <MiniSockCanvas
           ref={canvasRef}
+          sockTypeId={editor.sockTypeId}
           printImage={editor.finalPrintImage}
           params={editor.params}
           colors={editor.colors}
@@ -203,12 +210,29 @@ export default function BEditor({
       </div>
 
       <div className="mp-sheet-card">
+        {activeSheet === 'shape' && (
+          <div className="mp-sheet-body mp-shape-sheet">
+            <div className="mp-sheet-section-title">选择袜版形状</div>
+            <SockTypeSelector
+              value={editor.sockTypeId}
+              onChange={editor.setSockTypeId}
+              variant="compact"
+            />
+            <div className="mp-shape-tip">
+              切换袜型后，画布会重新加载对应的蒙版与线稿，四区独立编辑保持一致体验。
+            </div>
+          </div>
+        )}
         {activeSheet === 'print' && (
           <PrintSheet
             printImage={editor.printImage}
             printName={editor.printName}
             history={editor.aiHistory}
             onHistoryAdd={editor.addAiHistory}
+            publicAssets={lib.publicAssets}
+            userAssets={lib.userAssets}
+            onUploadUserAsset={lib.addUserAsset}
+            onRemoveUserAsset={lib.removeUserAsset}
             onApplyImage={editor.applyImage}
             onClearPrint={editor.clearPrint}
             onModifyBg={handleModifyBg}

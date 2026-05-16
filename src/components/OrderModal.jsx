@@ -1,9 +1,17 @@
-import { useState } from 'react'
-import { X, ShoppingBag } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { X, ShoppingBag, Paperclip, Upload, Trash2, FileText } from 'lucide-react'
 import './Modal.css'
 import { MATERIALS, CRAFTS } from './print/printConstants'
 
 const SIZE_LIST = ['S', 'M', 'L', 'XL']
+
+// 把 File 读成 dataURL（用于预览/持久化）
+const readFileAsDataURL = (file) => new Promise((resolve, reject) => {
+  const r = new FileReader()
+  r.onload = (e) => resolve(e.target.result)
+  r.onerror = reject
+  r.readAsDataURL(file)
+})
 
 export default function OrderModal({ defaultDesignName = '未命名袜版', onClose, onSubmit }) {
   const [designName, setDesignName] = useState(defaultDesignName)
@@ -14,6 +22,8 @@ export default function OrderModal({ defaultDesignName = '未命名袜版', onCl
   const [contact, setContact] = useState('')
   const [phone, setPhone] = useState('')
   const [note, setNote] = useState('')
+  const [attachments, setAttachments] = useState([])
+  const fileInputRef = useRef(null)
 
   const total = Object.values(sizes).reduce((a, b) => a + b, 0)
   const canSubmit = total > 0 && address.trim() && contact.trim() && phone.trim()
@@ -35,7 +45,27 @@ export default function OrderModal({ defaultDesignName = '未命名袜版', onCl
       contact,
       phone,
       note,
+      attachments,
     })
+  }
+
+  const handlePickFiles = () => fileInputRef.current?.click()
+  const handleFilesChange = async (e) => {
+    const list = Array.from(e.target.files || [])
+    if (!list.length) return
+    const items = await Promise.all(list.map(async (f) => ({
+      id: `a-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      isImage: f.type.startsWith('image/'),
+      url: f.type.startsWith('image/') ? await readFileAsDataURL(f) : null,
+    })))
+    setAttachments((prev) => [...prev, ...items])
+    e.target.value = ''
+  }
+  const handleRemoveAttachment = (id) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
   return (
@@ -135,6 +165,54 @@ export default function OrderModal({ defaultDesignName = '未命名袜版', onCl
               placeholder="包装要求、加急说明等"
               rows={2}
             />
+          </Field>
+
+          <Field label={
+            <span className="form-label-with-icon">
+              <Paperclip size={12} strokeWidth={1.6} /> 附件（选填，可上传文件 / 图片）
+            </span>
+          }>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+              onChange={handleFilesChange}
+              hidden
+            />
+            <button
+              type="button"
+              className="order-attach-btn"
+              onClick={handlePickFiles}
+            >
+              <Upload size={12} strokeWidth={1.6} />
+              点击上传或拖拽到此区域
+            </button>
+            {attachments.length > 0 && (
+              <div className="order-attach-list">
+                {attachments.map((a) => (
+                  <div key={a.id} className="order-attach-item">
+                    {a.isImage && a.url ? (
+                      <img src={a.url} alt={a.name} className="order-attach-thumb" />
+                    ) : (
+                      <span className="order-attach-icon">
+                        <FileText size={14} strokeWidth={1.6} />
+                      </span>
+                    )}
+                    <span className="order-attach-name" title={a.name}>{a.name}</span>
+                    <span className="order-attach-size">{(a.size / 1024).toFixed(1)} KB</span>
+                    <button
+                      type="button"
+                      className="order-attach-remove"
+                      onClick={() => handleRemoveAttachment(a.id)}
+                      aria-label="移除"
+                    >
+                      <Trash2 size={11} strokeWidth={1.6} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </Field>
         </div>
 

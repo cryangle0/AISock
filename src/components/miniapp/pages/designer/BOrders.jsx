@@ -3,7 +3,7 @@
  * 状态 tab + 搜索 + 真实订单数据
  */
 import { useMemo, useState } from 'react'
-import { Search, Package } from 'lucide-react'
+import { Search, Package, Paperclip } from 'lucide-react'
 
 const STATUS_TABS = ['全部', '待生产', '生产中', '已发货', '已完成']
 
@@ -73,6 +73,7 @@ const STATUS_CLASS = {
 }
 
 function OrderCard({ order, onClick }) {
+  const attachCount = order.attachments?.length || 0
   return (
     <button className="mp-order-card-v2" onClick={onClick}>
       <div className="mp-order-card-head">
@@ -93,6 +94,18 @@ function OrderCard({ order, onClick }) {
             {order.material} · {order.craft || ''} · {order.total} 双
           </div>
           <div className="mp-order-card-time">{order.createdAt}</div>
+          {(order.note || attachCount > 0) && (
+            <div className="mp-order-card-meta">
+              {attachCount > 0 && (
+                <span className="mp-order-card-attach">
+                  <Paperclip size={10} strokeWidth={1.8} />{attachCount}
+                </span>
+              )}
+              {order.note && (
+                <span className="mp-order-card-note">{order.note}</span>
+              )}
+            </div>
+          )}
         </div>
         <div className="mp-order-card-amount">
           {order.payment?.amount != null

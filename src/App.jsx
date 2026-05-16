@@ -112,6 +112,11 @@ function App() {
     }, ...prev])
   }
 
+  // 编辑订单（仅备注 / 附件，其他字段不动）
+  const handleUpdateOrder = (id, patch) => {
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, ...patch } : o))
+  }
+
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
   return (
@@ -144,7 +149,7 @@ function App() {
           <MyDesigns designs={designs} onDelete={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}/>
         )}
         {activeMenu === '订单管理' && (
-          <Orders orders={orders}/>
+          <Orders orders={orders} onUpdateOrder={handleUpdateOrder}/>
         )}
         {activeMenu === '素材库' && (
           <AssetLibrary/>
@@ -159,6 +164,7 @@ function App() {
         onSaveDesign={handleSaveDesign}
         onPlaceOrder={handlePlaceOrder}
         onAddOrder={handleAddOrder}
+        onUpdateOrder={handleUpdateOrder}
         onPaymentDone={handlePaymentDone}
         onPaymentCancel={handlePaymentCancel}
         onDeleteDesign={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}

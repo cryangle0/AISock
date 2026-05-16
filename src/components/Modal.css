@@ -288,3 +288,96 @@
   .material-grid { grid-template-columns: 1fr 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ==================== 订单附件 ==================== */
+.form-label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-attach-btn {
+  appearance: none;
+  background: var(--bg-elev, #f6f7f9);
+  border: 1.5px dashed var(--border-color, #eaecf3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-secondary, #6c7385);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.order-attach-btn:hover {
+  border-color: var(--accent, #d4376b);
+  color: var(--accent, #d4376b);
+  background: var(--accent-soft, #fce8ef);
+}
+
+.order-attach-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.order-attach-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-elev, #f6f7f9);
+  border-radius: 8px;
+  font-size: 11px;
+}
+.order-attach-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.order-attach-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #6c7385);
+  flex-shrink: 0;
+}
+.order-attach-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-primary, #2c3140);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.order-attach-size {
+  font-size: 10px;
+  color: var(--text-tertiary, #9ba3b3);
+  flex-shrink: 0;
+}
+.order-attach-remove {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary, #9ba3b3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.order-attach-remove:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
