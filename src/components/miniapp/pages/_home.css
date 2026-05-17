@@ -660,6 +660,21 @@
 }
 .mp-login-tip svg { color: var(--mp-secondary); }
 
+.mp-login-agreement {
+  text-align: center;
+  font-size: 9px;
+  color: var(--mp-text-muted);
+  margin: -4px 0 8px;
+}
+.mp-login-agreement span {
+  color: var(--mp-primary);
+  cursor: pointer;
+}
+.phone-shell-full .mp-login-agreement {
+  font-size: 11px;
+  margin: -4px 0 12px;
+}
+
 .mp-login-footer {
   text-align: center;
   font-size: 9px;

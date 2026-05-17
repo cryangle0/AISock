@@ -29,6 +29,11 @@ export default function BLoginPage({ onLogin }) {
         <div className="mp-login-slogan">创意由你，花型随心</div>
       </div>
 
+      {/* —— 协议提示（放在登录卡上方） —— */}
+      <div className="mp-login-agreement">
+        登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span>
+      </div>
+
       {/* —— 表单 —— */}
       <div className="mp-login-card">
         <div className="mp-login-tabs">
@@ -81,7 +86,7 @@ export default function BLoginPage({ onLogin }) {
       </div>
 
       <div className="mp-login-footer">
-        登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span>
+        爱花型袜业 · 2026
       </div>
     </div>
   )
