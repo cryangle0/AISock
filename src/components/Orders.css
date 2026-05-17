@@ -136,8 +136,8 @@
   font-weight: 500;
 }
 
-.status-badge.pending  { background: rgba(150, 156, 175, 0.16); color: #6c7385; }
-.status-badge.progress { background: rgba(212, 55, 107, 0.14); color: var(--accent); }
+.status-badge.pending  { background: rgba(150, 156, 175, 0.16); color: #666666; }
+.status-badge.progress { background: rgba(40, 40, 40, 0.14); color: var(--accent); }
 .status-badge.shipped  { background: rgba(58, 111, 176, 0.14); color: #3a6fb0; }
 .status-badge.done     { background: rgba(95, 177, 138, 0.16); color: #4a9772; }
 
@@ -211,7 +211,7 @@
   transition: background 0.12s;
 }
 .orders-row-clickable:hover {
-  background: var(--bg-hover, #f6f7f9);
+  background: var(--bg-hover, #f3f3f3);
 }
 
 .order-name-cell {
@@ -232,8 +232,8 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: var(--accent-soft, #fce8ef);
-  color: var(--accent, #d4376b);
+  background: var(--accent-soft, #ececec);
+  color: var(--accent, #282828);
   font-size: 9px;
   font-weight: 600;
   padding: 1px 6px;
@@ -242,7 +242,7 @@
 
 .order-note-preview {
   font-size: 10px;
-  color: var(--text-tertiary, #9ba3b3);
+  color: var(--text-tertiary, #999999);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -256,7 +256,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  color: var(--text-tertiary, #9ba3b3);
+  color: var(--text-tertiary, #999999);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -269,6 +269,6 @@
   opacity: 1;
 }
 .order-edit-btn:hover {
-  background: var(--accent-soft, #fce8ef);
-  color: var(--accent, #d4376b);
+  background: var(--accent-soft, #ececec);
+  color: var(--accent, #282828);
 }

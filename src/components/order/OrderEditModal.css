@@ -33,13 +33,13 @@
 
 .oem-step > span {
   font-size: 11px;
-  color: var(--text-tertiary, #c5c9d1);
+  color: var(--text-tertiary, #b0b0b0);
   margin-top: 8px;
 }
 
 .oem-step.done > span,
 .oem-step.active > span {
-  color: var(--text-primary, #2c3140);
+  color: var(--text-primary, #282828);
   font-weight: 600;
 }
 
@@ -47,8 +47,8 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--bg-elev, #eaecf3);
-  color: var(--text-tertiary, #c5c9d1);
+  background: var(--bg-elev, #ececec);
+  color: var(--text-tertiary, #b0b0b0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +57,7 @@
 
 .oem-step.done .oem-step-dot,
 .oem-step.active .oem-step-dot {
-  background: var(--accent, #d4376b);
+  background: var(--accent, #282828);
   color: #fff;
 }
 
@@ -67,17 +67,17 @@
   left: 50%;
   width: 100%;
   height: 2px;
-  background: var(--bg-elev, #eaecf3);
+  background: var(--bg-elev, #ececec);
   z-index: 0;
 }
 .oem-step.done .oem-step-line {
-  background: var(--accent, #d4376b);
+  background: var(--accent, #282828);
 }
 
 /* ── section 通用 ── */
 .oem-section {
   background: var(--bg-card, #fff);
-  border: 1px solid var(--border-color, #eaecf3);
+  border: 1px solid var(--border-color, #ececec);
   border-radius: 12px;
   padding: 14px 16px;
 }
@@ -85,7 +85,7 @@
 .oem-section-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary, #6c7385);
+  color: var(--text-secondary, #666666);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -96,7 +96,7 @@
   appearance: none;
   background: transparent;
   border: none;
-  color: var(--accent, #d4376b);
+  color: var(--accent, #282828);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -108,7 +108,7 @@
   transition: background 0.15s;
 }
 .oem-section-action:hover {
-  background: var(--accent-soft, #fce8ef);
+  background: var(--accent-soft, #ececec);
 }
 
 /* ── 网格 ── */
@@ -130,7 +130,7 @@
 .oem-design-img-wrap {
   width: 110px;
   aspect-ratio: 3 / 4;
-  background: var(--bg-elev, #f6f7f9);
+  background: var(--bg-elev, #f3f3f3);
   border-radius: 10px;
   overflow: hidden;
   display: flex;
@@ -145,7 +145,7 @@
 }
 .oem-design-empty {
   font-size: 11px;
-  color: var(--text-tertiary, #c5c9d1);
+  color: var(--text-tertiary, #b0b0b0);
 }
 
 .oem-design-meta {
@@ -172,26 +172,26 @@
   width: 22px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary, #525968);
+  color: var(--text-secondary, #555555);
   text-align: center;
   flex-shrink: 0;
 }
 .oem-dist-bar {
   flex: 1;
   height: 8px;
-  background: var(--bg-elev, #f0f1f5);
+  background: var(--bg-elev, #ececec);
   border-radius: 4px;
   overflow: hidden;
 }
 .oem-dist-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent, #d4376b), #f0759a);
+  background: linear-gradient(90deg, var(--accent, #282828), #4a4a4a);
   border-radius: 4px;
   transition: width 0.4s ease;
 }
 .oem-dist-qty {
   font-size: 10px;
-  color: var(--text-secondary, #6c7385);
+  color: var(--text-secondary, #666666);
   font-family: 'Inter', monospace;
   min-width: 80px;
   text-align: right;
@@ -210,10 +210,10 @@
   align-items: flex-start;
   gap: 10px;
   font-size: 12px;
-  color: var(--text-primary, #2c3140);
+  color: var(--text-primary, #282828);
 }
 .oem-row-label {
-  color: var(--text-tertiary, #9ba3b3);
+  color: var(--text-tertiary, #999999);
   flex-shrink: 0;
 }
 .oem-row-value {
@@ -224,18 +224,18 @@
 .oem-row.highlight {
   margin-top: 4px;
   padding-top: 8px;
-  border-top: 1px dashed var(--border-color, #eaecf3);
+  border-top: 1px dashed var(--border-color, #ececec);
   font-weight: 600;
 }
 .oem-row.highlight .oem-row-label {
-  color: var(--text-primary, #2c3140);
+  color: var(--text-primary, #282828);
 }
 .oem-amount {
-  color: var(--accent, #d4376b);
+  color: var(--accent, #282828);
   font-size: 14px;
 }
 
-.oem-muted { color: var(--text-tertiary, #c5c9d1); }
+.oem-muted { color: var(--text-tertiary, #b0b0b0); }
 
 .oem-mono {
   font-family: 'Inter', monospace;

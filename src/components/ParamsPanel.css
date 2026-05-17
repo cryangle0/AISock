@@ -48,7 +48,7 @@
 .print-bg-edit-btn {
   height: 24px;
   padding: 0 9px;
-  border: 1px solid rgba(212, 55, 107, 0.28);
+  border: 1px solid rgba(40, 40, 40, 0.28);
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -60,8 +60,8 @@
 }
 
 .print-bg-edit-btn:hover {
-  border-color: rgba(212, 55, 107, 0.45);
-  background: rgba(212, 55, 107, 0.18);
+  border-color: rgba(40, 40, 40, 0.45);
+  background: rgba(40, 40, 40, 0.18);
 }
 
 .region-badge {
@@ -120,10 +120,10 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border: 1px solid rgba(212, 55, 107, 0.18);
+  border: 1px solid rgba(40, 40, 40, 0.18);
   border-radius: 12px;
   background:
-    radial-gradient(180px 90px at 100% 0%, rgba(212, 55, 107, 0.08), transparent 70%),
+    radial-gradient(180px 90px at 100% 0%, rgba(40, 40, 40, 0.08), transparent 70%),
     var(--bg-hover);
 }
 
@@ -223,7 +223,7 @@
   border: 3px solid var(--bg-card);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(212, 55, 107, 0.4), 0 2px 6px rgba(212, 55, 107, 0.4);
+  box-shadow: 0 0 0 1px rgba(40, 40, 40, 0.4), 0 2px 6px rgba(40, 40, 40, 0.4);
   transition: transform 0.15s;
 }
 .slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
@@ -234,7 +234,7 @@
   border: 3px solid var(--bg-card);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(212, 55, 107, 0.4);
+  box-shadow: 0 0 0 1px rgba(40, 40, 40, 0.4);
 }
 
 .seg-control {
@@ -288,11 +288,11 @@
 .action-btn.primary {
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(212, 55, 107, 0.32);
+  box-shadow: 0 4px 14px rgba(40, 40, 40, 0.32);
 }
 .action-btn.primary:hover {
   background: var(--accent-hover);
-  box-shadow: 0 6px 18px rgba(212, 55, 107, 0.4);
+  box-shadow: 0 6px 18px rgba(40, 40, 40, 0.4);
   transform: translateY(-1px);
 }
 

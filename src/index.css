@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,31 +6,75 @@
   padding: 0;
 }
 
+/* =========================================================================
+ * 设计 Token —— 参考 aihuaxing.cn 的「中性灰 + 深灰栏 + 极简画廊」体系。
+ * 全站让花型/袜样本身说话，UI 只用中性灰，避免品牌色干扰素材。
+ * ========================================================================= */
 :root {
-  --bg-primary: #eef0f3;
-  --bg-secondary: #fcfcfd;
-  --bg-elevated: rgba(255, 255, 255, 0.86);
+  /* —— 页面 / 背景 —— */
+  --bg-primary: #f9f9f9;                   /* 全站主底（aihuaxing 主调）*/
+  --bg-secondary: #ffffff;
+  --bg-elevated: rgba(255, 255, 255, 0.94);
   --bg-card: #ffffff;
-  --bg-hover: #f4f5f7;
-  --bg-active: #eceef2;
-  --border-color: rgba(16, 18, 24, 0.09);
-  --border-strong: rgba(16, 18, 24, 0.18);
-  --text-primary: #13151a;
-  --text-secondary: #555d6c;
-  --text-muted: #8e97a8;
-  --icon-default: #1f232b;
-  --icon-muted: #616a79;
-  --icon-strong: #111318;
-  --accent: #d4376b;
-  --accent-hover: #c0285c;
-  --accent-soft: rgba(212, 55, 107, 0.12);
-  --accent-glow: rgba(212, 55, 107, 0.24);
-  --shadow-sm: 0 8px 20px rgba(17, 20, 28, 0.06);
-  --shadow-md: 0 20px 42px rgba(17, 20, 28, 0.11);
-  --shadow-lg: 0 32px 66px rgba(17, 20, 28, 0.16);
+  --bg-hover: #f3f3f3;
+  --bg-active: #ececec;
+
+  /* —— 边框 —— */
+  --border-color: rgba(40, 40, 40, 0.08);
+  --border-strong: rgba(40, 40, 40, 0.16);
+
+  /* —— 文本 —— */
+  --text-primary: #282828;                 /* aihuaxing 正文/标题主色 */
+  --text-secondary: #555555;
+  --text-muted: #999999;
+  --text-tertiary: #b0b0b0;
+
+  /* —— 图标 —— */
+  --icon-default: #282828;
+  --icon-muted: #999999;
+  --icon-strong: #111111;
+
+  /* —— Accent：深灰墨色（aihuaxing 没有彩色品牌色，CTA 即深色）—— */
+  --accent: #282828;
+  --accent-hover: #111111;
+  --accent-soft: rgba(40, 40, 40, 0.06);
+  --accent-soft-strong: rgba(40, 40, 40, 0.12);
+  --accent-glow: rgba(40, 40, 40, 0.16);
+  --accent-fg: #ffffff;
+
+  /* —— 侧栏：深灰沉色 (aihuaxing 顶栏 #383434) —— */
+  --sidebar-bg: #383434;
+  --sidebar-fg: rgba(255, 255, 255, 0.92);
+  --sidebar-fg-muted: rgba(255, 255, 255, 0.55);
+  --sidebar-fg-active: #ffffff;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-active: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+
+  /* —— 链接 / 信息蓝（aihuaxing 极少量使用 system blue） —— */
+  --link: #007aff;
+
+  /* —— 状态色（订单 / 支付 / 提示）—— */
+  --status-success: #4a9772;
+  --status-success-soft: rgba(74, 151, 114, 0.14);
+  --status-warning: #c69130;
+  --status-warning-soft: rgba(198, 145, 48, 0.14);
+  --status-info: #3a6fb0;
+  --status-info-soft: rgba(58, 111, 176, 0.12);
+  --status-danger: #b94a4a;
+  --status-danger-soft: rgba(185, 74, 74, 0.12);
+
+  /* —— 阴影：极扁平，不抢戏 —— */
+  --shadow-sm: 0 1px 2px rgba(40, 40, 40, 0.04);
+  --shadow-md: 0 4px 16px rgba(40, 40, 40, 0.08);
+  --shadow-lg: 0 12px 36px rgba(40, 40, 40, 0.14);
+
   --sidebar-width: 76px;
 
-  --font-sans: 'Inter', -apple-system, 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  /* —— 字体：与 aihuaxing 完全对齐 —— */
+  --font-sans: 'PingFang SC', 'Helvetica Neue', Helvetica, 'Hiragino Sans GB',
+               'Microsoft YaHei', 'Noto Sans SC', Inter, Arial, sans-serif;
+  --font-mono: 'Inter', 'SF Mono', Menlo, Consolas, monospace;
   --font-size-xs: 10px;
   --font-size-sm: 12px;
   --font-size-base: 13px;
@@ -39,6 +83,12 @@
   --line-height-tight: 1.3;
   --line-height-base: 1.5;
   --line-height-loose: 1.7;
+
+  /* —— 圆角统一（参考 aihuaxing 商品方块） —— */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 }
 
 body {
@@ -46,11 +96,8 @@ body {
   font-size: var(--font-size-base);
   font-weight: 400;
   line-height: var(--line-height-base);
-  letter-spacing: -0.01em;
-  background:
-    radial-gradient(1000px 460px at 78% 110%, rgba(212, 55, 107, 0.08), transparent 62%),
-    radial-gradient(840px 320px at 4% -10%, rgba(17, 20, 28, 0.04), transparent 58%),
-    var(--bg-primary);
+  letter-spacing: 0;
+  background: var(--bg-primary);
   color: var(--text-primary);
   height: 100vh;
   overflow: hidden;
@@ -65,32 +112,54 @@ body {
   overflow: hidden;
 }
 
+/* =========================================================================
+ * 暗色模式 —— 仍保持中性灰系，accent 由深灰翻成浅灰
+ * ========================================================================= */
 body.dark {
-  --bg-primary: #090a0d;
-  --bg-secondary: #0f1115;
-  --bg-elevated: rgba(17, 19, 24, 0.8);
-  --bg-card: #141821;
-  --bg-hover: #1a1f28;
-  --bg-active: #222733;
+  --bg-primary: #141414;
+  --bg-secondary: #1a1a1a;
+  --bg-elevated: rgba(26, 26, 26, 0.86);
+  --bg-card: #1f1f1f;
+  --bg-hover: #262626;
+  --bg-active: #2e2e2e;
+
   --border-color: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --text-primary: #f5f7fb;
-  --text-secondary: #b4bccb;
-  --text-muted: #788297;
-  --icon-default: #d8deea;
-  --icon-muted: #a3aec2;
-  --icon-strong: #f7f9ff;
-  --accent-soft: rgba(212, 55, 107, 0.2);
-  --accent-glow: rgba(212, 55, 107, 0.32);
-  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.34);
-  --shadow-md: 0 26px 56px rgba(0, 0, 0, 0.46);
-  --shadow-lg: 0 40px 80px rgba(0, 0, 0, 0.56);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #c0c0c0;
+  --text-muted: #8c8c8c;
+  --text-tertiary: #6a6a6a;
+
+  --icon-default: #d8d8d8;
+  --icon-muted: #999999;
+  --icon-strong: #ffffff;
+
+  --accent: #f0f0f0;
+  --accent-hover: #ffffff;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-soft-strong: rgba(255, 255, 255, 0.14);
+  --accent-glow: rgba(255, 255, 255, 0.18);
+  --accent-fg: #141414;
+
+  --sidebar-bg: #0e0e0e;
+  --sidebar-fg: rgba(255, 255, 255, 0.9);
+  --sidebar-fg-muted: rgba(255, 255, 255, 0.45);
+  --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-active: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(140, 145, 160, 0.35); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(120, 125, 140, 0.55); }
+::-webkit-scrollbar-thumb { background: rgba(40, 40, 40, 0.18); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(40, 40, 40, 0.32); }
+body.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); }
+body.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 
 button { font-family: inherit; }
 input, textarea, select { font-family: inherit; }

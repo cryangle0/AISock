@@ -25,22 +25,22 @@
   gap: 2px;
   cursor: pointer;
   position: relative;
-  color: #6c7385;
+  color: #666666;
   transition: all 0.15s;
   text-align: center;
   min-width: 0;
 }
 
 .sts-item:hover:not(.active) {
-  border-color: rgba(212, 55, 107, 0.3);
-  color: #d4376b;
+  border-color: rgba(40, 40, 40, 0.3);
+  color: #282828;
 }
 
 .sts-item.active {
-  border-color: #d4376b;
-  background: rgba(212, 55, 107, 0.04);
-  color: #d4376b;
-  box-shadow: 0 2px 6px rgba(212, 55, 107, 0.12);
+  border-color: #282828;
+  background: rgba(40, 40, 40, 0.04);
+  color: #282828;
+  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.12);
 }
 
 .sts-icon {
@@ -57,13 +57,13 @@
 .sts-name {
   font-size: 11px;
   font-weight: 600;
-  color: #2c3140;
+  color: #282828;
   line-height: 1.2;
   margin-top: 2px;
 }
 
 .sts-item.active .sts-name {
-  color: #d4376b;
+  color: #282828;
 }
 
 .sts-compact .sts-name {
@@ -72,7 +72,7 @@
 
 .sts-desc {
   font-size: 9px;
-  color: #9ba3b3;
+  color: #999999;
 }
 
 .sts-check {
@@ -81,7 +81,7 @@
   right: 4px;
   width: 14px;
   height: 14px;
-  background: #d4376b;
+  background: #282828;
   color: #fff;
   border-radius: 50%;
   display: flex;

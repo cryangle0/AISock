@@ -127,7 +127,7 @@
 .palette-pop-item:hover { background: var(--bg-hover); }
 .palette-pop-item.active {
   background: var(--accent-soft);
-  border-color: rgba(212, 55, 107, 0.3);
+  border-color: rgba(40, 40, 40, 0.3);
 }
 .palette-pop-item.active .palette-pop-name { color: var(--accent); }
 .palette-pop-item svg:last-child { color: var(--accent); }
@@ -196,7 +196,7 @@
   border: 2px solid var(--bg-card);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(212, 55, 107, 0.4);
+  box-shadow: 0 0 0 1px rgba(40, 40, 40, 0.4);
 }
 .palette-pop-strength-slider::-moz-range-thumb {
   width: 14px;

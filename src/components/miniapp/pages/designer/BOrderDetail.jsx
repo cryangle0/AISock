@@ -249,7 +249,7 @@ export default function BOrderDetail({ orders = [], params = {}, onNavigate, onU
               </div>
             ) : (
               <div className="mp-od-row">
-                <span>备注</span><span style={{ color: '#c5c9d1' }}>暂无</span>
+                <span>备注</span><span style={{ color: '#b0b0b0' }}>暂无</span>
               </div>
             )}
             {(order.attachments?.length || 0) > 0 ? (
@@ -269,7 +269,7 @@ export default function BOrderDetail({ orders = [], params = {}, onNavigate, onU
               </div>
             ) : (
               <div className="mp-od-row">
-                <span>附件</span><span style={{ color: '#c5c9d1' }}>暂无</span>
+                <span>附件</span><span style={{ color: '#b0b0b0' }}>暂无</span>
               </div>
             )}
           </>

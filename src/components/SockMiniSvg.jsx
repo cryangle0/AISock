@@ -21,7 +21,7 @@ export default function SockMiniSvg({ regions, uid }) {
       </g>
       <path
         d="M100 60 L380 60 L380 380 Q380 420 360 442 L228 574 Q210 592 188 592 L120 592 Q100 592 100 572 Z"
-        fill="none" stroke="rgba(16,18,24,0.12)" strokeWidth="1.5"
+        fill="none" stroke="rgba(40, 40, 40, 0.12)" strokeWidth="1.5"
       />
     </svg>
   )

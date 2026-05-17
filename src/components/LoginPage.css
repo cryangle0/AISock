@@ -1,3 +1,6 @@
+/* =========================================================================
+ * LoginPage —— aihuaxing 风格：中性灰 + 极简
+ * ========================================================================= */
 .lp-root {
   position: fixed;
   inset: 0;
@@ -9,14 +12,11 @@
   font-family: var(--font-sans);
 }
 
-/* ── 左侧品牌面板 ── */
+/* ── 左侧品牌面板（深灰沉色 + 微妙线条） ── */
 .lp-left {
   flex: 1;
   min-width: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 100%, rgba(212, 55, 107, 0.13) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 40% at 85% 0%,   rgba(212, 55, 107, 0.07) 0%, transparent 60%),
-    linear-gradient(160deg, #111318 0%, #0d0f15 60%, #0b0d13 100%);
+  background: #282828;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -24,11 +24,12 @@
   padding: 40px 52px 0;
 }
 
+/* 极淡的网格点，保留科技感但去掉彩色 */
 .lp-left::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
   z-index: 0;
@@ -43,16 +44,14 @@
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(212, 55, 107, 0.12) 20%,
-    rgba(212, 55, 107, 0.24) 50%,
-    rgba(212, 55, 107, 0.12) 80%,
+    rgba(255, 255, 255, 0.06) 50%,
     transparent 100%
   );
   pointer-events: none;
   z-index: 2;
 }
 
-/* Vision Rings */
+/* Vision Rings —— 中性灰版本 */
 .lp-rings-scene {
   position: absolute;
   inset: 0;
@@ -77,9 +76,7 @@
   height: 680px;
   margin-top: -340px;
   margin-left: -340px;
-  border-color: rgba(212, 55, 107, 0.24);
-  box-shadow: 0 0 0 0.5px rgba(212, 55, 107, 0.08) inset,
-              0 0 40px 0 rgba(212, 55, 107, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
   transform: rotateX(72deg) rotateZ(15deg);
   animation: ringRotate1 28s linear infinite;
 }
@@ -89,8 +86,7 @@
   height: 480px;
   margin-top: -240px;
   margin-left: -240px;
-  border-color: rgba(212, 55, 107, 0.16);
-  box-shadow: 0 0 0 0.5px rgba(212, 55, 107, 0.05) inset;
+  border-color: rgba(255, 255, 255, 0.08);
   transform: rotateX(58deg) rotateZ(-30deg);
   animation: ringRotate2 22s linear infinite;
 }
@@ -100,9 +96,7 @@
   height: 320px;
   margin-top: -160px;
   margin-left: -160px;
-  border-color: rgba(212, 55, 107, 0.30);
-  box-shadow: 0 0 20px 2px rgba(212, 55, 107, 0.07),
-              0 0 0 0.5px rgba(212, 55, 107, 0.1) inset;
+  border-color: rgba(255, 255, 255, 0.16);
   transform: rotateX(64deg) rotateZ(55deg);
   animation: ringRotate3 18s linear infinite reverse;
 }
@@ -112,7 +106,7 @@
   height: 860px;
   margin-top: -430px;
   margin-left: -430px;
-  border-color: rgba(212, 55, 107, 0.07);
+  border-color: rgba(255, 255, 255, 0.04);
   transform: rotateX(80deg) rotateZ(-10deg);
   animation: ringRotate4 40s linear infinite;
 }
@@ -143,19 +137,19 @@
 .lp-glow-bottom {
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(212, 55, 107, 0.14) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 65%);
   bottom: -200px;
   left: 50%;
   transform: translateX(-50%);
-  animation: glowPulse 4s ease-in-out infinite;
+  animation: glowPulse 5s ease-in-out infinite;
 }
 .lp-glow-top {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(212, 55, 107, 0.07) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 65%);
   top: -80px;
   right: -40px;
-  animation: glowPulse 6s ease-in-out infinite reverse;
+  animation: glowPulse 7s ease-in-out infinite reverse;
 }
 
 @keyframes glowPulse {
@@ -179,13 +173,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 10px 22px rgba(212, 55, 107, 0.32));
 }
 
 .lp-brand-name {
   font-size: 17px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.95);
   letter-spacing: 0.02em;
 }
 
@@ -204,34 +197,32 @@
   align-items: center;
   padding: 5px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(212, 55, 107, 0.36);
-  background: rgba(212, 55, 107, 0.10);
-  color: rgba(232, 90, 138, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 11px;
   letter-spacing: 0.06em;
   margin-bottom: 20px;
 }
 
 .lp-headline {
-  font-size: 50px;
-  font-weight: 800;
+  font-size: 48px;
+  font-weight: 700;
   color: #fff;
-  line-height: 1.18;
-  letter-spacing: -0.04em;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   margin-bottom: 20px;
 }
 
 .lp-headline em {
   font-style: normal;
-  background: linear-gradient(90deg, #ff7ba2, #d4376b);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .lp-desc {
   font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.46);
+  color: rgba(255, 255, 255, 0.55);
   line-height: 1.85;
   max-width: 420px;
 }
@@ -246,8 +237,8 @@
   padding: 6px 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 12px;
   letter-spacing: 0.01em;
   transition: all 0.2s;
@@ -255,25 +246,23 @@
 }
 
 .lp-tags span:hover {
-  background: rgba(212, 55, 107, 0.12);
-  border-color: rgba(212, 55, 107, 0.32);
-  color: rgba(232, 90, 138, 0.95);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
-/* ── 右侧登录面板 ── */
+/* ── 右侧登录面板（白底极简） ── */
 .lp-right {
   width: 480px;
   flex-shrink: 0;
   background: var(--bg-secondary);
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   padding: 0 56px;
   justify-content: center;
   position: relative;
 }
-
-body.dark .lp-right { background: #0f1115; }
 
 .lp-form-wrap {
   width: 100%;
@@ -287,7 +276,7 @@ body.dark .lp-right { background: #0f1115; }
   font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   margin-bottom: 6px;
 }
 
@@ -313,16 +302,15 @@ body.dark .lp-right { background: #0f1115; }
   align-items: center;
   gap: 10px;
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 0 14px;
-  background: var(--bg-elevated);
-  backdrop-filter: blur(12px);
+  background: var(--bg-card);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .lp-input-wrap:focus-within {
-  border-color: rgba(212, 55, 107, 0.42);
-  box-shadow: 0 0 0 3px rgba(212, 55, 107, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .lp-input-wrap svg { color: var(--text-muted); flex-shrink: 0; }
@@ -347,7 +335,7 @@ body.dark .lp-right { background: #0f1115; }
   flex-shrink: 0;
   border: none;
   background: none;
-  color: var(--accent);
+  color: var(--text-primary);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -360,12 +348,12 @@ body.dark .lp-right { background: #0f1115; }
   margin-left: 2px;
 }
 
-.lp-code-btn:hover { opacity: 0.72; }
+.lp-code-btn:hover { opacity: 0.6; }
 
 .lp-submit {
   width: 100%;
   padding: 13px 0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: none;
   background: var(--bg-active);
   color: var(--text-muted);
@@ -373,21 +361,19 @@ body.dark .lp-right { background: #0f1115; }
   font-weight: 600;
   cursor: not-allowed;
   font-family: var(--font-sans);
-  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  transition: all 0.2s;
   margin-top: 4px;
   letter-spacing: 0.01em;
 }
 
 .lp-submit.lp-submit-active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   cursor: pointer;
-  box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .lp-submit.lp-submit-active:hover {
   background: var(--accent-hover);
-  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 .lp-divider {
@@ -410,9 +396,9 @@ body.dark .lp-right { background: #0f1115; }
 .lp-wechat-btn {
   width: 100%;
   padding: 12px 0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  background: var(--bg-elevated);
+  background: var(--bg-card);
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 500;
@@ -422,21 +408,16 @@ body.dark .lp-right { background: #0f1115; }
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-}
-
-body.dark .lp-wechat-btn {
-  background: var(--bg-hover);
-  border-color: var(--border-color);
+  transition: all 0.15s;
 }
 
 .lp-wechat-btn:hover {
-  border-color: rgba(212, 55, 107, 0.36);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
-.lp-wechat-btn svg { color: var(--accent); }
+.lp-wechat-btn svg { color: #07c160; }
 
 .lp-qr-box {
   display: flex;
@@ -448,8 +429,8 @@ body.dark .lp-wechat-btn {
   width: 180px;
   height: 180px;
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -466,30 +447,26 @@ body.dark .lp-wechat-btn {
 .lp-back-btn {
   width: 100%;
   padding: 12px 0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  background: var(--bg-elevated);
+  background: var(--bg-card);
   color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
   font-family: var(--font-sans);
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-
-body.dark .lp-back-btn {
-  background: var(--bg-hover);
+  transition: all 0.15s;
 }
 
 .lp-back-btn:hover {
-  border-color: rgba(212, 55, 107, 0.36);
-  color: var(--accent);
-  background: var(--accent-soft);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .lp-footer {
   font-size: 11px;
   color: var(--text-muted);
-  opacity: 0.45;
+  opacity: 0.6;
   text-align: center;
   padding: 24px 0 28px;
 }

@@ -72,7 +72,7 @@
 .design-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(212, 55, 107, 0.22);
+  border-color: rgba(40, 40, 40, 0.22);
 }
 
 .design-cover {
@@ -89,7 +89,7 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 6px 16px rgba(17, 20, 28, 0.08));
+  filter: drop-shadow(0 6px 16px rgba(40, 40, 40, 0.08));
 }
 
 .design-cover-empty {

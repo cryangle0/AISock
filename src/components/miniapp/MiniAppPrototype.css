@@ -26,18 +26,18 @@
   background: var(--bg-card, #fff);
   border: 1px solid var(--border-color, #e3e6ee);
   border-radius: 999px;
-  color: var(--text-secondary, #6c7385);
+  color: var(--text-secondary, #666666);
   font-size: 12px;
   cursor: pointer;
-  box-shadow: var(--shadow-md, 0 4px 12px rgba(13, 15, 20, 0.08));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(40, 40, 40, 0.08));
   transition: all 0.18s;
   font-weight: 500;
 }
 
 .mini-app-toggle:hover {
-  background: var(--accent-soft, #fce8ef);
-  color: var(--accent, #d4376b);
-  border-color: rgba(212, 55, 107, 0.3);
+  background: var(--accent-soft, #ececec);
+  color: var(--accent, #282828);
+  border-color: rgba(40, 40, 40, 0.3);
 }
 
 @media (max-width: 720px) {
