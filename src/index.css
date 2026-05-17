@@ -42,14 +42,14 @@
   --accent-glow: rgba(40, 40, 40, 0.16);
   --accent-fg: #ffffff;
 
-  /* —— 侧栏：深灰沉色 (aihuaxing 顶栏 #383434) —— */
-  --sidebar-bg: #383434;
-  --sidebar-fg: rgba(255, 255, 255, 0.92);
-  --sidebar-fg-muted: rgba(255, 255, 255, 0.55);
-  --sidebar-fg-active: #ffffff;
-  --sidebar-hover: rgba(255, 255, 255, 0.06);
-  --sidebar-active: rgba(255, 255, 255, 0.1);
-  --sidebar-border: rgba(255, 255, 255, 0.08);
+  /* —— 侧栏：白底 + 深灰文字（与画廊式工作台保持一致） —— */
+  --sidebar-bg: #ffffff;
+  --sidebar-fg: #282828;
+  --sidebar-fg-muted: #999999;
+  --sidebar-fg-active: #111111;
+  --sidebar-hover: rgba(40, 40, 40, 0.04);
+  --sidebar-active: rgba(40, 40, 40, 0.08);
+  --sidebar-border: rgba(40, 40, 40, 0.08);
 
   /* —— 链接 / 信息蓝（aihuaxing 极少量使用 system blue） —— */
   --link: #007aff;
@@ -142,9 +142,10 @@ body.dark {
   --accent-glow: rgba(255, 255, 255, 0.18);
   --accent-fg: #141414;
 
-  --sidebar-bg: #0e0e0e;
+  --sidebar-bg: #1a1a1a;
   --sidebar-fg: rgba(255, 255, 255, 0.9);
   --sidebar-fg-muted: rgba(255, 255, 255, 0.45);
+  --sidebar-fg-active: #ffffff;
   --sidebar-hover: rgba(255, 255, 255, 0.05);
   --sidebar-active: rgba(255, 255, 255, 0.1);
   --sidebar-border: rgba(255, 255, 255, 0.06);
