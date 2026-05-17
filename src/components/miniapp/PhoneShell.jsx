@@ -115,7 +115,7 @@ export default function PhoneShell({
                     <span className="phone-shell-tab-fab-circle">
                       {Icon && (
                         <Icon
-                          size={size === 'full' ? 14 : 10}
+                          size={size === 'full' ? 18 : 13}
                           strokeWidth={active ? 2.2 : 2}
                         />
                       )}

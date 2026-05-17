@@ -236,12 +236,12 @@
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  /* 圆按钮 26px，凸起高 26px，按钮整体在凸起内：顶端贴近凸起顶端 */
-  top: -22px;
+  /* 圆按钮置于凸起内：顶端低于凸起顶端，整体下移让按钮更显嵌入感 */
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(180deg, #a06d36 0%, var(--mp-primary) 100%);
   color: #fff;
@@ -255,9 +255,9 @@
 }
 
 .phone-shell-full .phone-shell-tab-fab-circle {
-  width: 36px;
-  height: 36px;
-  top: -32px;
+  width: 46px;
+  height: 46px;
+  top: -22px;
   box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
 
