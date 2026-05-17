@@ -79,20 +79,22 @@ export default function PhoneShell({
           {tabs.length % 2 === 1 && (
             <svg
               className="phone-shell-tabbar-notch"
-              viewBox="0 0 44 22"
+              viewBox="0 0 38 19"
+              preserveAspectRatio="none"
               aria-hidden="true"
             >
               {/* 凹陷区域填充 = tab bar 颜色，让凹陷下方仍是白色 */}
               <path
-                d="M0,0 A22,22 0 0,0 44,0 L44,22 L0,22 Z"
+                d="M0,0 A19,19 0 0,0 38,0 L38,19 L0,19 Z"
                 fill="var(--mp-bg-card)"
               />
               {/* 凹弧描边 */}
               <path
-                d="M0,0.5 A22,22 0 0,0 44,0.5"
+                d="M0,0.5 A19,19 0 0,0 38,0.5"
                 fill="none"
                 stroke="var(--mp-divider)"
                 strokeWidth="1"
+                vectorEffect="non-scaling-stroke"
               />
             </svg>
           )}
@@ -113,7 +115,7 @@ export default function PhoneShell({
                     <span className="phone-shell-tab-fab-circle">
                       {Icon && (
                         <Icon
-                          size={size === 'full' ? 18 : 13}
+                          size={size === 'full' ? 16 : 11}
                           strokeWidth={active ? 2.2 : 2}
                         />
                       )}
