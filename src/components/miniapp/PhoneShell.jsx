@@ -75,22 +75,23 @@ export default function PhoneShell({
           className="phone-shell-tabbar"
           style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
         >
-          {/* 凹槽：顶端边线绕过中间圆形按钮 */}
+          {/* 凸起：tab bar 顶端边线在中间向上鼓起一段半圆，把圆按钮装在里面 */}
           {tabs.length % 2 === 1 && (
             <svg
-              className="phone-shell-tabbar-notch"
-              viewBox="0 0 38 19"
+              className="phone-shell-tabbar-bump"
+              viewBox="0 0 38 20"
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              {/* 凹陷区域填充 = tab bar 颜色，让凹陷下方仍是白色 */}
+              {/* 凸起填充 = tab bar 颜色，让凸起和 tab bar 内部连成一片 */}
+              {/* 包含底部 1px 把 tabbar 自身的 border-top 那段直线盖掉 */}
               <path
-                d="M0,0 A19,19 0 0,0 38,0 L38,19 L0,19 Z"
+                d="M0,20 L0,19 A19,19 0 0 1 38,19 L38,20 Z"
                 fill="var(--mp-bg-card)"
               />
-              {/* 凹弧描边 */}
+              {/* 描边只画半圆弧（左右两侧的水平线由 tabbar 自身的 border-top 提供） */}
               <path
-                d="M0,0.5 A19,19 0 0,0 38,0.5"
+                d="M0,19 A19,19 0 0 1 38,19"
                 fill="none"
                 stroke="var(--mp-divider)"
                 strokeWidth="1"

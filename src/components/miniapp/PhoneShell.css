@@ -168,21 +168,22 @@
   overflow: visible;             /* 允许 FAB 凸出 */
 }
 
-/* —— 凹槽：tab bar 顶端边线绕过中间圆形按钮 —— */
-.phone-shell-tabbar-notch {
+/* —— 凸起：tab bar 顶端边线在中间向上鼓成半圆 —— */
+.phone-shell-tabbar-bump {
   position: absolute;
-  top: -1px;            /* 盖掉 border-top 的那 1px 直线 */
+  /* SVG 顶端 = tabbar 顶端往上 19px（即半圆高度），底部 1px 与 border-top 重叠盖掉 */
+  bottom: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 1px);
   width: 38px;
-  height: 19px;
+  height: 20px;
   pointer-events: none;
   display: block;
   z-index: 1;
 }
-.phone-shell-full .phone-shell-tabbar-notch {
+.phone-shell-full .phone-shell-tabbar-bump {
   width: 52px;
-  height: 26px;
+  height: 27px;
 }
 
 .phone-shell-tab {
@@ -224,18 +225,19 @@
   color: var(--mp-text-muted);
 }
 
-/* —— 中间凸起圆形按钮 —— */
+/* —— 中间圆形按钮（嵌在凸起里）—— */
 .phone-shell-tab-fab {
-  /* 圆形向上凸出，给文字预留位置 */
-  padding-top: 18px;
+  /* 圆形向上凸出于 tabbar 顶端，给文字预留空间 */
+  padding-top: 22px;
 }
 .phone-shell-full .phone-shell-tab-fab {
-  padding-top: 26px;
+  padding-top: 32px;
 }
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  top: -13px;
+  /* 圆按钮 30px，置于凸起内：底端约与 tabbar 顶端齐平，整体凸起在凸弧之上 */
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
   width: 30px;
@@ -246,15 +248,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 仅用一层柔和阴影体现凸起感，不再加白圈 */
+  /* 仅用一层柔和阴影体现凸起感 */
   box-shadow: 0 3px 8px rgba(139, 90, 43, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  z-index: 3;
 }
 
 .phone-shell-full .phone-shell-tab-fab-circle {
   width: 42px;
   height: 42px;
-  top: -18px;
+  top: -32px;
   box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
 
