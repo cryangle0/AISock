@@ -75,10 +75,30 @@ export default function PhoneShell({
           className="phone-shell-tabbar"
           style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
         >
+          {/* 凹槽：顶端边线绕过中间圆形按钮 */}
+          {tabs.length % 2 === 1 && (
+            <svg
+              className="phone-shell-tabbar-notch"
+              viewBox="0 0 44 22"
+              aria-hidden="true"
+            >
+              {/* 凹陷区域填充 = tab bar 颜色，让凹陷下方仍是白色 */}
+              <path
+                d="M0,0 A22,22 0 0,0 44,0 L44,22 L0,22 Z"
+                fill="var(--mp-bg-card)"
+              />
+              {/* 凹弧描边 */}
+              <path
+                d="M0,0.5 A22,22 0 0,0 44,0.5"
+                fill="none"
+                stroke="var(--mp-divider)"
+                strokeWidth="1"
+              />
+            </svg>
+          )}
           {tabs.map((t, i) => {
             const Icon = TAB_ICONS[t.key]
             const active = activeTabKey === t.key
-            // 中间那个 tab 渲染为凸起圆形按钮（FAB 风格）
             const isCenter = i === Math.floor(tabs.length / 2) && tabs.length % 2 === 1
             return (
               <button
@@ -93,7 +113,7 @@ export default function PhoneShell({
                     <span className="phone-shell-tab-fab-circle">
                       {Icon && (
                         <Icon
-                          size={size === 'full' ? 22 : 16}
+                          size={size === 'full' ? 18 : 13}
                           strokeWidth={active ? 2.2 : 2}
                         />
                       )}

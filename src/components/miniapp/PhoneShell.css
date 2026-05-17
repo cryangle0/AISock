@@ -168,6 +168,23 @@
   overflow: visible;             /* 允许 FAB 凸出 */
 }
 
+/* —— 凹槽：tab bar 顶端边线绕过中间圆形按钮 —— */
+.phone-shell-tabbar-notch {
+  position: absolute;
+  top: -1px;            /* 盖掉 border-top 的那 1px 直线 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 22px;
+  pointer-events: none;
+  display: block;
+  z-index: 1;
+}
+.phone-shell-full .phone-shell-tabbar-notch {
+  width: 60px;
+  height: 30px;
+}
+
 .phone-shell-tab {
   background: transparent;
   border: none;
@@ -183,6 +200,7 @@
   justify-content: center;
   gap: 3px;
   position: relative;
+  z-index: 2;            /* 让 tab 内容（含 FAB）盖住凹槽 */
 }
 
 .phone-shell-full .phone-shell-tab {
@@ -208,70 +226,59 @@
 
 /* —— 中间凸起圆形按钮 —— */
 .phone-shell-tab-fab {
-  /* 给文字预留位置：圆形向上凸出 1/2 直径 */
-  padding-top: 30px;
+  /* 圆形向上凸出，给文字预留位置 */
+  padding-top: 22px;
 }
 .phone-shell-full .phone-shell-tab-fab {
-  padding-top: 42px;
+  padding-top: 30px;
 }
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  top: -22px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(180deg, #a06d36 0%, var(--mp-primary) 100%);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 双环：外圈白色让按钮看起来悬浮在 tabbar 之上 */
+  /* 嵌在凹槽里：只用阴影做凸起感，不再加白圈 */
   box-shadow:
-    0 0 0 4px var(--mp-bg-card),
-    0 6px 14px rgba(139, 90, 43, 0.34),
-    0 2px 4px rgba(139, 90, 43, 0.22);
+    0 4px 10px rgba(139, 90, 43, 0.32),
+    0 1px 2px rgba(139, 90, 43, 0.18);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .phone-shell-full .phone-shell-tab-fab-circle {
-  width: 60px;
-  height: 60px;
-  top: -30px;
+  width: 50px;
+  height: 50px;
+  top: -22px;
   box-shadow:
-    0 0 0 5px var(--mp-bg-card),
-    0 8px 20px rgba(139, 90, 43, 0.36),
-    0 2px 6px rgba(139, 90, 43, 0.22);
+    0 6px 14px rgba(139, 90, 43, 0.34),
+    0 1px 3px rgba(139, 90, 43, 0.18);
 }
 
 .phone-shell-tab-fab:hover .phone-shell-tab-fab-circle {
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateX(-50%) translateY(-1px);
   box-shadow:
-    0 0 0 4px var(--mp-bg-card),
-    0 10px 18px rgba(139, 90, 43, 0.42),
-    0 2px 4px rgba(139, 90, 43, 0.24);
+    0 6px 14px rgba(139, 90, 43, 0.4),
+    0 1px 3px rgba(139, 90, 43, 0.22);
 }
 .phone-shell-full .phone-shell-tab-fab:hover .phone-shell-tab-fab-circle {
   box-shadow:
-    0 0 0 5px var(--mp-bg-card),
-    0 12px 24px rgba(139, 90, 43, 0.44),
-    0 2px 6px rgba(139, 90, 43, 0.24);
+    0 8px 18px rgba(139, 90, 43, 0.42),
+    0 1px 3px rgba(139, 90, 43, 0.22);
 }
 
 .phone-shell-tab-fab.active .phone-shell-tab-fab-circle {
-  /* 选中时增加内层亮边，强调激活态 */
+  background: linear-gradient(180deg, #b07d44 0%, var(--mp-primary) 100%);
   box-shadow:
-    0 0 0 4px var(--mp-bg-card),
-    0 0 0 5px var(--mp-tertiary),
-    0 8px 18px rgba(139, 90, 43, 0.42);
-}
-.phone-shell-full .phone-shell-tab-fab.active .phone-shell-tab-fab-circle {
-  box-shadow:
-    0 0 0 5px var(--mp-bg-card),
-    0 0 0 6.5px var(--mp-tertiary),
-    0 10px 24px rgba(139, 90, 43, 0.44);
+    0 6px 14px rgba(139, 90, 43, 0.44),
+    0 1px 3px rgba(139, 90, 43, 0.22);
 }
 
 .phone-shell-tab-fab-label {
