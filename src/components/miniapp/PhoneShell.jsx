@@ -75,23 +75,22 @@ export default function PhoneShell({
           className="phone-shell-tabbar"
           style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
         >
-          {/* 凸起：tab bar 顶端边线在中间向上鼓起一段半圆，把圆按钮装在里面 */}
+          {/* 凸起：tab bar 顶端边线在中间向上鼓起一段平滑 S 曲线，把圆按钮装在里面 */}
           {tabs.length % 2 === 1 && (
             <svg
               className="phone-shell-tabbar-bump"
-              viewBox="0 0 38 20"
+              viewBox="0 0 80 26"
               preserveAspectRatio="none"
               aria-hidden="true"
             >
               {/* 凸起填充 = tab bar 颜色，让凸起和 tab bar 内部连成一片 */}
-              {/* 包含底部 1px 把 tabbar 自身的 border-top 那段直线盖掉 */}
               <path
-                d="M0,20 L0,19 A19,19 0 0 1 38,19 L38,20 Z"
+                d="M 0,26 C 12,26 28,0 40,0 C 52,0 68,26 80,26 Z"
                 fill="var(--mp-bg-card)"
               />
-              {/* 描边只画半圆弧（左右两侧的水平线由 tabbar 自身的 border-top 提供） */}
+              {/* 描边：左右两段 S 曲线 + 中间小弧顶（实际是一条连续 cubic bezier） */}
               <path
-                d="M0,19 A19,19 0 0 1 38,19"
+                d="M 0,26 C 12,26 28,0 40,0 C 52,0 68,26 80,26"
                 fill="none"
                 stroke="var(--mp-divider)"
                 strokeWidth="1"
@@ -116,7 +115,7 @@ export default function PhoneShell({
                     <span className="phone-shell-tab-fab-circle">
                       {Icon && (
                         <Icon
-                          size={size === 'full' ? 16 : 11}
+                          size={size === 'full' ? 14 : 10}
                           strokeWidth={active ? 2.2 : 2}
                         />
                       )}

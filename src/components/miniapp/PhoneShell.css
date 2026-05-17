@@ -168,22 +168,22 @@
   overflow: visible;             /* 允许 FAB 凸出 */
 }
 
-/* —— 凸起：tab bar 顶端边线在中间向上鼓成半圆 —— */
+/* —— 凸起：tab bar 顶端边线在中间向上鼓成平滑 S 曲线 —— */
 .phone-shell-tabbar-bump {
   position: absolute;
-  /* SVG 顶端 = tabbar 顶端往上 19px（即半圆高度），底部 1px 与 border-top 重叠盖掉 */
+  /* SVG 顶端在 tabbar 顶端往上 26px，底部与 tabbar 顶端贴合（盖掉 border-top 中段） */
   bottom: 100%;
   left: 50%;
   transform: translate(-50%, 1px);
-  width: 38px;
-  height: 20px;
+  width: 80px;
+  height: 26px;
   pointer-events: none;
   display: block;
   z-index: 1;
 }
 .phone-shell-full .phone-shell-tabbar-bump {
-  width: 52px;
-  height: 27px;
+  width: 110px;
+  height: 36px;
 }
 
 .phone-shell-tab {
@@ -236,12 +236,12 @@
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  /* 圆按钮 30px，置于凸起内：底端约与 tabbar 顶端齐平，整体凸起在凸弧之上 */
+  /* 圆按钮 26px，凸起高 26px，按钮整体在凸起内：顶端贴近凸起顶端 */
   top: -22px;
   left: 50%;
   transform: translateX(-50%);
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: linear-gradient(180deg, #a06d36 0%, var(--mp-primary) 100%);
   color: #fff;
@@ -255,8 +255,8 @@
 }
 
 .phone-shell-full .phone-shell-tab-fab-circle {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   top: -32px;
   box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
