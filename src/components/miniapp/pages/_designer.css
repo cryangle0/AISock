@@ -1908,3 +1908,534 @@
 .mp-shape-view .sock-type-selector {
   grid-template-columns: repeat(2, 1fr);
 }
+
+
+/* =========================================================================
+ * SockShapeBar —— 编辑器顶部的袜版选择条（流程第一步）
+ * ========================================================================= */
+.mp-shape-bar {
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mp-shape-bar-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--mp-text-secondary);
+}
+.phone-shell-full .mp-shape-bar-head { font-size: 13px; }
+
+.mp-shape-bar-step {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--mp-primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.phone-shell-full .mp-shape-bar-step {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+}
+
+.mp-shape-bar-title {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.mp-shape-bar-title > span:first-child {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mp-text-primary);
+}
+.mp-shape-bar-title small {
+  font-size: 9px;
+  color: var(--mp-text-muted);
+}
+.phone-shell-full .mp-shape-bar-title > span:first-child { font-size: 13px; }
+.phone-shell-full .mp-shape-bar-title small { font-size: 11px; }
+
+.mp-shape-bar-icon {
+  color: var(--mp-text-muted);
+  flex-shrink: 0;
+}
+
+.mp-shape-bar-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+.mp-shape-bar-list::-webkit-scrollbar { display: none; }
+
+.mp-shape-chip {
+  appearance: none;
+  background: var(--mp-bg-soft);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 10px;
+  color: var(--mp-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.phone-shell-full .mp-shape-chip { font-size: 12px; padding: 7px 14px; }
+
+.mp-shape-chip:hover { color: var(--mp-primary); }
+
+.mp-shape-chip.active {
+  background: var(--mp-primary);
+  color: #fff;
+  border-color: var(--mp-primary);
+  font-weight: 600;
+}
+
+.mp-shape-chip-tick {
+  flex-shrink: 0;
+}
+
+.mp-shape-chip-name {
+  display: inline-block;
+}
+
+/* =========================================================================
+ * 右侧浮动 CTA Dock —— 替代底部 sticky 的"保存/下单"
+ * ========================================================================= */
+.mp-editor-side-dock {
+  position: absolute;
+  right: 8px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 20;
+}
+.phone-shell-full .mp-editor-side-dock {
+  right: 12px;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  gap: 10px;
+}
+
+.mp-side-cta {
+  appearance: none;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--mp-bg-card);
+  color: var(--mp-text-primary);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(94, 60, 30, 0.18);
+  transition: all 0.18s;
+  font-size: 8px;
+  font-weight: 600;
+}
+.phone-shell-full .mp-side-cta {
+  width: 60px;
+  height: 60px;
+  font-size: 10px;
+  gap: 2px;
+  box-shadow: 0 6px 18px rgba(94, 60, 30, 0.22);
+}
+
+.mp-side-cta:hover {
+  transform: translateX(-2px);
+  box-shadow: 0 6px 16px rgba(94, 60, 30, 0.24);
+}
+
+.mp-side-cta.save {
+  background: var(--mp-bg-card);
+  color: var(--mp-text-primary);
+}
+.mp-side-cta.order {
+  background: var(--mp-primary);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(139, 90, 43, 0.36);
+}
+.mp-side-cta.order:hover {
+  background: var(--mp-primary-hover);
+}
+.mp-side-cta.share {
+  background: var(--mp-bg-card);
+  color: var(--mp-secondary);
+}
+.mp-side-cta.share:hover {
+  color: #fff;
+  background: var(--mp-secondary);
+}
+
+.mp-side-cta > span {
+  display: inline-block;
+  letter-spacing: 0.04em;
+}
+
+/* 编辑器底部不再需要预留 CTA 高度，但要留够浮动按钮空间 */
+.mp-page-editor {
+  padding-bottom: 20px;
+}
+.phone-shell-full .mp-page-editor {
+  padding-bottom: 28px;
+}
+
+/* =========================================================================
+ * Share Sheet —— 分享面板
+ * ========================================================================= */
+.mp-share-card {
+  display: flex;
+  gap: 10px;
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.mp-share-card-cover {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--mp-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--mp-bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.phone-shell-full .mp-share-card-cover {
+  width: 110px;
+  height: 110px;
+}
+.mp-share-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.mp-share-card-loading,
+.mp-share-card-empty {
+  color: var(--mp-text-muted);
+  font-size: 10px;
+}
+.mp-share-card-loading svg { color: var(--mp-primary); }
+
+.mp-share-card-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.mp-share-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mp-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.phone-shell-full .mp-share-card-title { font-size: 16px; }
+
+.mp-share-card-sub {
+  font-size: 10px;
+  color: var(--mp-text-muted);
+}
+.phone-shell-full .mp-share-card-sub { font-size: 12px; }
+
+.mp-share-card-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--mp-tertiary-soft);
+  color: var(--mp-primary);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.phone-shell-full .mp-share-card-tag { font-size: 11px; }
+
+.mp-share-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--mp-bg-tint);
+  border-radius: var(--mp-radius-sm);
+  padding: 6px 10px;
+  margin-bottom: 12px;
+  color: var(--mp-text-muted);
+}
+
+.mp-share-link svg { flex-shrink: 0; }
+
+.mp-share-link-url {
+  flex: 1;
+  font-size: 10px;
+  color: var(--mp-text-secondary);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.phone-shell-full .mp-share-link-url { font-size: 12px; }
+
+.mp-share-link-copy {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--mp-primary);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.phone-shell-full .mp-share-link-copy { font-size: 12px; }
+
+.mp-share-targets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mp-share-target {
+  appearance: none;
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: 12px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.mp-share-target:hover {
+  transform: translateY(-2px);
+  border-color: var(--mp-primary);
+  box-shadow: 0 4px 10px rgba(94, 60, 30, 0.12);
+}
+
+.mp-share-target-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.phone-shell-full .mp-share-target-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.mp-share-target-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--mp-text-primary);
+}
+.phone-shell-full .mp-share-target-label { font-size: 12px; }
+
+.mp-share-tip {
+  text-align: center;
+  font-size: 10px;
+  color: var(--mp-text-muted);
+  line-height: 1.5;
+  background: var(--mp-tertiary-soft);
+  border-radius: var(--mp-radius-sm);
+  padding: 8px 12px;
+}
+.phone-shell-full .mp-share-tip { font-size: 12px; padding: 10px 14px; }
+
+/* =========================================================================
+ * Recommend (推荐色) Sheet —— 替代旧色卡平铺
+ * ========================================================================= */
+.mp-recommend-sheet {
+  gap: 8px;
+}
+
+.mp-recommend-scenes {
+  display: flex;
+  gap: 4px;
+  background: var(--mp-bg-tint);
+  padding: 3px;
+  border-radius: var(--mp-radius-sm);
+  margin-bottom: 4px;
+}
+
+.mp-recommend-scene {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-radius: var(--mp-radius-sm);
+  padding: 6px 0;
+  font-size: 10px;
+  color: var(--mp-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.phone-shell-full .mp-recommend-scene { font-size: 12px; padding: 8px 0; }
+
+.mp-recommend-scene.active {
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(94, 60, 30, 0.06);
+}
+
+.mp-recommend-card {
+  appearance: none;
+  width: 100%;
+  background: var(--mp-bg-card);
+  border: 1.5px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.mp-recommend-card:hover:not(.active) {
+  border-color: var(--mp-border-strong);
+  background: var(--mp-bg-soft);
+}
+.mp-recommend-card.active {
+  border-color: var(--mp-primary);
+  background: var(--mp-primary-soft);
+  box-shadow: 0 2px 8px rgba(139, 90, 43, 0.12);
+}
+
+.mp-recommend-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mp-recommend-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mp-text-primary);
+}
+.phone-shell-full .mp-recommend-card-title { font-size: 14px; }
+
+.mp-recommend-card.active .mp-recommend-card-title {
+  color: var(--mp-primary);
+}
+
+.mp-recommend-card.active .mp-recommend-card-head svg {
+  color: var(--mp-primary);
+}
+
+.mp-recommend-card-vibe {
+  font-size: 10px;
+  color: var(--mp-text-secondary);
+  line-height: 1.5;
+}
+.phone-shell-full .mp-recommend-card-vibe { font-size: 12px; }
+
+.mp-recommend-card-swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin-top: 2px;
+}
+.mp-recommend-card-swatches > span {
+  display: block;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--mp-divider);
+}
+.phone-shell-full .mp-recommend-card-swatches > span { height: 16px; }
+
+.mp-recommend-origin .mp-recommend-card-swatches {
+  display: none;
+}
+
+.mp-recommend-sheet .mp-palette-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* =========================================================================
+ * AI 配额徽章
+ * ========================================================================= */
+.mp-ai-quota {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: var(--mp-tertiary-soft);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--mp-text-secondary);
+  align-self: flex-start;
+}
+.mp-ai-quota svg { color: var(--mp-secondary); flex-shrink: 0; }
+.mp-ai-quota-text b {
+  color: var(--mp-primary);
+  font-family: var(--font-mono);
+  margin: 0 2px;
+}
+.mp-ai-quota.exhausted {
+  background: rgba(185, 74, 74, 0.10);
+  color: var(--status-danger, #b94a4a);
+}
+.mp-ai-quota.exhausted svg { color: var(--status-danger, #b94a4a); }
+.mp-ai-quota.exhausted .mp-ai-quota-text b { color: var(--status-danger, #b94a4a); }
+
+.mp-ai-quota-tag {
+  background: var(--mp-secondary);
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.mp-ai-quota-tip {
+  font-size: 10px;
+  color: var(--mp-text-muted);
+  text-align: center;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.phone-shell-full .mp-ai-quota-tip { font-size: 12px; }

@@ -16,10 +16,11 @@
  */
 import { useState } from 'react'
 import {
-  Save, ShoppingBag, Sparkles, Heart, Download, FolderHeart, ChevronRight,
+  Save, ShoppingBag, Sparkles, Heart, Download, FolderHeart, ChevronRight, Share2,
 } from 'lucide-react'
 import MiniSockCanvas from '../../editor/MiniSockCanvas'
 import SessionBar from '../../editor/SessionBar'
+import SockShapeBar from '../../editor/SockShapeBar'
 import PrintSheet from '../../editor/PrintSheet'
 import AdjustSheet from '../../editor/AdjustSheet'
 import ColorSheet from '../../editor/ColorSheet'
@@ -28,9 +29,11 @@ import OrderSheet from '../../editor/OrderSheet'
 import PaymentSheet from '../../editor/PaymentSheet'
 import AiExtendSheet from '../../editor/AiExtendSheet'
 import FamilySheet from '../../editor/FamilySheet'
+import ShareSheet from '../../editor/ShareSheet'
 import Toast from '../../ui/Toast'
 import useToast from '../../ui/useToast'
 import useAssetLibrary from '../../../assets/useAssetLibrary'
+import useDailyQuota from '../../editor/useDailyQuota'
 import { matchaBigFlowerImageURL } from '../../../patternImage'
 import {
   isHeelToeSeparable, renderSockToDataURL, compressDataURL,
@@ -40,7 +43,7 @@ const TABS = [
   { key: 'print',   label: '印花' },
   { key: 'adjust',  label: '调节' },
   { key: 'color',   label: '颜色' },
-  { key: 'palette', label: '色卡' },
+  { key: 'palette', label: '推荐色' },
 ]
 
 export default function BEditor({
@@ -61,12 +64,14 @@ export default function BEditor({
   const [resources, setResources] = useState(null)
 
   const lib = useAssetLibrary()
+  const quota = useDailyQuota()
 
   // 顶层弹层 sheet
   const [orderOpen, setOrderOpen] = useState(false)
   const [pendingOrder, setPendingOrder] = useState(null)
   const [aiOpen, setAiOpen] = useState(false)
   const [familyOpen, setFamilyOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const { toast, show } = useToast()
 
@@ -158,6 +163,12 @@ export default function BEditor({
         onDelete={onDeleteSession}
       />
 
+      {/* 步骤 1：袜版选择（前移到最前） */}
+      <SockShapeBar
+        sockTypeId={editor.sockTypeId}
+        onChange={editor.setSockTypeId}
+      />
+
       {/* 我的设计入口 */}
       <button
         className="mp-editor-mydesigns-link mp-editor-mydesigns-bar"
@@ -206,6 +217,12 @@ export default function BEditor({
         >
           <Download size={12} /> 导出
         </button>
+        <button
+          className="mp-quick-btn"
+          onClick={() => setShareOpen(true)}
+        >
+          <Share2 size={12} /> 分享
+        </button>
       </div>
 
       {/* 中段 sheet 切换 */}
@@ -235,8 +252,7 @@ export default function BEditor({
             onApplyImage={editor.applyImage}
             onClearPrint={editor.clearPrint}
             onModifyBg={handleModifyBg}
-            sockTypeId={editor.sockTypeId}
-            onSockTypeChange={editor.setSockTypeId}
+            quota={quota}
           />
         )}
         {activeSheet === 'adjust' && (
@@ -265,13 +281,19 @@ export default function BEditor({
         )}
       </div>
 
-      {/* 底部固定 CTA */}
-      <div className="mp-editor-cta">
-        <button className="mp-cta-secondary" onClick={handleSave}>
-          <Save size={13} /> 保存
+      {/* 右侧浮动 CTA：保存 / 下单 / 分享 */}
+      <div className="mp-editor-side-dock">
+        <button className="mp-side-cta save" onClick={handleSave}>
+          <Save size={14} />
+          <span>保存</span>
         </button>
-        <button className="mp-cta-primary" onClick={handleOpenOrder}>
-          <ShoppingBag size={13} /> 立即下单
+        <button className="mp-side-cta order" onClick={handleOpenOrder}>
+          <ShoppingBag size={14} />
+          <span>下单</span>
+        </button>
+        <button className="mp-side-cta share" onClick={() => setShareOpen(true)}>
+          <Share2 size={14} />
+          <span>分享</span>
         </button>
       </div>
 
@@ -318,6 +340,24 @@ export default function BEditor({
           onClose={() => setFamilyOpen(false)}
           onApply={(d) => { editor.applyDerivedDesign(d); setFamilyOpen(false) }}
           onSavePair={handleSaveFamilyPair}
+        />
+      )}
+
+      {shareOpen && (
+        <ShareSheet
+          design={{
+            name: composeName(),
+            printName: editor.printName,
+          }}
+          getCover={async () => {
+            const raw = canvasRef.current?.getDataURL?.() || ''
+            return raw ? compressDataURL(raw, 480) : null
+          }}
+          onClose={() => setShareOpen(false)}
+          onShared={(target) => {
+            setShareOpen(false)
+            show(`已分享到${target}`)
+          }}
         />
       )}
 

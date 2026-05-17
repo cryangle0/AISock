@@ -13,6 +13,7 @@ import { useState, useCallback, useRef } from 'react'
 import { Smartphone, ChevronDown, ChevronUp } from 'lucide-react'
 import useMiniNav from './useMiniNav'
 import useEditorState from './editor/useEditorState'
+import { markRegisteredOnce } from './editor/useDailyQuota'
 import PhoneShell from './PhoneShell'
 import FullscreenModal from './FullscreenModal'
 import BLoginPage from './BLoginPage'
@@ -45,6 +46,7 @@ export default function MiniAppPrototype(props) {
   const handleMpLogin = useCallback(({ phone } = {}) => {
     localStorage.setItem(MP_AUTH_KEY, 'true')
     if (phone) localStorage.setItem(MP_PHONE_KEY, phone)
+    markRegisteredOnce()
     setMpAuthed(true)
     setMpPhone(phone || '')
   }, [])

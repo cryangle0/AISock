@@ -2,14 +2,18 @@
  * BHome —— 小程序首页
  *
  * 结构：
- *   1) 欢迎横幅 + 立即设计 CTA
+ *   1) 欢迎横幅 + 立即设计 CTA + 邀请好友
  *   2) 4 格功能入口：开始设计 / 订单 / 素材 / 我的设计
  *   3) 袜版设计预设网格（点击 → 加到我的设计 + 跳转）
  *   4) 行业资讯
  */
-import { Sparkles, ShoppingBag, Layers, FolderHeart, ChevronRight, Play } from 'lucide-react'
+import { useState } from 'react'
+import { Sparkles, ShoppingBag, Layers, FolderHeart, ChevronRight, Play, Share2 } from 'lucide-react'
 import SockMiniSvg from '../../../SockMiniSvg'
 import { PRESET_TEMPLATES, INSIGHT_LIST } from '../../../presetTemplates'
+import ShareSheet from '../../editor/ShareSheet'
+import Toast from '../../ui/Toast'
+import useToast from '../../ui/useToast'
 
 export default function BHome({
   designs = [],
@@ -17,6 +21,9 @@ export default function BHome({
   onNavigate,
   onApplyPreset,
 }) {
+  const [shareOpen, setShareOpen] = useState(false)
+  const { toast, show } = useToast()
+
   return (
     <div className="mp-page mp-page-home">
       {/* —— Hero —— */}
@@ -26,9 +33,14 @@ export default function BHome({
         <p className="mp-home-hero-desc">
           选个预设 3 分钟出袜款，或自由编辑四区花型。
         </p>
-        <button className="mp-home-hero-cta" onClick={() => onNavigate?.('b-editor')}>
-          <Play size={11} strokeWidth={2}/> 开始设计
-        </button>
+        <div className="mp-home-hero-cta-row">
+          <button className="mp-home-hero-cta" onClick={() => onNavigate?.('b-editor')}>
+            <Play size={11} strokeWidth={2}/> 开始设计
+          </button>
+          <button className="mp-home-hero-share" onClick={() => setShareOpen(true)}>
+            <Share2 size={11} strokeWidth={1.8}/> 邀请好友
+          </button>
+        </div>
       </section>
 
       {/* —— 4 格功能入口 —— */}
@@ -100,6 +112,16 @@ export default function BHome({
           ))}
         </div>
       </section>
+
+      {shareOpen && (
+        <ShareSheet
+          design={{ name: '爱花型 · AI 袜版定制', printName: '邀请好友' }}
+          getCover={async () => null}
+          onClose={() => setShareOpen(false)}
+          onShared={(target) => { setShareOpen(false); show(`已分享到${target}`) }}
+        />
+      )}
+      <Toast message={toast}/>
     </div>
   )
 }

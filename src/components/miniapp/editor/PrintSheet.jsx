@@ -15,7 +15,6 @@ import { PATTERN_LIST } from '../../patternConstants'
 import { PatternDefs } from '../../patterns'
 import { patternToImageURL, aiGenerateImage } from '../../patternImage'
 import ImageUploadButton from './ImageUploadButton'
-import SockTypeSelector from '../../print/SockTypeSelector'
 
 const TABS = [
   { key: 'library', label: '公共库' },
@@ -38,8 +37,7 @@ export default function PrintSheet({
   userAssets,
   onUploadUserAsset,
   onRemoveUserAsset,
-  sockTypeId,
-  onSockTypeChange,
+  quota,
 }) {
   const [tab, setTab] = useState('library')
   const [query, setQuery] = useState('')
@@ -82,6 +80,7 @@ export default function PrintSheet({
 
   const handleAiGenerate = async () => {
     if (!aiPrompt.trim() || generating) return
+    if (quota && !quota.canUse) return   // 配额用完阻断
     setGenerating(true)
     const result = await aiGenerateImage(aiPrompt)
     const promptLabel = refImage ? `${aiPrompt.trim()} · 延申` : aiPrompt.trim()
@@ -94,6 +93,7 @@ export default function PrintSheet({
     }
     onHistoryAdd?.(item)
     onApplyImage?.(item.url, item.prompt)
+    quota?.consume?.()
     setGenerating(false)
     setTab('history')
   }
@@ -135,8 +135,6 @@ export default function PrintSheet({
           query={query}
           onQueryChange={setQuery}
           onApply={onApplyImage}
-          sockTypeId={sockTypeId}
-          onSockTypeChange={onSockTypeChange}
         />
       )}
 
@@ -161,6 +159,7 @@ export default function PrintSheet({
           onPickRefMine={() => setShowMinePicker(true)}
           onClearRef={() => { setRefImage(null); setRefName('') }}
           mineAssets={userAssets || []}
+          quota={quota}
         />
       )}
 
@@ -232,72 +231,40 @@ function BgEditor({ editing, prompt, onPromptChange, onToggle, onConfirm }) {
   )
 }
 
-function PublicView({ items, query, onQueryChange, onApply, sockTypeId, onSockTypeChange }) {
-  const [sub, setSub] = useState('pattern')   // pattern | shape
-
+function PublicView({ items, query, onQueryChange, onApply }) {
   return (
     <>
-      <div className="mp-print-subtabs">
-        <button
-          className={`mp-print-subtab ${sub === 'pattern' ? 'active' : ''}`}
-          onClick={() => setSub('pattern')}
-        >
-          花型
-        </button>
-        <button
-          className={`mp-print-subtab ${sub === 'shape' ? 'active' : ''}`}
-          onClick={() => setSub('shape')}
-        >
-          袜型
-        </button>
+      <div className="mp-asset-mini-search">
+        <Search size={11} />
+        <input
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="搜索花型"
+        />
       </div>
-
-      {sub === 'pattern' ? (
-        <>
-          <div className="mp-asset-mini-search">
-            <Search size={11} />
-            <input
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              placeholder="搜索花型"
-            />
-          </div>
-          <div className="mp-pattern-strip">
-            {items.map((p) => (
-              <button
-                key={p.id}
-                className="mp-pattern-tile"
-                onClick={() => {
-                  const url = p.svg ? patternToImageURL(p.id, 240) : p.url
-                  onApply?.(url, p.name)
-                }}
-                title={p.name}
-              >
-                {p.svg ? (
-                  <svg viewBox="0 0 60 60" width="100%" height="100%">
-                    <PatternDefs uid={`mp-${p.id}`} />
-                    <rect width="60" height="60" rx="6" fill={`url(#${p.id}-mp-${p.id})`} />
-                  </svg>
-                ) : (
-                  <img src={p.url} alt={p.name} className="mp-pattern-tile-img" />
-                )}
-                <span>{p.name}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="mp-shape-view">
-          <div className="mp-shape-tip">
-            选择袜版形状，画布会自动加载对应蒙版与线稿
-          </div>
-          <SockTypeSelector
-            value={sockTypeId}
-            onChange={onSockTypeChange}
-            variant="compact"
-          />
-        </div>
-      )}
+      <div className="mp-pattern-strip">
+        {items.map((p) => (
+          <button
+            key={p.id}
+            className="mp-pattern-tile"
+            onClick={() => {
+              const url = p.svg ? patternToImageURL(p.id, 240) : p.url
+              onApply?.(url, p.name)
+            }}
+            title={p.name}
+          >
+            {p.svg ? (
+              <svg viewBox="0 0 60 60" width="100%" height="100%">
+                <PatternDefs uid={`mp-${p.id}`} />
+                <rect width="60" height="60" rx="6" fill={`url(#${p.id}-mp-${p.id})`} />
+              </svg>
+            ) : (
+              <img src={p.url} alt={p.name} className="mp-pattern-tile-img" />
+            )}
+            <span>{p.name}</span>
+          </button>
+        ))}
+      </div>
     </>
   )
 }
@@ -348,10 +315,21 @@ function MineView({ items, onUpload, onRemove, onApply }) {
 function AiView({
   prompt, onPromptChange, generating, onGenerate,
   refImage, refName, onPickRefFile, onPickRefMine, onClearRef,
-  mineAssets,
+  mineAssets, quota,
 }) {
+  const exhausted = quota && !quota.canUse
   return (
     <div className="mp-ai-view">
+      {quota && (
+        <div className={`mp-ai-quota ${exhausted ? 'exhausted' : ''} ${quota.isNewUser ? 'new-user' : ''}`}>
+          <Sparkles size={11} strokeWidth={1.8}/>
+          {quota.isNewUser && <span className="mp-ai-quota-tag">新用户</span>}
+          <span className="mp-ai-quota-text">
+            今日免费 AI 生图剩余 <b>{quota.remaining}</b> / {quota.perDay} 次
+          </span>
+        </div>
+      )}
+
       <div className="mp-ai-hint">
         <Sparkles size={11} /> 提示词或图片延申
       </div>
@@ -396,11 +374,19 @@ function AiView({
       />
       <button
         className="mp-cta-primary"
-        disabled={(!prompt.trim() && !refImage) || generating}
+        disabled={(!prompt.trim() && !refImage) || generating || exhausted}
         onClick={onGenerate}
       >
-        <Sparkles size={12} /> {generating ? '生成中…' : refImage ? '基于参考图生成' : '生成花型'}
+        <Sparkles size={12} />
+        {exhausted
+          ? '今日免费次数用完'
+          : generating ? '生成中…' : refImage ? '基于参考图生成' : '生成花型'}
       </button>
+      {exhausted && (
+        <div className="mp-ai-quota-tip">
+          明天 0 点重置；分享给好友邀请注册可解锁更多生图次数
+        </div>
+      )}
       <div className="mp-ai-presets">
         {PRESETS.map((p) => (
           <button key={p} className="mp-mini-btn" onClick={() => onPromptChange(p)}>
