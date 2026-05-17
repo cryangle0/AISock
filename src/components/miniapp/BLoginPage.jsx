@@ -29,11 +29,6 @@ export default function BLoginPage({ onLogin }) {
         <div className="mp-login-slogan">创意由你，花型随心</div>
       </div>
 
-      {/* —— 协议提示（放在登录卡上方） —— */}
-      <div className="mp-login-agreement">
-        登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span>
-      </div>
-
       {/* —— 表单 —— */}
       <div className="mp-login-card">
         <div className="mp-login-tabs">
@@ -65,6 +60,11 @@ export default function BLoginPage({ onLogin }) {
           </button>
         </div>
 
+        {/* —— 协议提示（紧贴"登录"按钮上方） —— */}
+        <div className="mp-login-agreement">
+          登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span>
+        </div>
+
         <button
           className={`mp-login-submit ${canSubmit ? 'active' : ''}`}
           disabled={!canSubmit}
@@ -76,7 +76,7 @@ export default function BLoginPage({ onLogin }) {
         <div className="mp-login-divider"><span>或</span></div>
 
         <button className="mp-login-wechat" onClick={() => onLogin?.({ phone: 'wechat' })}>
-          <WechatIcon/> 微信一键登录
+          <WechatIcon/> 微信登录
         </button>
 
         <div className="mp-login-tip">
@@ -94,7 +94,7 @@ export default function BLoginPage({ onLogin }) {
 
 function WechatIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
       <path d="M9 7c-3.866 0-7 2.462-7 5.5 0 1.74 1.029 3.291 2.633 4.301L4 19l2.5-1.4c.78.252 1.62.4 2.5.4 3.866 0 7-2.462 7-5.5S12.866 7 9 7zm-3 4.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm6 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
       <path d="M22 14.5c0-2.502-2.547-4.5-5.694-4.5h-.118c.205.475.32.987.32 1.5 0 2.484-2.241 4.5-5 4.5-.241 0-.479-.014-.713-.04C11.6 17.84 13.616 19 16 19c.74 0 1.443-.108 2.097-.305L20 19.7l-.51-1.776A4.39 4.39 0 0 0 22 14.5zm-7-1a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zm5 0a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5z"/>
     </svg>

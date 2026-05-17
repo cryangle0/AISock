@@ -664,7 +664,8 @@
   text-align: center;
   font-size: 9px;
   color: var(--mp-text-muted);
-  margin: -4px 0 8px;
+  margin: 2px 0 0;
+  line-height: 1.5;
 }
 .mp-login-agreement span {
   color: var(--mp-primary);
@@ -672,7 +673,6 @@
 }
 .phone-shell-full .mp-login-agreement {
   font-size: 11px;
-  margin: -4px 0 12px;
 }
 
 .mp-login-footer {
