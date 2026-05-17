@@ -14,7 +14,8 @@
  *   - 亲子袜
  *   - 保存设计 / 下单（提交订单 → 支付 → 落库）
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Save, ShoppingBag, Sparkles, Heart, Download, FolderHeart, ChevronRight, Share2,
 } from 'lucide-react'
@@ -34,6 +35,7 @@ import Toast from '../../ui/Toast'
 import useToast from '../../ui/useToast'
 import useAssetLibrary from '../../../assets/useAssetLibrary'
 import useDailyQuota from '../../editor/useDailyQuota'
+import { usePhoneShellRef } from '../../phoneShellContext'
 import { matchaBigFlowerImageURL } from '../../../patternImage'
 import {
   isHeelToeSeparable, renderSockToDataURL, compressDataURL,
@@ -65,6 +67,12 @@ export default function BEditor({
 
   const lib = useAssetLibrary()
   const quota = useDailyQuota()
+  const shellRef = usePhoneShellRef()
+  // 等 PhoneShell 挂载后，shellRef.current 才可用 — 用 state 持有 dom 引用
+  const [shellEl, setShellEl] = useState(null)
+  useEffect(() => {
+    setShellEl(shellRef?.current || null)
+  }, [shellRef])
 
   // 顶层弹层 sheet
   const [orderOpen, setOrderOpen] = useState(false)
@@ -281,21 +289,20 @@ export default function BEditor({
         )}
       </div>
 
-      {/* 右侧浮动 CTA：保存 / 下单 / 分享 */}
-      <div className="mp-editor-side-dock">
-        <button className="mp-side-cta save" onClick={handleSave}>
-          <Save size={14} />
-          <span>保存</span>
-        </button>
-        <button className="mp-side-cta order" onClick={handleOpenOrder}>
-          <ShoppingBag size={14} />
-          <span>下单</span>
-        </button>
-        <button className="mp-side-cta share" onClick={() => setShareOpen(true)}>
-          <Share2 size={14} />
-          <span>分享</span>
-        </button>
-      </div>
+      {/* 右侧浮动 CTA：保存 / 下单（通过 Portal 挂到 phone-shell，避免被 screen 滚动） */}
+      {shellEl && createPortal(
+        <div className="mp-editor-side-dock">
+          <button className="mp-side-cta save" onClick={handleSave}>
+            <Save size={14} />
+            <span>保存</span>
+          </button>
+          <button className="mp-side-cta order" onClick={handleOpenOrder}>
+            <ShoppingBag size={14} />
+            <span>下单</span>
+          </button>
+        </div>,
+        shellEl,
+      )}
 
       {/* 各种弹层 sheet */}
       {orderOpen && (

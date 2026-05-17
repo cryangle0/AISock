@@ -2019,21 +2019,26 @@
 }
 
 /* =========================================================================
- * 右侧浮动 CTA Dock —— 替代底部 sticky 的"保存/下单"
+ * 右侧浮动 CTA Dock —— 通过 portal 挂在 .phone-shell 上，不随 screen 滚动
  * ========================================================================= */
 .mp-editor-side-dock {
   position: absolute;
-  right: 8px;
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: 12px;
+  /* 垂直居中显示，不会被 tab bar / 标题栏遮挡 */
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   z-index: 20;
+  pointer-events: none;
+}
+.mp-editor-side-dock > * {
+  pointer-events: auto;
 }
 .phone-shell-full .mp-editor-side-dock {
-  right: 12px;
-  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
-  gap: 10px;
+  right: 18px;
+  gap: 12px;
 }
 
 .mp-side-cta {
@@ -2080,21 +2085,13 @@
 .mp-side-cta.order:hover {
   background: var(--mp-primary-hover);
 }
-.mp-side-cta.share {
-  background: var(--mp-bg-card);
-  color: var(--mp-secondary);
-}
-.mp-side-cta.share:hover {
-  color: #fff;
-  background: var(--mp-secondary);
-}
 
 .mp-side-cta > span {
   display: inline-block;
   letter-spacing: 0.04em;
 }
 
-/* 编辑器底部不再需要预留 CTA 高度，但要留够浮动按钮空间 */
+/* 编辑器底部留点空间 */
 .mp-page-editor {
   padding-bottom: 20px;
 }

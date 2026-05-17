@@ -2,11 +2,13 @@
  * PhoneShell —— 手机外壳（小窗 + 全屏复用）
  * 重构后底部 3 个 tab：首页 / 设计 / 我的
  */
+import { useRef } from 'react'
 import {
   Wifi, BatteryFull, Signal, ChevronLeft, Maximize2,
   Home as HomeIcon, Brush, User,
 } from 'lucide-react'
 import { PAGE_META, getTabs } from './pageMeta'
+import { PhoneShellContext } from './phoneShellContext'
 import './PhoneShell.css'
 
 const TAB_ICONS = {
@@ -30,12 +32,14 @@ export default function PhoneShell({
   const meta = PAGE_META[page] || {}
   const tabs = getTabs()
   const activeTabKey = meta.parentTab || page
+  const shellRef = useRef(null)
 
   // 标题：登录态优先用 override；否则按 PAGE_META.title
   const title = titleOverride || (meta.title ? `爱花型 · ${meta.title}` : '爱花型')
 
   return (
-    <div className={`phone-shell phone-shell-${size}`}>
+    <PhoneShellContext.Provider value={{ shellRef }}>
+    <div className={`phone-shell phone-shell-${size}`} ref={shellRef}>
       <div className="phone-shell-notch" />
 
       <div className="phone-shell-status">
@@ -143,5 +147,6 @@ export default function PhoneShell({
         </div>
       )}
     </div>
+    </PhoneShellContext.Provider>
   )
 }
