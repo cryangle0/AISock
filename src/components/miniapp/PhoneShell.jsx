@@ -75,21 +75,46 @@ export default function PhoneShell({
           className="phone-shell-tabbar"
           style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
         >
-          {tabs.map((t) => {
+          {tabs.map((t, i) => {
             const Icon = TAB_ICONS[t.key]
             const active = activeTabKey === t.key
+            // 中间那个 tab 渲染为凸起圆形按钮（FAB 风格）
+            const isCenter = i === Math.floor(tabs.length / 2) && tabs.length % 2 === 1
             return (
               <button
                 key={t.key}
-                className={`phone-shell-tab ${active ? 'active' : ''}`}
+                className={
+                  `phone-shell-tab ${active ? 'active' : ''} ${isCenter ? 'phone-shell-tab-fab' : ''}`
+                }
                 onClick={() => onTabChange(t.key)}
               >
-                {Icon && (
-                  <span className="phone-shell-tab-icon">
-                    <Icon size={size === 'full' ? 18 : 14} strokeWidth={active ? 2 : 1.6}/>
-                  </span>
+                {isCenter ? (
+                  <>
+                    <span className="phone-shell-tab-fab-circle">
+                      {Icon && (
+                        <Icon
+                          size={size === 'full' ? 22 : 16}
+                          strokeWidth={active ? 2.2 : 2}
+                        />
+                      )}
+                    </span>
+                    <span className="phone-shell-tab-fab-label">
+                      {t.tabLabel || t.title}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {Icon && (
+                      <span className="phone-shell-tab-icon">
+                        <Icon
+                          size={size === 'full' ? 18 : 14}
+                          strokeWidth={active ? 2 : 1.6}
+                        />
+                      </span>
+                    )}
+                    {t.tabLabel || t.title}
+                  </>
                 )}
-                {t.tabLabel || t.title}
               </button>
             )
           })}
