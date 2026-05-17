@@ -79,18 +79,18 @@ export default function PhoneShell({
           {tabs.length % 2 === 1 && (
             <svg
               className="phone-shell-tabbar-bump"
-              viewBox="0 0 80 26"
+              viewBox="0 0 100 26"
               preserveAspectRatio="none"
               aria-hidden="true"
             >
               {/* 凸起填充 = tab bar 颜色，让凸起和 tab bar 内部连成一片 */}
+              {/* 三段贝塞尔：左 S → 平缓圆顶 → 右 S，整体连续无尖角 */}
               <path
-                d="M 0,26 C 12,26 28,0 40,0 C 52,0 68,26 80,26 Z"
+                d="M 0,26 C 18,26 28,0 50,0 C 72,0 82,26 100,26 Z"
                 fill="var(--mp-bg-card)"
               />
-              {/* 描边：左右两段 S 曲线 + 中间小弧顶（实际是一条连续 cubic bezier） */}
               <path
-                d="M 0,26 C 12,26 28,0 40,0 C 52,0 68,26 80,26"
+                d="M 0,26 C 18,26 28,0 50,0 C 72,0 82,26 100,26"
                 fill="none"
                 stroke="var(--mp-divider)"
                 strokeWidth="1"
@@ -115,7 +115,7 @@ export default function PhoneShell({
                     <span className="phone-shell-tab-fab-circle">
                       {Icon && (
                         <Icon
-                          size={size === 'full' ? 18 : 13}
+                          size={size === 'full' ? 22 : 15}
                           strokeWidth={active ? 2.2 : 2}
                         />
                       )}

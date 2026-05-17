@@ -175,14 +175,14 @@
   bottom: 100%;
   left: 50%;
   transform: translate(-50%, 1px);
-  width: 80px;
+  width: 100px;
   height: 26px;
   pointer-events: none;
   display: block;
   z-index: 1;
 }
 .phone-shell-full .phone-shell-tabbar-bump {
-  width: 110px;
+  width: 140px;
   height: 36px;
 }
 
@@ -236,12 +236,12 @@
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  /* 圆按钮置于凸起内：顶端低于凸起顶端，整体下移让按钮更显嵌入感 */
-  top: -16px;
+  /* 圆按钮置于凸起内：顶端尽量贴近凸起顶端 */
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(180deg, #a06d36 0%, var(--mp-primary) 100%);
   color: #fff;
@@ -255,9 +255,9 @@
 }
 
 .phone-shell-full .phone-shell-tab-fab-circle {
-  width: 46px;
-  height: 46px;
-  top: -22px;
+  width: 52px;
+  height: 52px;
+  top: -30px;
   box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
 }
 
