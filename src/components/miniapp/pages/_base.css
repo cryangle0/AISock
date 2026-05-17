@@ -24,7 +24,7 @@
 .mp-section-title {
   font-size: 11px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
   letter-spacing: 0.02em;
 }
 
@@ -36,7 +36,7 @@
   background: transparent;
   border: none;
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
@@ -44,7 +44,7 @@
 }
 
 .mp-section-more:hover {
-  color: var(--accent, #282828);
+  color: var(--accent, var(--mp-primary));
 }
 
 .phone-shell-full .mp-section-more { font-size: 12px; }
@@ -67,7 +67,7 @@
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s;
@@ -76,10 +76,10 @@
 .phone-shell-full .mp-filter-tab { font-size: 12px; padding: 6px 14px; }
 
 .mp-filter-tab.active {
-  background: #fff;
-  color: #282828;
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
   font-weight: 600;
-  border-color: rgba(40, 40, 40, 0.08);
+  border-color: var(--mp-border);
 }
 
 .mp-filter-bar {
@@ -93,25 +93,25 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #fff;
-  border: 1px solid rgba(40, 40, 40, 0.08);
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
 }
 
 .mp-filter-count {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 /* 空状态 */
 .mp-empty-state {
   padding: 40px 12px;
   text-align: center;
-  color: #999999;
+  color: var(--mp-text-muted);
   font-size: 11px;
   display: flex;
   flex-direction: column;

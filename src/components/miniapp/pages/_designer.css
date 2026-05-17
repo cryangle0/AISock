@@ -8,7 +8,7 @@
 
 /* 袜版预览 */
 .mp-editor-canvas-wrap {
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 12px;
   padding: 10px;
   display: flex;
@@ -23,13 +23,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #fbfbfb 0%, #f3f3f3 100%);
+  background: linear-gradient(180deg, var(--mp-bg-card) 0%, var(--mp-bg-tint) 100%);
   border-radius: 8px;
   overflow: hidden;
   border: 1.5px dashed transparent;
   transition: border-color 0.18s;
 }
-.mp-sock-canvas.hovering { border-color: #282828; }
+.mp-sock-canvas.hovering { border-color: var(--mp-primary); }
 
 .mp-sock-canvas-el {
   width: 100%;
@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #999999;
+  color: var(--mp-text-muted);
   font-size: 10px;
   pointer-events: none;
 }
@@ -54,12 +54,12 @@
 .mp-sock-canvas-drop {
   position: absolute;
   inset: 0;
-  background: rgba(40, 40, 40, 0.08);
+  background: var(--mp-border);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 600;
   pointer-events: none;
 }
@@ -86,21 +86,21 @@
   border: none;
   padding: 6px 0;
   font-size: 11px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   border-radius: 999px;
   transition: all 0.15s;
 }
 .mp-sheet-tab.active {
-  background: #fff;
-  color: #282828;
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
   font-weight: 600;
-  box-shadow: 0 1px 4px rgba(40, 40, 40, 0.06);
+  box-shadow: 0 1px 4px var(--mp-primary-soft);
 }
 
 /* sheet 卡片 */
 .mp-sheet-card {
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 12px;
   padding: 12px;
   min-height: 100px;
@@ -112,7 +112,7 @@
 }
 .mp-sheet-section-title {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   font-weight: 600;
   margin-top: 4px;
 }
@@ -123,25 +123,25 @@
   gap: 10px;
   align-items: center;
   padding: 8px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 10px;
 }
 .mp-print-thumb {
   width: 56px;
   height: 56px;
   border-radius: 8px;
-  background: #fff;
+  background: var(--mp-bg-card);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  border: 1px solid #ececec;
+  border: 1px solid var(--mp-divider);
 }
 .mp-print-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .mp-print-empty {
   font-size: 9px;
-  color: #b0b0b0;
+  color: var(--mp-text-tertiary);
 }
 .mp-print-info {
   flex: 1;
@@ -152,7 +152,7 @@
 }
 .mp-print-name {
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -166,8 +166,8 @@
 .mp-bg-edit { display: flex; flex-direction: column; }
 .mp-bg-edit-toggle {
   appearance: none;
-  background: rgba(40, 40, 40, 0.06);
-  color: #282828;
+  background: var(--mp-primary-soft);
+  color: var(--mp-primary);
   border: 1px dashed rgba(40, 40, 40, 0.3);
   border-radius: 8px;
   padding: 6px 10px;
@@ -180,7 +180,7 @@
   transition: all 0.15s;
 }
 .mp-bg-edit-toggle:hover {
-  background: rgba(40, 40, 40, 0.12);
+  background: var(--mp-primary-soft-strong);
 }
 .mp-bg-edit-form {
   display: flex;
@@ -190,16 +190,16 @@
 .mp-bg-edit-input {
   width: 100%;
   padding: 7px 10px;
-  background: #f3f3f3;
-  border: 1px solid #ececec;
+  background: var(--mp-bg-tint);
+  border: 1px solid var(--mp-divider);
   border-radius: 6px;
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   outline: none;
   box-sizing: border-box;
   font-family: inherit;
 }
-.mp-bg-edit-input:focus { border-color: #282828; background: #fff; }
+.mp-bg-edit-input:focus { border-color: var(--mp-primary); background: var(--mp-bg-card); }
 .mp-bg-edit-actions { display: flex; gap: 6px; justify-content: flex-end; }
 
 .mp-pattern-strip {
@@ -225,7 +225,7 @@
 }
 .mp-pattern-tile span {
   font-size: 9px;
-  color: #666666;
+  color: var(--mp-text-secondary);
 }
 
 /* ==================== 调节 sheet ==================== */
@@ -240,17 +240,17 @@
   justify-content: space-between;
   align-items: center;
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
 }
 .mp-slider-head > span:first-child { font-weight: 600; }
-.mp-slider-value { color: #282828; font-family: 'Inter', monospace; }
+.mp-slider-value { color: var(--mp-primary); font-family: 'Inter', monospace; }
 
 .mp-slider {
   width: 100%;
   -webkit-appearance: none;
   appearance: none;
   height: 4px;
-  background: #ececec;
+  background: var(--mp-divider);
   border-radius: 2px;
   outline: none;
 }
@@ -259,24 +259,24 @@
   appearance: none;
   width: 14px;
   height: 14px;
-  background: #282828;
+  background: var(--mp-primary);
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--mp-bg-card);
   box-shadow: 0 1px 3px rgba(40, 40, 40, 0.4);
 }
 .mp-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
-  background: #282828;
+  background: var(--mp-primary);
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid var(--mp-bg-card);
 }
 
 .mp-seg-control {
   display: flex;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 8px;
   padding: 3px;
 }
@@ -287,14 +287,14 @@
   border: none;
   padding: 6px 0;
   font-size: 11px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s;
 }
 .mp-seg-btn.active {
-  background: #fff;
-  color: #282828;
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -309,7 +309,7 @@
 /* BaseColorPicker 默认样式已经够用，做小幅覆盖让其在 sheet 内紧凑 */
 .mp-color-sheet .base-color-label {
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   font-weight: 600;
   margin-bottom: 6px;
 }
@@ -318,8 +318,8 @@
 .mp-palette-sheet { gap: 6px; }
 .mp-palette-sheet.disabled { opacity: 0.6; }
 .mp-palette-locked {
-  background: rgba(40, 40, 40, 0.06);
-  color: #282828;
+  background: var(--mp-primary-soft);
+  color: var(--mp-primary);
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 10px;
@@ -328,8 +328,8 @@
 
 .mp-palette-row {
   appearance: none;
-  background: #fff;
-  border: 1px solid #ececec;
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-divider);
   border-radius: 10px;
   padding: 8px 10px;
   cursor: pointer;
@@ -339,12 +339,12 @@
   transition: all 0.15s;
   text-align: left;
 }
-.mp-palette-row:hover:not(.active) { background: #fafafa; }
+.mp-palette-row:hover:not(.active) { background: var(--mp-bg-soft); }
 .mp-palette-row.active {
-  border-color: #282828;
-  background: rgba(40, 40, 40, 0.04);
+  border-color: var(--mp-primary);
+  background: var(--mp-primary-soft);
 }
-.mp-palette-row > svg { color: #282828; flex-shrink: 0; }
+.mp-palette-row > svg { color: var(--mp-primary); flex-shrink: 0; }
 
 .mp-palette-thumb {
   display: grid;
@@ -354,30 +354,30 @@
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
-  border: 1px solid #ececec;
+  border: 1px solid var(--mp-divider);
 }
 .mp-palette-thumb > span { display: block; }
 .mp-palette-thumb.origin {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3f3f3;
-  color: #666666;
+  background: var(--mp-bg-tint);
+  color: var(--mp-text-secondary);
 }
 .mp-palette-info { flex: 1; min-width: 0; }
 .mp-palette-name {
   font-size: 11px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-palette-desc {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 .mp-palette-strength {
   margin-top: 6px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 8px;
   padding: 8px 10px;
 }
@@ -386,12 +386,12 @@
   justify-content: space-between;
   align-items: center;
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   font-weight: 600;
   margin-bottom: 6px;
 }
 .mp-palette-strength-head > span:last-child {
-  color: #282828;
+  color: var(--mp-primary);
   font-family: 'Inter', monospace;
 }
 
@@ -406,7 +406,7 @@
   background: rgba(243, 244, 247, 0.94);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(40, 40, 40, 0.06);
+  border-top: 1px solid var(--mp-primary-soft);
   display: flex;
   gap: 8px;
   z-index: 10;
@@ -425,7 +425,7 @@
   background: rgba(243, 244, 247, 0.94);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(40, 40, 40, 0.06);
+  border-top: 1px solid var(--mp-primary-soft);
   display: flex;
   gap: 8px;
   z-index: 10;
@@ -439,7 +439,7 @@
 .mp-bottom-sheet-mask {
   position: absolute;
   inset: 0;
-  background: rgba(40, 40, 40, 0.45);
+  background: var(--mp-bg-overlay);
   z-index: 50;
   display: flex;
   align-items: flex-end;
@@ -449,7 +449,7 @@
 
 .mp-bottom-sheet {
   width: 100%;
-  background: #f5f5f5;
+  background: var(--mp-bg-tint);
   border-radius: 14px 14px 0 0;
   display: flex;
   flex-direction: column;
@@ -468,8 +468,8 @@
   align-items: flex-start;
   gap: 8px;
   padding: 12px 14px 8px;
-  border-bottom: 1px solid #ececec;
-  background: #fff;
+  border-bottom: 1px solid var(--mp-divider);
+  background: var(--mp-bg-card);
   border-radius: 14px 14px 0 0;
   position: relative;
 }
@@ -492,16 +492,16 @@
 .mp-bottom-sheet-title {
   font-size: 13px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-bottom-sheet-sub {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   margin-top: 2px;
 }
 .mp-bottom-sheet-close {
   appearance: none;
-  background: #f5f5f5;
+  background: var(--mp-bg-tint);
   border: none;
   width: 24px;
   height: 24px;
@@ -510,7 +510,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #666666;
+  color: var(--mp-text-secondary);
 }
 
 .mp-bottom-sheet-body {
@@ -519,9 +519,9 @@
   padding: 12px 14px;
 }
 .mp-bottom-sheet-foot {
-  border-top: 1px solid #ececec;
+  border-top: 1px solid var(--mp-divider);
   padding: 10px 14px;
-  background: #fff;
+  background: var(--mp-bg-card);
 }
 .mp-sheet-footer-row {
   display: flex;
@@ -540,17 +540,17 @@
   text-align: center;
   font-size: 11px;
   font-weight: 600;
-  color: #555555;
+  color: var(--mp-text-secondary);
 }
 .mp-step-btn {
   appearance: none;
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: #f5f5f5;
+  background: var(--mp-bg-tint);
   border: none;
   font-size: 14px;
-  color: #555555;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -559,28 +559,28 @@
   flex: 1;
   text-align: center;
   font-size: 12px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--mp-divider);
   border-radius: 6px;
   padding: 4px;
-  background: #fff;
+  background: var(--mp-bg-card);
   outline: none;
   font-family: 'Inter', monospace;
 }
 .mp-size-unit {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 .mp-size-total {
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   padding: 6px 10px;
   border-radius: 8px;
   font-size: 11px;
-  color: #555555;
+  color: var(--mp-text-secondary);
   text-align: center;
   margin-top: 4px;
 }
 .mp-size-total b {
-  color: #282828;
+  color: var(--mp-primary);
   font-size: 13px;
   margin: 0 2px;
 }
@@ -592,7 +592,7 @@
   gap: 6px;
 }
 .mp-pay-amount {
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 10px;
   padding: 12px;
   display: flex;
@@ -604,16 +604,16 @@
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #666666;
+  color: var(--mp-text-secondary);
 }
 .mp-pay-amount-row.highlight {
   font-size: 14px;
   font-weight: 700;
-  color: #282828;
+  color: var(--mp-primary);
   padding-top: 8px;
-  border-top: 1px dashed #ececec;
+  border-top: 1px dashed var(--mp-divider);
 }
-.mp-pay-amount-row.highlight > span:last-child { color: #282828; }
+.mp-pay-amount-row.highlight > span:last-child { color: var(--mp-primary); }
 
 .mp-pay-methods {
   display: flex;
@@ -622,7 +622,7 @@
 }
 .mp-pay-method {
   appearance: none;
-  background: #fff;
+  background: var(--mp-bg-card);
   border: 1px solid transparent;
   border-radius: 10px;
   padding: 10px 12px;
@@ -634,55 +634,55 @@
   text-align: left;
 }
 .mp-pay-method.active {
-  border-color: var(--pay-accent, #282828);
-  background: color-mix(in srgb, var(--pay-accent, #282828) 6%, #fff);
+  border-color: var(--pay-accent, var(--mp-primary));
+  background: color-mix(in srgb, var(--pay-accent, var(--mp-primary)) 6%, var(--mp-bg-card));
 }
 .mp-pay-method-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--pay-accent, #282828);
+  background: var(--pay-accent, var(--mp-primary));
 }
 .mp-pay-method-info { flex: 1; }
 .mp-pay-method-name {
   font-size: 12px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-pay-method-tip {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 .mp-pay-method-radio {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 1.5px solid #b0b0b0;
+  border: 1.5px solid var(--mp-text-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .mp-pay-method.active .mp-pay-method-radio {
-  border-color: var(--pay-accent, #282828);
+  border-color: var(--pay-accent, var(--mp-primary));
 }
 .mp-pay-method-radio > span {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--pay-accent, #282828);
+  background: var(--pay-accent, var(--mp-primary));
 }
 
 .mp-pay-stage {
   text-align: center;
   padding: 24px 0;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-pay-amount-big {
   font-size: 32px;
   font-weight: 700;
   font-family: 'Inter', sans-serif;
   letter-spacing: -0.02em;
-  color: var(--pay-accent, #282828);
+  color: var(--pay-accent, var(--mp-primary));
 }
 .mp-pay-method-name-big {
   margin-top: 8px;
@@ -695,7 +695,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 .mp-pay-paid {
@@ -707,25 +707,25 @@
   margin-top: 12px;
   font-size: 16px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-pay-paid-amount {
   margin-top: 6px;
   font-size: 22px;
   font-weight: 700;
-  color: #282828;
+  color: var(--mp-primary);
   font-family: 'Inter', sans-serif;
 }
 .mp-pay-paid-tip {
   margin-top: 8px;
   font-size: 11px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 /* ==================== AI 衍生 / 亲子袜 sheet ==================== */
 .mp-ai-count-row {
   display: flex;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   padding: 3px;
   border-radius: 8px;
   margin-bottom: 12px;
@@ -737,13 +737,13 @@
   border: none;
   padding: 6px 0;
   font-size: 11px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   border-radius: 6px;
 }
 .mp-ai-count.active {
-  background: #fff;
-  color: #282828;
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
   font-weight: 600;
 }
 
@@ -757,7 +757,7 @@
 
 .mp-variant-card {
   appearance: none;
-  background: #fff;
+  background: var(--mp-bg-card);
   border: 2px solid transparent;
   border-radius: 10px;
   padding: 8px;
@@ -769,12 +769,12 @@
   text-align: left;
 }
 .mp-variant-card.active {
-  border-color: #282828;
-  box-shadow: 0 4px 12px rgba(40, 40, 40, 0.16);
+  border-color: var(--mp-primary);
+  box-shadow: 0 4px 12px var(--mp-primary-soft-strong);
 }
 .mp-variant-thumb {
   aspect-ratio: 3 / 4;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -786,24 +786,24 @@
 .mp-variant-name {
   font-size: 10px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-variant-scheme {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 .mp-variant-card.skeleton {
   pointer-events: none;
 }
 .mp-variant-card.skeleton .mp-variant-thumb {
-  background: linear-gradient(90deg, #ececec 0%, #f3f3f3 50%, #ececec 100%);
+  background: linear-gradient(90deg, var(--mp-divider) 0%, var(--mp-bg-tint) 50%, var(--mp-divider) 100%);
   background-size: 200% 100%;
   animation: mp-skeleton 1.2s infinite linear;
 }
 .mp-variant-line, .mp-variant-line.short {
   height: 8px;
-  background: #ececec;
+  background: var(--mp-divider);
   border-radius: 4px;
 }
 .mp-variant-line.short { width: 50%; }
@@ -820,7 +820,7 @@
 }
 .mp-family-card {
   appearance: none;
-  background: #fff;
+  background: var(--mp-bg-card);
   border: 2px solid transparent;
   border-radius: 10px;
   padding: 10px;
@@ -832,11 +832,11 @@
   text-align: left;
 }
 .mp-family-card.active {
-  border-color: #282828;
-  box-shadow: 0 4px 12px rgba(40, 40, 40, 0.16);
+  border-color: var(--mp-primary);
+  box-shadow: 0 4px 12px var(--mp-primary-soft-strong);
 }
 .mp-family-thumb {
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
@@ -849,11 +849,11 @@
 .mp-family-name {
   font-size: 12px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-family-scheme {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -864,7 +864,7 @@
 
 .mp-designs-summary {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   padding: 0 4px;
 }
 
@@ -875,7 +875,7 @@
 }
 
 .mp-design-card-v2 {
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -886,7 +886,7 @@
 .mp-design-cover-v2 {
   appearance: none;
   border: none;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   aspect-ratio: 1;
   cursor: pointer;
   position: relative;
@@ -906,14 +906,14 @@
   align-items: center;
   justify-content: center;
   font-size: 10px;
-  color: #b0b0b0;
+  color: var(--mp-text-tertiary);
 }
 .mp-design-tag {
   position: absolute;
   top: 6px;
   left: 6px;
   background: rgba(40, 40, 40, 0.9);
-  color: #fff;
+  color: var(--mp-bg-card);
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 999px;
@@ -927,7 +927,7 @@
 }
 .mp-design-name-v2 {
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -935,7 +935,7 @@
 }
 .mp-design-time-v2 {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 .mp-design-actions-v2 {
   display: flex;
@@ -945,19 +945,19 @@
 .mp-icon-btn-v2 {
   appearance: none;
   flex: 1;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border: none;
   padding: 5px 0;
   border-radius: 6px;
   font-size: 9px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 3px;
 }
-.mp-icon-btn-v2:hover { background: #ececec; color: #282828; }
+.mp-icon-btn-v2:hover { background: var(--mp-divider); color: var(--mp-primary); }
 .mp-icon-btn-v2.danger:hover { background: rgba(220, 38, 38, 0.08); color: #b91c1c; }
 
 /* ==================== 订单列表 ==================== */
@@ -969,7 +969,7 @@
 
 .mp-order-card-v2 {
   appearance: none;
-  background: #fff;
+  background: var(--mp-bg-card);
   border: none;
   border-radius: 11px;
   padding: 12px;
@@ -982,7 +982,7 @@
 }
 .mp-order-card-v2:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(40, 40, 40, 0.06);
+  box-shadow: 0 4px 12px var(--mp-primary-soft);
 }
 .mp-order-card-head {
   display: flex;
@@ -992,7 +992,7 @@
 .mp-order-card-no {
   font-family: 'Inter', monospace;
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 .mp-order-status {
   font-size: 10px;
@@ -1014,7 +1014,7 @@
   width: 56px;
   height: 56px;
   border-radius: 8px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -1026,26 +1026,26 @@
 .mp-order-card-thumb-empty {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ececec, #fff);
+  background: linear-gradient(135deg, var(--mp-divider), var(--mp-bg-card));
 }
 .mp-order-card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .mp-order-card-name {
   font-size: 12px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
 }
 .mp-order-card-sub {
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
 }
 .mp-order-card-time {
   font-size: 9px;
-  color: #b0b0b0;
+  color: var(--mp-text-tertiary);
 }
 .mp-order-card-amount {
   font-size: 12px;
   font-weight: 700;
-  color: #282828;
+  color: var(--mp-primary);
   font-family: 'Inter', sans-serif;
 }
 
@@ -1067,20 +1067,20 @@
 }
 .mp-step-v2 > span {
   font-size: 10px;
-  color: #b0b0b0;
+  color: var(--mp-text-tertiary);
   margin-top: 6px;
 }
 .mp-step-v2.done > span,
 .mp-step-v2.active > span {
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 600;
 }
 .mp-step-dot-v2 {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #ececec;
-  color: #b0b0b0;
+  background: var(--mp-divider);
+  color: var(--mp-text-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1088,8 +1088,8 @@
 }
 .mp-step-v2.done .mp-step-dot-v2,
 .mp-step-v2.active .mp-step-dot-v2 {
-  background: #282828;
-  color: #fff;
+  background: var(--mp-primary);
+  color: var(--mp-bg-card);
 }
 .mp-step-line-v2 {
   position: absolute;
@@ -1097,13 +1097,13 @@
   left: 50%;
   width: 100%;
   height: 2px;
-  background: #ececec;
+  background: var(--mp-divider);
   z-index: 0;
 }
-.mp-step-v2.done .mp-step-line-v2 { background: #282828; }
+.mp-step-v2.done .mp-step-line-v2 { background: var(--mp-primary); }
 
 .mp-od-design {
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 10px;
   aspect-ratio: 3 / 4;
   overflow: hidden;
@@ -1118,7 +1118,7 @@
 }
 .mp-od-design-empty {
   font-size: 11px;
-  color: #b0b0b0;
+  color: var(--mp-text-tertiary);
 }
 
 .mp-size-dist { display: flex; flex-direction: column; gap: 6px; }
@@ -1131,25 +1131,25 @@
   width: 18px;
   font-size: 11px;
   font-weight: 600;
-  color: #555555;
+  color: var(--mp-text-secondary);
   text-align: center;
 }
 .mp-dist-bar {
   flex: 1;
   height: 6px;
-  background: #ececec;
+  background: var(--mp-divider);
   border-radius: 3px;
   overflow: hidden;
 }
 .mp-dist-fill {
   height: 100%;
-  background: linear-gradient(90deg, #282828, #4a4a4a);
+  background: linear-gradient(90deg, var(--mp-primary), var(--mp-primary-active));
   border-radius: 3px;
   transition: width 0.3s ease;
 }
 .mp-dist-qty {
   font-size: 9px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   font-family: 'Inter', monospace;
   min-width: 50px;
   text-align: right;
@@ -1160,7 +1160,7 @@
 
 .mp-asset-summary {
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   padding: 0 4px;
 }
 
@@ -1171,7 +1171,7 @@
 }
 
 .mp-asset-card {
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 10px;
   padding: 6px;
   display: flex;
@@ -1188,7 +1188,7 @@
 
 .mp-asset-name {
   font-size: 10px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 600;
 }
 
@@ -1199,8 +1199,8 @@
 
 .mp-asset-tag {
   font-size: 8px;
-  background: #f3f3f3;
-  color: #999999;
+  background: var(--mp-bg-tint);
+  color: var(--mp-text-muted);
   padding: 1px 5px;
   border-radius: 999px;
 }
@@ -1214,23 +1214,23 @@
 
 .mp-session-trigger {
   appearance: none;
-  background: #fff;
-  border: 1px solid rgba(40, 40, 40, 0.08);
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
   border-radius: 8px;
   padding: 6px 10px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 600;
   cursor: pointer;
   width: 100%;
   transition: all 0.15s;
   justify-content: space-between;
 }
-.mp-session-trigger:hover { border-color: #282828; color: #282828; }
-.mp-session-trigger.open { border-color: #282828; color: #282828; }
+.mp-session-trigger:hover { border-color: var(--mp-primary); color: var(--mp-primary); }
+.mp-session-trigger.open { border-color: var(--mp-primary); color: var(--mp-primary); }
 .mp-session-trigger > svg { transition: transform 0.18s; }
 .mp-session-trigger.open > svg { transform: rotate(180deg); }
 .mp-session-name {
@@ -1246,9 +1246,9 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(40, 40, 40, 0.12), 0 0 0 1px rgba(40, 40, 40, 0.05);
+  box-shadow: 0 6px 20px var(--mp-primary-soft-strong), 0 0 0 1px rgba(40, 40, 40, 0.05);
   z-index: 30;
   overflow: hidden;
   animation: mp-session-pop-in 0.15s ease-out;
@@ -1260,23 +1260,23 @@
 
 .mp-session-new {
   appearance: none;
-  background: rgba(40, 40, 40, 0.06);
+  background: var(--mp-primary-soft);
   border: none;
   width: 100%;
   padding: 8px 12px;
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-.mp-session-new:hover { background: rgba(40, 40, 40, 0.12); }
+.mp-session-new:hover { background: var(--mp-primary-soft-strong); }
 
 .mp-session-divider {
   height: 1px;
-  background: #ececec;
+  background: var(--mp-divider);
 }
 
 .mp-session-list {
@@ -1289,10 +1289,10 @@
   align-items: center;
   padding: 6px 8px 6px 12px;
   gap: 4px;
-  border-bottom: 1px solid #f3f3f3;
+  border-bottom: 1px solid var(--mp-bg-tint);
 }
 .mp-session-item:last-child { border-bottom: none; }
-.mp-session-item.current { background: rgba(40, 40, 40, 0.04); }
+.mp-session-item.current { background: var(--mp-primary-soft); }
 .mp-session-item.renaming { padding: 4px 8px; }
 
 .mp-session-item-main {
@@ -1310,18 +1310,18 @@
 }
 .mp-session-item-name {
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mp-session-item.current .mp-session-item-name { color: #282828; font-weight: 600; }
+.mp-session-item.current .mp-session-item-name { color: var(--mp-primary); font-weight: 600; }
 .mp-session-item-date {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
-.mp-session-check { color: #282828; flex-shrink: 0; }
+.mp-session-check { color: var(--mp-primary); flex-shrink: 0; }
 
 .mp-session-item-action {
   appearance: none;
@@ -1334,17 +1334,17 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #999999;
+  color: var(--mp-text-muted);
   flex-shrink: 0;
 }
-.mp-session-item-action:hover { background: #f3f3f3; color: #282828; }
+.mp-session-item-action:hover { background: var(--mp-bg-tint); color: var(--mp-primary); }
 .mp-session-item-action.danger:hover { background: rgba(220, 38, 38, 0.08); color: #b91c1c; }
 .mp-session-item-action:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* ==================== PrintSheet 三 tab + AI + 历史 ==================== */
 .mp-print-tabs {
   display: flex;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   padding: 3px;
   border-radius: 8px;
   gap: 0;
@@ -1357,14 +1357,14 @@
   border: none;
   padding: 6px 0;
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s;
 }
 .mp-print-tab.active {
-  background: #fff;
-  color: #282828;
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
@@ -1373,28 +1373,28 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 6px;
   padding: 5px 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 .mp-asset-mini-search input {
   flex: 1;
   border: none;
   background: transparent;
   font-size: 10px;
-  color: #282828;
+  color: var(--mp-primary);
   outline: none;
 }
 
 .mp-ai-view { display: flex; flex-direction: column; gap: 8px; }
 .mp-ai-hint {
   font-size: 10px;
-  color: #282828;
+  color: var(--mp-primary);
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(40, 40, 40, 0.06);
+  background: var(--mp-primary-soft);
   border-radius: 6px;
   padding: 6px 10px;
 }
@@ -1408,7 +1408,7 @@
   text-align: center;
   padding: 24px 12px;
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 .mp-history-list { display: flex; flex-direction: column; gap: 6px; }
 .mp-history-item {
@@ -1416,7 +1416,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 8px;
 }
 .mp-history-thumb {
@@ -1436,7 +1436,7 @@
 }
 .mp-history-prompt {
   font-size: 10px;
-  color: #282828;
+  color: var(--mp-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1444,15 +1444,15 @@
 }
 .mp-history-meta {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 /* ==================== Payment 二维码 ==================== */
 .mp-pay-qr {
   margin: 16px 0 8px;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(40, 40, 40, 0.08);
-  background: #fff;
+  box-shadow: 0 2px 12px var(--mp-border);
+  background: var(--mp-bg-card);
   padding: 6px;
   box-sizing: content-box;
 }
@@ -1466,8 +1466,8 @@
 }
 .mp-shape-tip {
   font-size: 10px;
-  color: #999999;
-  background: #f3f3f3;
+  color: var(--mp-text-muted);
+  background: var(--mp-bg-tint);
   padding: 6px 10px;
   border-radius: 6px;
   line-height: 1.5;
@@ -1492,7 +1492,7 @@
   text-align: center;
   padding: 20px 12px;
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1506,7 +1506,7 @@
 }
 .mp-mine-tile {
   appearance: none;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border: none;
   border-radius: 8px;
   padding: 0;
@@ -1525,7 +1525,7 @@
 }
 .mp-mine-tile-name {
   font-size: 9px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   padding: 3px 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1539,7 +1539,7 @@
   height: 18px;
   border-radius: 50%;
   background: rgba(40, 40, 40, 0.55);
-  color: #fff;
+  color: var(--mp-bg-card);
   border: none;
   display: flex;
   align-items: center;
@@ -1549,13 +1549,13 @@
 
 /* AI 延申参考图 */
 .mp-ai-ref {
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 8px;
   padding: 8px 10px;
 }
 .mp-ai-ref-label {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
   font-weight: 600;
   margin-bottom: 6px;
   letter-spacing: 0.04em;
@@ -1564,7 +1564,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
+  background: var(--mp-bg-card);
   border-radius: 6px;
   padding: 6px;
   position: relative;
@@ -1580,18 +1580,18 @@
 .mp-ai-ref-name {
   font-size: 10px;
   font-weight: 600;
-  color: #282828;
+  color: var(--mp-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mp-ai-ref-tip { font-size: 8px; color: #999999; }
+.mp-ai-ref-tip { font-size: 8px; color: var(--mp-text-muted); }
 .mp-ai-ref-clear {
   width: 18px; height: 18px;
   border-radius: 50%;
-  background: rgba(40, 40, 40, 0.06);
+  background: var(--mp-primary-soft);
   border: none;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1602,8 +1602,8 @@
   flex: 1;
   border-radius: 6px;
   padding: 6px 4px;
-  background: #fff;
-  border: 1px dashed rgba(40, 40, 40, 0.18);
+  background: var(--mp-bg-card);
+  border: 1px dashed var(--mp-primary-glow);
 }
 
 /* 素材页 - 我的 tab */
@@ -1623,8 +1623,8 @@
   color: #3a6fb0;
 }
 .mp-asset-tag.light {
-  background: rgba(40, 40, 40, 0.04);
-  color: #b0b0b0;
+  background: var(--mp-primary-soft);
+  color: var(--mp-text-tertiary);
 }
 .mp-asset-remove {
   position: absolute;
@@ -1634,7 +1634,7 @@
   height: 18px;
   border-radius: 50%;
   background: rgba(40, 40, 40, 0.55);
-  color: #fff;
+  color: var(--mp-bg-card);
   border: none;
   display: flex;
   align-items: center;
@@ -1648,8 +1648,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #282828;
-  color: #fff;
+  background: var(--mp-primary);
+  color: var(--mp-bg-card);
   border: none;
   cursor: pointer;
   display: flex;
@@ -1661,7 +1661,7 @@
 
 .mp-mine-empty p {
   font-size: 11px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   margin: 4px 0 0;
 }
 
@@ -1670,7 +1670,7 @@
 .mp-upload-source-mask {
   position: absolute;
   inset: 0;
-  background: rgba(40, 40, 40, 0.45);
+  background: var(--mp-bg-overlay);
   z-index: 70;
   display: flex;
   align-items: flex-end;
@@ -1679,7 +1679,7 @@
 
 .mp-upload-source {
   width: 100%;
-  background: #f5f5f5;
+  background: var(--mp-bg-tint);
   padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
   border-radius: 14px 14px 0 0;
   display: flex;
@@ -1690,7 +1690,7 @@
 
 .mp-upload-source-item {
   appearance: none;
-  background: #fff;
+  background: var(--mp-bg-card);
   border: none;
   padding: 12px 14px;
   border-radius: 10px;
@@ -1700,30 +1700,30 @@
   gap: 12px;
   text-align: left;
   font-size: 12px;
-  color: #282828;
+  color: var(--mp-primary);
 }
-.mp-upload-source-item:hover { background: #f3f3f3; }
+.mp-upload-source-item:hover { background: var(--mp-bg-tint); }
 .mp-upload-source-item span {
   font-weight: 600;
 }
 .mp-upload-source-item small {
   margin-left: auto;
   font-size: 10px;
-  color: #999999;
+  color: var(--mp-text-muted);
 }
 
 .mp-upload-source-cancel {
   appearance: none;
-  background: #fff;
+  background: var(--mp-bg-card);
   border: none;
   padding: 11px 14px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 12px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   margin-top: 4px;
 }
-.mp-upload-source-cancel:hover { color: #282828; }
+.mp-upload-source-cancel:hover { color: var(--mp-primary); }
 
 
 /* 我的素材库 sticky 上传按钮 */
@@ -1735,7 +1735,7 @@
   background: rgba(243, 244, 247, 0.94);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(40, 40, 40, 0.06);
+  border-top: 1px solid var(--mp-primary-soft);
   display: flex;
   z-index: 8;
 }
@@ -1760,7 +1760,7 @@
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 6px;
   font-size: 10px;
 }
@@ -1775,17 +1775,17 @@
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  background: #fff;
+  background: var(--mp-bg-card);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #666666;
+  color: var(--mp-text-secondary);
   flex-shrink: 0;
 }
 .mp-attach-name {
   flex: 1;
   min-width: 0;
-  color: #282828;
+  color: var(--mp-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1796,7 +1796,7 @@
   border-radius: 50%;
   background: transparent;
   border: none;
-  color: #b0b0b0;
+  color: var(--mp-text-tertiary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1813,7 +1813,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   border-radius: 8px;
   margin-top: 4px;
 }
@@ -1825,7 +1825,7 @@
   resize: none;
   font-family: inherit;
   font-size: 11px;
-  color: #282828;
+  color: var(--mp-primary);
   min-height: 36px;
 }
 
@@ -1839,7 +1839,7 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 6px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
 }
 
 
@@ -1856,7 +1856,7 @@
   align-items: center;
   gap: 2px;
   background: rgba(40, 40, 40, 0.1);
-  color: #282828;
+  color: var(--mp-primary);
   font-size: 9px;
   font-weight: 600;
   padding: 1px 6px;
@@ -1864,7 +1864,7 @@
 }
 .mp-order-card-note {
   font-size: 9px;
-  color: #999999;
+  color: var(--mp-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1876,7 +1876,7 @@
 .mp-print-subtabs {
   display: flex;
   gap: 4px;
-  background: #f3f3f3;
+  background: var(--mp-bg-tint);
   padding: 3px;
   border-radius: 8px;
   margin-bottom: 8px;
@@ -1888,16 +1888,16 @@
   border: none;
   padding: 5px 0;
   font-size: 10px;
-  color: #666666;
+  color: var(--mp-text-secondary);
   cursor: pointer;
   border-radius: 6px;
   font-weight: 500;
 }
 .mp-print-subtab.active {
-  background: #fff;
-  color: #282828;
+  background: var(--mp-bg-card);
+  color: var(--mp-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(40, 40, 40, 0.06);
+  box-shadow: 0 1px 3px var(--mp-primary-soft);
 }
 
 .mp-shape-view {

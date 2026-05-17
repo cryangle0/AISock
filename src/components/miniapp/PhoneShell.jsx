@@ -1,10 +1,19 @@
 /**
- * PhoneShell — 手机外壳（小窗 + 全屏复用）
- * 4 个底部 tab，对齐 web 端的 4 个菜单
+ * PhoneShell —— 手机外壳（小窗 + 全屏复用）
+ * 重构后底部 3 个 tab：首页 / 设计 / 我的
  */
-import { Wifi, BatteryFull, Signal, ChevronLeft, Maximize2 } from 'lucide-react'
+import {
+  Wifi, BatteryFull, Signal, ChevronLeft, Maximize2,
+  Home as HomeIcon, Brush, User,
+} from 'lucide-react'
 import { PAGE_META, getTabs } from './pageMeta'
 import './PhoneShell.css'
+
+const TAB_ICONS = {
+  'b-home':   HomeIcon,
+  'b-editor': Brush,
+  'b-mine':   User,
+}
 
 export default function PhoneShell({
   page,
@@ -14,6 +23,7 @@ export default function PhoneShell({
   onExpand,
   children,
   size = 'mini',
+  hideTabbar = false,
 }) {
   const meta = PAGE_META[page] || {}
   const tabs = getTabs()
@@ -39,7 +49,7 @@ export default function PhoneShell({
           </button>
         )}
         <span className="phone-shell-title-text">
-          爱花型 · {meta.title || ''}
+          {meta.title ? `爱花型 · ${meta.title}` : '爱花型'}
         </span>
         {size === 'mini' && onExpand && (
           <button
@@ -57,20 +67,31 @@ export default function PhoneShell({
         {children}
       </div>
 
-      <div
-        className="phone-shell-tabbar"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
-      >
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            className={`phone-shell-tab ${activeTabKey === t.key ? 'active' : ''}`}
-            onClick={() => onTabChange(t.key)}
-          >
-            {t.tabLabel || t.title}
-          </button>
-        ))}
-      </div>
+      {!hideTabbar && (
+        <div
+          className="phone-shell-tabbar"
+          style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+        >
+          {tabs.map((t) => {
+            const Icon = TAB_ICONS[t.key]
+            const active = activeTabKey === t.key
+            return (
+              <button
+                key={t.key}
+                className={`phone-shell-tab ${active ? 'active' : ''}`}
+                onClick={() => onTabChange(t.key)}
+              >
+                {Icon && (
+                  <span className="phone-shell-tab-icon">
+                    <Icon size={size === 'full' ? 18 : 14} strokeWidth={active ? 2 : 1.6}/>
+                  </span>
+                )}
+                {t.tabLabel || t.title}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

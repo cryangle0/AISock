@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
+import Home from './components/Home'
 import SockEditor from './components/SockEditor'
 import MyDesigns from './components/MyDesigns'
 import Orders from './components/Orders'
@@ -14,7 +15,7 @@ function App() {
   const [authed, setAuthed] = useState(() => {
     try { return JSON.parse(localStorage.getItem('aisock.authed')) === true } catch { return false }
   })
-  const [activeMenu, setActiveMenu] = useState('设计')
+  const [activeMenu, setActiveMenu] = useState('首页')
   const [darkMode, setDarkMode] = useState(false)
 
   // 设计稿（本地状态模拟）
@@ -117,6 +118,21 @@ function App() {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, ...patch } : o))
   }
 
+  // 应用预设到"我的设计"，并跳到我的设计 tab，方便用户继续创作
+  const handleApplyPreset = (preset) => {
+    const id = Date.now()
+    const item = {
+      id,
+      name: preset.name,
+      regions: preset.regions,
+      cover: preset.regions?.body,
+      savedAt: new Date().toLocaleString('zh-CN'),
+      fromPreset: true,
+    }
+    setDesigns(prev => [item, ...prev])
+    setActiveMenu('我的设计')
+  }
+
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
   return (
@@ -129,6 +145,14 @@ function App() {
         onLogout={handleLogout}
       />
       <div className="main-area">
+        {activeMenu === '首页' && (
+          <Home
+            designs={designs}
+            orders={orders}
+            onJump={setActiveMenu}
+            onApplyPreset={handleApplyPreset}
+          />
+        )}
         {activeMenu === '设计' && (
           <>
             <TopBar

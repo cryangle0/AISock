@@ -16,7 +16,7 @@
  */
 import { useState } from 'react'
 import {
-  Save, ShoppingBag, Sparkles, Heart, Download,
+  Save, ShoppingBag, Sparkles, Heart, Download, FolderHeart, ChevronRight,
 } from 'lucide-react'
 import MiniSockCanvas from '../../editor/MiniSockCanvas'
 import SessionBar from '../../editor/SessionBar'
@@ -48,12 +48,14 @@ export default function BEditor({
   canvasRef,
   currentSession,
   sessions = [],
+  designs = [],
   onSelectSession,
   onNewSession,
   onRenameSession,
   onDeleteSession,
   onSaveDesign,
   onAddOrder,
+  onNavigate,
 }) {
   const [activeSheet, setActiveSheet] = useState('print')
   const [resources, setResources] = useState(null)
@@ -155,6 +157,18 @@ export default function BEditor({
         onRename={onRenameSession}
         onDelete={onDeleteSession}
       />
+
+      {/* 我的设计入口 */}
+      <button
+        className="mp-editor-mydesigns-link mp-editor-mydesigns-bar"
+        onClick={() => onNavigate?.('b-designs')}
+      >
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <FolderHeart size={12} strokeWidth={1.6}/>
+          我的设计 · {designs.length}
+        </span>
+        <ChevronRight size={11} strokeWidth={1.6}/>
+      </button>
 
       {/* 上半屏：袜版预览 */}
       <div className="mp-editor-canvas-wrap">

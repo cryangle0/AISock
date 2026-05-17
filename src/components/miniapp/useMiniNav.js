@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react'
 import { PAGE_META } from './pageMeta'
 
 const INITIAL_STATE = {
-  page: 'b-editor',
+  page: 'b-home',
   history: [],
   // 携带的导航参数（如订单详情需要 orderId）
   params: {},

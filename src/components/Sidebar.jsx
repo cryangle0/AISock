@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import './Sidebar.css'
-import { Brush, FolderHeart, ShoppingBag, Layers, Sun, Moon, LogOut } from 'lucide-react'
+import { Home, Brush, ShoppingBag, Layers, Sun, Moon, LogOut } from 'lucide-react'
 import { BrandLogo } from './BrandLogo'
 
 const menuItems = [
+  { label: '首页', icon: Home },
   { label: '设计', icon: Brush },
-  { label: '我的设计', icon: FolderHeart },
   { label: '订单管理', icon: ShoppingBag },
   { label: '素材库', icon: Layers },
 ]

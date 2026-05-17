@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import PhoneShell from './PhoneShell'
+import BLoginPage from './BLoginPage'
 import { PAGE_COMPONENTS } from './pages'
 import { PAGE_META } from './pageMeta'
 import './FullscreenModal.css'
@@ -18,6 +19,8 @@ export default function FullscreenModal({
   onNavigate,
   onClose,
   pageProps,
+  mpAuthed = true,
+  onMpLogin,
 }) {
   const dialogRef = useRef(null)
   const prevFocusRef = useRef(null)
@@ -81,8 +84,12 @@ export default function FullscreenModal({
               onBack={onBack}
               onTabChange={onNavigate}
               size="full"
+              hideTabbar={!mpAuthed}
             >
-              {PageComponent && <PageComponent {...pageProps} />}
+              {!mpAuthed
+                ? <BLoginPage onLogin={onMpLogin}/>
+                : (PageComponent && <PageComponent {...pageProps} />)
+              }
             </PhoneShell>
           </div>
         </div>
