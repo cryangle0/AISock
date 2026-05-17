@@ -1,0 +1,91 @@
+/* =========================================================================
+ * AnimatedCharacters —— 几何卡通角色（紫/黑/橙/黄）+ 眼睛追踪
+ * 仅用作 web 登录页左面板装饰；外层 .ac-stage 自适应宽高，内层 troupe 固定 550×400
+ * ========================================================================= */
+.ac-stage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ac-troupe {
+  position: relative;
+  width: 550px;
+  height: 400px;
+  flex-shrink: 0;
+}
+
+.ac-char {
+  position: absolute;
+  bottom: 0;
+  transform-origin: bottom center;
+  transition: all 0.7s cubic-bezier(0.22, 0.9, 0.35, 1.01);
+}
+
+.ac-char-purple {
+  background: #6C3FF5;
+  border-radius: 10px 10px 0 0;
+  z-index: 1;
+}
+
+.ac-char-black {
+  background: #2D2D2D;
+  border-radius: 8px 8px 0 0;
+  z-index: 2;
+}
+
+.ac-char-orange {
+  background: #FF9B6B;
+  border-radius: 120px 120px 0 0;
+  z-index: 3;
+}
+
+.ac-char-yellow {
+  background: #E8D754;
+  border-radius: 70px 70px 0 0;
+  z-index: 4;
+}
+
+.ac-eyes {
+  position: absolute;
+  display: flex;
+  transition: all 0.7s cubic-bezier(0.22, 0.9, 0.35, 1.01);
+}
+.ac-eyes-purple { gap: 32px; }
+.ac-eyes-black  { gap: 24px; }
+.ac-eyes-orange { gap: 32px; }
+.ac-eyes-yellow { gap: 24px; }
+
+.ac-eye {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: width 0.15s ease, height 0.15s ease;
+}
+
+.ac-pupil {
+  border-radius: 50%;
+  transition: transform 0.1s ease-out;
+}
+
+.ac-mouth {
+  position: absolute;
+  width: 80px;
+  height: 4px;
+  background: #2D2D2D;
+  border-radius: 999px;
+  transition: all 0.2s ease-out;
+}
+
+@media (max-width: 1180px) {
+  /* 角色舞台略微缩放，避免在小宽度下溢出 */
+  .ac-troupe {
+    transform: scale(0.85);
+    transform-origin: bottom center;
+  }
+}
