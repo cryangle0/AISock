@@ -107,6 +107,7 @@ export default function MiniAppPrototype(props) {
             onExpand={handleExpand}
             size="mini"
             hideTabbar={!mpAuthed}
+            titleOverride={!mpAuthed ? '爱花型 · 登录页' : undefined}
           >
             {!mpAuthed
               ? <BLoginPage onLogin={handleMpLogin}/>

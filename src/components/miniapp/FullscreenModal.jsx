@@ -51,6 +51,8 @@ export default function FullscreenModal({
 
   const meta = PAGE_META[page] || {}
   const PageComponent = PAGE_COMPONENTS[page]
+  const headerTitle = mpAuthed ? `爱花型小程序 · ${meta.title || ''}` : '爱花型小程序 · 登录页'
+  const phoneTitle = mpAuthed ? undefined : '爱花型 · 登录页'
 
   return createPortal(
     <div
@@ -58,13 +60,13 @@ export default function FullscreenModal({
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="dialog"
       aria-modal="true"
-      aria-label={`爱花型小程序 · ${meta.title || ''}`}
+      aria-label={headerTitle}
       ref={dialogRef}
     >
       <div className="fs-modal-shell">
         <header className="fs-modal-top">
           <div className="fs-modal-title">
-            <span className="fs-modal-title-text">爱花型小程序 · {meta.title}</span>
+            <span className="fs-modal-title-text">{headerTitle}</span>
           </div>
           <button
             className="fs-modal-close"
@@ -85,6 +87,7 @@ export default function FullscreenModal({
               onTabChange={onNavigate}
               size="full"
               hideTabbar={!mpAuthed}
+              titleOverride={phoneTitle}
             >
               {!mpAuthed
                 ? <BLoginPage onLogin={onMpLogin}/>

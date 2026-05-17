@@ -24,10 +24,15 @@ export default function PhoneShell({
   children,
   size = 'mini',
   hideTabbar = false,
+  // 未登录态时由调用方覆盖标题文案
+  titleOverride,
 }) {
   const meta = PAGE_META[page] || {}
   const tabs = getTabs()
   const activeTabKey = meta.parentTab || page
+
+  // 标题：登录态优先用 override；否则按 PAGE_META.title
+  const title = titleOverride || (meta.title ? `爱花型 · ${meta.title}` : '爱花型')
 
   return (
     <div className={`phone-shell phone-shell-${size}`}>
@@ -48,9 +53,7 @@ export default function PhoneShell({
             <ChevronLeft size={size === 'full' ? 16 : 13} strokeWidth={2} />
           </button>
         )}
-        <span className="phone-shell-title-text">
-          {meta.title ? `爱花型 · ${meta.title}` : '爱花型'}
-        </span>
+        <span className="phone-shell-title-text">{title}</span>
         {size === 'mini' && onExpand && (
           <button
             className="phone-shell-expand"

@@ -534,12 +534,13 @@
 .mp-login-field {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--mp-bg-tint);
   border: 1px solid transparent;
   border-radius: var(--mp-radius-md);
-  padding: 0 12px;
+  padding: 0 10px;
   transition: all 0.15s;
+  min-width: 0;
 }
 .mp-login-field:focus-within {
   border-color: var(--mp-primary);
@@ -553,6 +554,8 @@
 
 .mp-login-field input {
   flex: 1;
+  min-width: 0;            /* 关键：让 input 在窄容器内可以被压缩 */
+  width: 100%;
   background: transparent;
   border: none;
   outline: none;
@@ -562,6 +565,10 @@
   font-family: inherit;
 }
 .mp-login-field input::placeholder { color: var(--mp-text-muted); }
+.phone-shell-full .mp-login-field {
+  gap: 8px;
+  padding: 0 12px;
+}
 .phone-shell-full .mp-login-field input { font-size: 14px; padding: 12px 0; }
 
 .mp-login-code-btn {
@@ -573,11 +580,12 @@
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  padding: 4px 0 4px 8px;
+  white-space: nowrap;
+  padding: 4px 0 4px 6px;
   border-left: 1px solid var(--mp-divider);
 }
 .mp-login-code-btn:hover { opacity: 0.7; }
-.phone-shell-full .mp-login-code-btn { font-size: 12px; }
+.phone-shell-full .mp-login-code-btn { font-size: 12px; padding: 4px 0 4px 10px; }
 
 .mp-login-submit {
   appearance: none;
