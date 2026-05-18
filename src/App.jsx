@@ -136,7 +136,7 @@ function App() {
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${activeMenu === '首页' ? 'is-home' : ''}`}>
       <Sidebar
         activeMenu={activeMenu}
         onMenuChange={setActiveMenu}

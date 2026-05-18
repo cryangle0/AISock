@@ -6,16 +6,18 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
-  padding: 18px 28px 32px;
+  padding: 12px 28px 32px;
   overflow-y: auto;
   min-height: 0;
   overflow-anchor: none;
+  background: transparent;
 }
 
 .home-page > * { flex-shrink: 0; }
 
 /* =========================================================================
- * Hero —— 暖橙渐变 + 装饰球 + 袜款展示台
+ * Hero —— 透明卡片，由外层 .app-layout.is-home::before 提供大景渐变
+ * 内部仅保留装饰球 / 拱门 / 文案 / 袜款展示
  * ========================================================================= */
 .home-hero {
   position: relative;
@@ -23,15 +25,11 @@
   align-items: stretch;
   gap: 24px;
   min-height: 320px;
-  padding: 36px 44px;
+  padding: 36px 44px 36px;
   border-radius: 22px;
   overflow: hidden;
-  background:
-    radial-gradient(70% 70% at 80% 50%, rgba(255, 200, 220, 0.55), transparent 70%),
-    radial-gradient(60% 70% at 90% 30%, rgba(218, 173, 247, 0.40), transparent 70%),
-    radial-gradient(80% 90% at 0% 0%,   rgba(255, 215, 161, 0.85), transparent 70%),
-    linear-gradient(110deg, #ffe4cb 0%, #ffd6c1 35%, #ffd0e0 65%, #f4d4ff 100%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.55);
   isolation: isolate;
 }
 

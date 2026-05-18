@@ -15,6 +15,12 @@
   z-index: 100;
 }
 
+/* 首页：顶导透明，融入下方 hero 渐变 */
+.app-layout.is-home .topnav {
+  background: transparent;
+  border-bottom: none;
+}
+
 /* —— 左：品牌 —— */
 .topnav-brand {
   display: flex;
