@@ -289,9 +289,22 @@ export default function BEditor({
         )}
       </div>
 
-      {/* 右侧浮动 CTA：保存 / 下单（通过 Portal 挂到 phone-shell，避免被 screen 滚动） */}
+      {/* 右侧浮动 CTA：AI / 保存 / 下单（通过 Portal 挂到 phone-shell，避免被 screen 滚动） */}
       {shellEl && createPortal(
         <div className="mp-editor-side-dock">
+          <button
+            className="mp-side-cta ai"
+            onClick={() => setAiOpen(true)}
+            disabled={!editor.printImage || !resources}
+            title={!editor.printImage ? '请先选择印花' : 'AI 款式衍生'}
+            aria-label="AI 款式衍生"
+          >
+            <span className="mp-side-cta-ai-ring" aria-hidden="true"/>
+            <span className="mp-side-cta-ai-core">
+              <Sparkles size={14} strokeWidth={2}/>
+              <span className="mp-side-cta-ai-text">AI</span>
+            </span>
+          </button>
           <button className="mp-side-cta save" onClick={handleSave}>
             <Save size={14} />
             <span>保存</span>
