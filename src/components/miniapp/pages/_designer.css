@@ -2091,116 +2091,49 @@
   letter-spacing: 0.04em;
 }
 
-/* —— AI 主按钮：渐变 + 旋转闪光环 + 呼吸光晕 —— */
-.mp-side-cta.ai {
-  position: relative;
-  width: 48px;
-  height: 48px;
+/* —— AI 主按钮：使用原生 AI.png logo，无边框无背景，仅光晕 + 微动效 —— */
+.mp-side-cta-ai {
+  appearance: none;
   background: transparent;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  /* 三层光：内层细线晕 + 中层柔光 + 底盘色彩 */
-  box-shadow:
-    0 0 0 1.5px rgba(255, 255, 255, 0.7),
-    0 6px 16px rgba(186, 105, 220, 0.36),
-    0 2px 6px rgba(245, 116, 38, 0.22);
-  isolation: isolate;
-  animation: mp-ai-pulse 2.6s ease-in-out infinite;
-}
-
-.phone-shell-full .mp-side-cta.ai {
-  width: 64px;
-  height: 64px;
-  box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.7),
-    0 8px 22px rgba(186, 105, 220, 0.38),
-    0 2px 8px rgba(245, 116, 38, 0.24);
-}
-
-.mp-side-cta.ai:hover:not(:disabled) {
-  transform: translateX(-2px) scale(1.05);
-  filter: brightness(1.05);
-}
-.mp-side-cta.ai:disabled {
-  filter: grayscale(0.6) brightness(0.95);
-  cursor: not-allowed;
-  animation: none;
-}
-
-/* 旋转的炫彩外圈（conic 渐变） */
-.mp-side-cta-ai-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  z-index: 0;
-  background: conic-gradient(
-    from 0deg,
-    #ffb866 0%,
-    #f57426 12%,
-    #d96fc4 30%,
-    #8b6df3 50%,
-    #5fb1d6 68%,
-    #f5c266 86%,
-    #ffb866 100%
-  );
-  animation: mp-ai-spin 6s linear infinite;
-}
-
-/* 内核：留一圈实心色，让外圈像戒指一样包住中央 */
-.mp-side-cta-ai-core {
-  position: absolute;
-  inset: 3px;
-  z-index: 1;
-  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 56px;
+  height: 56px;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  /* 内核渐变：暖橙 → 玫粉 → 蓝紫 */
-  background: linear-gradient(140deg, #f57426 0%, #c63a8e 60%, #6c4dd2 100%);
-  color: #fff;
-  /* 高光 */
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.5),
-    inset 0 -2px 4px rgba(74, 16, 84, 0.25);
+  /* 软光晕，绕在 logo 周围，便于和环境分离但不抢戏 */
+  filter: drop-shadow(0 4px 10px rgba(94, 60, 30, 0.22));
+  transition: transform 0.18s ease, filter 0.18s ease;
+  animation: mp-side-cta-ai-float 3.6s ease-in-out infinite;
+}
+.phone-shell-full .mp-side-cta-ai {
+  width: 76px;
+  height: 76px;
+  filter: drop-shadow(0 6px 16px rgba(94, 60, 30, 0.28));
 }
 
-.phone-shell-full .mp-side-cta-ai-core {
-  inset: 4px;
+.mp-side-cta-ai img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
 }
 
-.mp-side-cta-ai-text {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  margin-top: 2px;
-  text-shadow: 0 1px 2px rgba(74, 16, 84, 0.5);
-}
-.phone-shell-full .mp-side-cta-ai-text {
-  font-size: 10px;
-  margin-top: 3px;
+.mp-side-cta-ai:hover {
+  transform: translateX(-2px) scale(1.05);
+  filter: drop-shadow(0 6px 14px rgba(94, 60, 30, 0.32)) brightness(1.04);
 }
 
-@keyframes mp-ai-spin {
-  to { transform: rotate(360deg); }
+.mp-side-cta-ai:active {
+  transform: translateX(-2px) scale(0.98);
 }
 
-@keyframes mp-ai-pulse {
-  0%, 100% {
-    box-shadow:
-      0 0 0 1.5px rgba(255, 255, 255, 0.7),
-      0 6px 16px rgba(186, 105, 220, 0.36),
-      0 2px 6px rgba(245, 116, 38, 0.22);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1.5px rgba(255, 255, 255, 0.85),
-      0 10px 22px rgba(186, 105, 220, 0.5),
-      0 2px 8px rgba(245, 116, 38, 0.32);
-  }
+@keyframes mp-side-cta-ai-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
 }
 
 /* 编辑器底部留点空间 */

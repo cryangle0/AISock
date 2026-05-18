@@ -29,6 +29,7 @@ import PaletteSheet from '../../editor/PaletteSheet'
 import OrderSheet from '../../editor/OrderSheet'
 import PaymentSheet from '../../editor/PaymentSheet'
 import AiExtendSheet from '../../editor/AiExtendSheet'
+import AiGenerateSheet from '../../editor/AiGenerateSheet'
 import FamilySheet from '../../editor/FamilySheet'
 import ShareSheet from '../../editor/ShareSheet'
 import Toast from '../../ui/Toast'
@@ -77,7 +78,8 @@ export default function BEditor({
   // 顶层弹层 sheet
   const [orderOpen, setOrderOpen] = useState(false)
   const [pendingOrder, setPendingOrder] = useState(null)
-  const [aiOpen, setAiOpen] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)            // 款式衍生
+  const [aiGenOpen, setAiGenOpen] = useState(false)      // AI 生图（dock 主按钮拉起）
   const [familyOpen, setFamilyOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
 
@@ -252,7 +254,6 @@ export default function BEditor({
             printImage={editor.printImage}
             printName={editor.printName}
             history={editor.aiHistory}
-            onHistoryAdd={editor.addAiHistory}
             publicAssets={lib.publicAssets}
             userAssets={lib.userAssets}
             onUploadUserAsset={lib.addUserAsset}
@@ -260,7 +261,6 @@ export default function BEditor({
             onApplyImage={editor.applyImage}
             onClearPrint={editor.clearPrint}
             onModifyBg={handleModifyBg}
-            quota={quota}
           />
         )}
         {activeSheet === 'adjust' && (
@@ -289,21 +289,20 @@ export default function BEditor({
         )}
       </div>
 
-      {/* 右侧浮动 CTA：AI / 保存 / 下单（通过 Portal 挂到 phone-shell，避免被 screen 滚动） */}
+      {/* 右侧浮动 CTA：AI 主按钮（原生 logo）/ 保存 / 下单 */}
       {shellEl && createPortal(
         <div className="mp-editor-side-dock">
           <button
-            className="mp-side-cta ai"
-            onClick={() => setAiOpen(true)}
-            disabled={!editor.printImage || !resources}
-            title={!editor.printImage ? '请先选择印花' : 'AI 款式衍生'}
-            aria-label="AI 款式衍生"
+            className="mp-side-cta-ai"
+            onClick={() => setAiGenOpen(true)}
+            aria-label="AI 生成"
+            title="AI 生成"
           >
-            <span className="mp-side-cta-ai-ring" aria-hidden="true"/>
-            <span className="mp-side-cta-ai-core">
-              <Sparkles size={14} strokeWidth={2}/>
-              <span className="mp-side-cta-ai-text">AI</span>
-            </span>
+            <img
+              src={`${import.meta.env.BASE_URL}AI.png`}
+              alt="AI"
+              draggable={false}
+            />
           </button>
           <button className="mp-side-cta save" onClick={handleSave}>
             <Save size={14} />
@@ -345,6 +344,16 @@ export default function BEditor({
           resources={resources}
           onClose={() => setAiOpen(false)}
           onApply={(d) => { editor.applyDerivedDesign(d); setAiOpen(false) }}
+        />
+      )}
+
+      {aiGenOpen && (
+        <AiGenerateSheet
+          onClose={() => setAiGenOpen(false)}
+          onApplyImage={editor.applyImage}
+          onHistoryAdd={editor.addAiHistory}
+          userAssets={lib.userAssets}
+          quota={quota}
         />
       )}
 
