@@ -33,7 +33,7 @@
   isolation: isolate;
 }
 
-/* 流体丝带装饰 */
+/* 装饰光晕（弱化） */
 .home-hero-deco {
   position: absolute;
   top: -10%;
@@ -43,8 +43,8 @@
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(40% 35% at 60% 50%, rgba(255, 182, 218, 0.65), transparent 70%),
-    radial-gradient(35% 45% at 75% 35%, rgba(217, 165, 247, 0.45), transparent 70%);
+    radial-gradient(40% 35% at 60% 50%, rgba(245, 215, 175, 0.45), transparent 70%),
+    radial-gradient(35% 45% at 75% 35%, rgba(255, 230, 195, 0.55), transparent 70%);
   filter: blur(10px);
 }
 
@@ -56,48 +56,44 @@
   z-index: 1;
 }
 .home-hero-bubble-1 {
-  /* 左上紫色小球 */
+  /* 左上小球：奶油棕 */
   width: 26px; height: 26px;
   top: 22%;
   left: 56%;
-  background: radial-gradient(circle at 30% 30%, #e6c8f8, #b58fda);
-  box-shadow: 0 4px 10px rgba(174, 124, 220, 0.42);
+  background: radial-gradient(circle at 30% 30%, #f5e6cf, #d6b48a);
+  box-shadow: 0 4px 10px rgba(184, 137, 75, 0.32);
 }
 .home-hero-bubble-2 {
-  /* 左下粉色小球 */
+  /* 左下小球：暖陶土 */
   width: 22px; height: 22px;
   bottom: 18%;
   left: 60%;
-  background: radial-gradient(circle at 30% 30%, #ffd6e5, #ec8db4);
-  box-shadow: 0 4px 10px rgba(236, 141, 180, 0.36);
+  background: radial-gradient(circle at 30% 30%, #f4d6ba, #d3956a);
+  box-shadow: 0 4px 10px rgba(211, 149, 106, 0.32);
 }
 .home-hero-bubble-3 {
-  /* 右下大紫色球 */
+  /* 右下大球：杏色 */
   width: 36px; height: 36px;
   bottom: 22%;
   right: 5%;
-  background: radial-gradient(circle at 30% 30%, #f5dafa, #c79be0);
-  box-shadow: 0 6px 14px rgba(199, 155, 224, 0.4);
+  background: radial-gradient(circle at 30% 30%, #fbe4cd, #e9b78b);
+  box-shadow: 0 6px 14px rgba(233, 183, 139, 0.4);
 }
 
-/* 拱门 */
+/* 拱门：换成更柔的杏橘 */
 .home-hero-arch {
   position: absolute;
   right: 8%;
   bottom: 0;
   width: 240px;
   height: 220px;
-  background:
-    radial-gradient(closest-side, transparent 78%, #ffb185 79%, #ffb185 100%);
-  /* 用 border-radius 100% 100% 0 0 + clip 形成拱门，但用 mask 更准 */
   border-radius: 50% 50% 0 0;
   z-index: 0;
-  /* 半圆变拱门：内层挖空 */
   mask-image: radial-gradient(closest-side, transparent 64%, black 65%);
   -webkit-mask-image: radial-gradient(closest-side, transparent 64%, black 65%);
-  background: linear-gradient(180deg, #ffae87 0%, #f57e6c 100%);
+  background: linear-gradient(180deg, #f3c69d 0%, #d99c6e 100%);
   pointer-events: none;
-  opacity: 0.95;
+  opacity: 0.85;
 }
 
 .home-hero-content {
