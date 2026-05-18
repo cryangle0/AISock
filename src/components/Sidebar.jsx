@@ -1,6 +1,14 @@
+/**
+ * Sidebar —— 实际渲染为顶部水平导航栏
+ *
+ * 视觉对齐参考稿：
+ *   左：品牌 logo + "爱花型 · 设计 / SOCK DESIGN" 双行
+ *   中：5 个 tab 图标（首页 / 设计 / 订单管理 / 素材库 / 我的设计）
+ *   右：暗色切换 + 通知 + 用户身份
+ */
 import { useState, useRef, useEffect } from 'react'
 import './Sidebar.css'
-import { Home, Brush, ShoppingBag, Layers, Sun, Moon, LogOut } from 'lucide-react'
+import { Home, Brush, ShoppingBag, Layers, FolderHeart, Sun, Moon, LogOut, Bell, ChevronDown } from 'lucide-react'
 import { BrandLogo } from './BrandLogo'
 
 const menuItems = [
@@ -8,11 +16,11 @@ const menuItems = [
   { label: '设计', icon: Brush },
   { label: '订单管理', icon: ShoppingBag },
   { label: '素材库', icon: Layers },
+  { label: '我的设计', icon: FolderHeart },
 ]
 
 export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDark, onLogout }) {
   const [avatarOpen, setAvatarOpen] = useState(false)
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
   const avatarRef = useRef(null)
 
   useEffect(() => {
@@ -24,51 +32,68 @@ export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDa
     return () => document.removeEventListener('mousedown', handler)
   }, [avatarOpen])
 
-  const handleAvatarClick = () => {
-    if (!avatarOpen && avatarRef.current) {
-      const rect = avatarRef.current.getBoundingClientRect()
-      setPopoverPos({ top: rect.top, left: rect.right + 8 })
-    }
-    setAvatarOpen(v => !v)
-  }
-
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo" title="爱花型">
-        <div className="logo-mark">
-          <BrandLogo size={32}/>
-        </div>
+    <header className="topnav">
+      {/* 左：品牌 */}
+      <div className="topnav-brand">
+        <span className="topnav-logo"><BrandLogo size={36}/></span>
+        <span className="topnav-brand-text">
+          <span className="topnav-brand-cn">爱花型 · 设计</span>
+          <span className="topnav-brand-en">SOCK DESIGN</span>
+        </span>
       </div>
 
-      <nav className="sidebar-nav">
+      {/* 中：导航 */}
+      <nav className="topnav-tabs" aria-label="主导航">
         {menuItems.map((item) => {
           const Icon = item.icon
-          const isActive = activeMenu === item.label
+          const active = activeMenu === item.label
           return (
             <button
               key={item.label}
-              className={`nav-item ${isActive ? 'active' : ''}`}
+              className={`topnav-tab ${active ? 'active' : ''}`}
               onClick={() => onMenuChange(item.label)}
-              title={item.label}
             >
-              <span className="nav-icon">
-                <Icon size={17} strokeWidth={isActive ? 2 : 1.5}/>
+              <span className="topnav-tab-icon">
+                <Icon size={16} strokeWidth={active ? 2 : 1.6}/>
               </span>
-              <span className="nav-label">{item.label}</span>
+              <span className="topnav-tab-label">{item.label}</span>
+              {active && <span className="topnav-tab-bar" aria-hidden="true"/>}
             </button>
           )
         })}
       </nav>
 
-      <div className="sidebar-footer">
-        <button className="sidebar-dark-toggle" onClick={onToggleDark} title={darkMode ? '切换亮色' : '切换暗色'}>
-          {darkMode ? <Sun size={15} strokeWidth={1.6}/> : <Moon size={15} strokeWidth={1.6}/>}
+      {/* 右：操作 */}
+      <div className="topnav-actions">
+        <button
+          className="topnav-icon-btn"
+          onClick={onToggleDark}
+          aria-label={darkMode ? '切换亮色' : '切换暗色'}
+          title={darkMode ? '切换亮色' : '切换暗色'}
+        >
+          {darkMode ? <Sun size={16} strokeWidth={1.6}/> : <Moon size={16} strokeWidth={1.6}/>}
         </button>
-        <div className="user-avatar-wrap" ref={avatarRef}>
-          <div className="user-avatar" onClick={handleAvatarClick} title="账户">U</div>
+        <button className="topnav-icon-btn" aria-label="通知" title="通知">
+          <Bell size={16} strokeWidth={1.6}/>
+          <span className="topnav-icon-dot" aria-hidden="true"/>
+        </button>
+
+        <div className="topnav-user-wrap" ref={avatarRef}>
+          <button
+            className={`topnav-user ${avatarOpen ? 'open' : ''}`}
+            onClick={() => setAvatarOpen((v) => !v)}
+          >
+            <span className="topnav-user-avatar">花</span>
+            <span className="topnav-user-name">花型设计师</span>
+            <ChevronDown size={12} strokeWidth={2}/>
+          </button>
           {avatarOpen && (
-            <div className="avatar-popover" style={{ position: 'fixed', top: popoverPos.top, left: popoverPos.left }}>
-              <button className="avatar-popover-item logout" onClick={() => { setAvatarOpen(false); onLogout?.() }}>
+            <div className="topnav-popover">
+              <button
+                className="topnav-popover-item logout"
+                onClick={() => { setAvatarOpen(false); onLogout?.() }}
+              >
                 <LogOut size={14} strokeWidth={1.6}/>
                 退出登录
               </button>
@@ -76,6 +101,6 @@ export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDa
           )}
         </div>
       </div>
-    </aside>
+    </header>
   )
 }
