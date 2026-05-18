@@ -562,8 +562,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--mp-bg-tint);
-  border: 1px solid transparent;
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
   border-radius: var(--mp-radius-md);
   padding: 0 10px;
   transition: all 0.15s;
@@ -571,7 +571,7 @@
 }
 .mp-login-field:focus-within {
   border-color: var(--mp-primary);
-  background: var(--mp-bg-card);
+  box-shadow: 0 0 0 2px var(--mp-primary-soft);
 }
 
 .mp-login-field svg {

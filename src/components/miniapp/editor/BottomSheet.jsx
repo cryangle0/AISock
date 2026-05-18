@@ -1,9 +1,14 @@
 /**
  * BottomSheet — 通用底部抽屉弹层
- * 局部 absolute 在 phone-shell-screen 内。点遮罩或顶部 X 关闭。
+ *
+ * 通过 portal 挂到 .phone-shell 上（不在 .phone-shell-screen 内），
+ * 这样抽屉能覆盖底部 tabbar，并且不被 screen 滚动影响。
+ * 点遮罩或顶部 X 关闭。
  */
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
+import { usePhoneShellRef } from '../phoneShellContext'
 
 export default function BottomSheet({
   open = true,
@@ -15,6 +20,13 @@ export default function BottomSheet({
   size = 'auto',  // 'auto' | 'tall' | 'full'
   closable = true,
 }) {
+  const shellRef = usePhoneShellRef()
+  const [shellEl, setShellEl] = useState(null)
+
+  useEffect(() => {
+    setShellEl(shellRef?.current || null)
+  }, [shellRef])
+
   useEffect(() => {
     if (!open) return
     const onEsc = (e) => { if (e.key === 'Escape' && closable) onClose?.() }
@@ -24,7 +36,7 @@ export default function BottomSheet({
 
   if (!open) return null
 
-  return (
+  const node = (
     <div className="mp-bottom-sheet-mask" onClick={(e) => {
       if (e.target === e.currentTarget && closable) onClose?.()
     }}>
@@ -49,4 +61,7 @@ export default function BottomSheet({
       </div>
     </div>
   )
+
+  // portal 到 phone-shell；ref 还没挂载时就地渲染（首帧），避免空白
+  return shellEl ? createPortal(node, shellEl) : node
 }

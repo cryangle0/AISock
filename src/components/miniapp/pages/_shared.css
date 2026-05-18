@@ -212,8 +212,8 @@
 .mp-input {
   width: 100%;
   padding: 9px 12px;
-  background: var(--mp-bg-tint);
-  border: 1px solid transparent;
+  background: var(--mp-bg-card);
+  border: 1px solid var(--mp-border);
   border-radius: 8px;
   font-size: 12px;
   color: var(--mp-primary);
@@ -223,8 +223,8 @@
   box-sizing: border-box;
 }
 .mp-input:focus {
-  background: var(--mp-bg-card);
   border-color: var(--mp-primary);
+  box-shadow: 0 0 0 2px var(--mp-primary-soft);
 }
 .mp-input.mp-textarea {
   min-height: 60px;

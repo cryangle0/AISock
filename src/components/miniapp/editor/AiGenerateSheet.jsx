@@ -10,7 +10,7 @@
  * 状态由 BEditor 提供，避免在抽屉关闭后丢失正在输入的提示词。
  */
 import { useState } from 'react'
-import { Sparkles, X } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import AiPanel from './AiPanel'
 import { aiGenerateImage } from '../../patternImage'
@@ -109,42 +109,30 @@ export default function AiGenerateSheet({
 
 function MinePicker({ items, onPick, onClose }) {
   return (
-    <div
-      className="mp-bottom-sheet-mask"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      style={{ zIndex: 60 }}
+    <BottomSheet
+      title="从个人库选取参考图"
+      onClose={onClose}
+      size="tall"
     >
-      <div className="mp-bottom-sheet">
-        <header className="mp-bottom-sheet-head">
-          <div className="mp-bottom-sheet-titles">
-            <div className="mp-bottom-sheet-title">从个人库选取参考图</div>
-          </div>
-          <button className="mp-bottom-sheet-close" onClick={onClose} aria-label="关闭">
-            <X size={14} strokeWidth={2}/>
-          </button>
-        </header>
-        <div className="mp-bottom-sheet-body">
-          {items.length === 0 ? (
-            <div className="mp-empty-state">
-              <p>个人库为空，先到 印花 → 我的 上传</p>
-            </div>
-          ) : (
-            <div className="mp-mine-grid">
-              {items.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className="mp-mine-tile"
-                  onClick={() => onPick(m)}
-                >
-                  <img src={m.url} alt={m.name} className="mp-mine-tile-img"/>
-                  <span className="mp-mine-tile-name">{m.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
+      {items.length === 0 ? (
+        <div className="mp-empty-state">
+          <p>个人库为空，先到 印花 → 我的 上传</p>
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="mp-mine-grid">
+          {items.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className="mp-mine-tile"
+              onClick={() => onPick(m)}
+            >
+              <img src={m.url} alt={m.name} className="mp-mine-tile-img"/>
+              <span className="mp-mine-tile-name">{m.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </BottomSheet>
   )
 }
