@@ -269,9 +269,9 @@
  * 左侧栏 + 右侧栏（在 App.css 之外，放这里方便管理）
  * ========================================================================= */
 .home-sidebar {
-  width: 160px;
+  width: 200px;
   flex-shrink: 0;
-  padding: 16px 12px;
+  padding: 16px 14px;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border-color);
