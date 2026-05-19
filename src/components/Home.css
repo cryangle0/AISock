@@ -186,7 +186,7 @@
   font-weight: 800;
   color: var(--text-primary);
 }
-.home-section-icon { color: #f28b2d; }
+.home-section-icon { color: var(--blue); }
 
 .home-section-sub {
   font-size: 12px;
@@ -299,8 +299,8 @@
   color: var(--text-primary);
 }
 .home-sidebar-item.active {
-  background: rgba(59, 130, 246, 0.08);
-  color: #2563eb;
+  background: var(--accent-soft);
+  color: var(--blue);
   font-weight: 600;
 }
 
