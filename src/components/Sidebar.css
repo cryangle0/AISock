@@ -13,9 +13,11 @@
   flex-shrink: 0;
   position: relative;
   z-index: 100;
+  /* 白色文字 */
+  color: #ffffff;
 }
 
-/* 首页：顶导透明，融入下方 hero 渐变 */
+/* 首页：去掉底边 */
 .app-layout.is-home .topnav {
   background: url('/AISock/topnav-bg.png') center / cover no-repeat;
   border-bottom: none;
@@ -42,17 +44,19 @@
 }
 
 .topnav-brand-cn {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: 0.04em;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+  font-family: 'ZCOOL KuaiLe', 'ZCOOL XiaoWei', cursive, var(--font-sans);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .topnav-brand-en {
   margin-top: 2px;
   font-size: 9px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.18em;
 }
 
@@ -127,7 +131,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -135,12 +139,12 @@
   white-space: nowrap;
 }
 .topnav-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
 }
 .topnav-tab.active {
-  color: var(--blue);
-  background: var(--accent-soft);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
   font-weight: 600;
 }
 
@@ -159,18 +163,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .topnav-icon-btn:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .topnav-icon-dot {
@@ -198,10 +202,10 @@ body.dark .topnav-icon-btn[aria-label="切换亮色"] {
   gap: 8px;
   height: 36px;
   padding: 0 12px 0 4px;
-  background: var(--bg-hover);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
-  color: var(--text-primary);
+  color: #ffffff;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -210,8 +214,8 @@ body.dark .topnav-icon-btn[aria-label="切换亮色"] {
 
 .topnav-user:hover,
 .topnav-user.open {
-  border-color: var(--border-strong);
-  background: var(--bg-active);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .topnav-user-avatar {
