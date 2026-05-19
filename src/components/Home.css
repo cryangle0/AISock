@@ -307,6 +307,19 @@
 .home-sidebar-icon { font-size: 16px; flex-shrink: 0; }
 .home-sidebar-label { white-space: nowrap; }
 
+/* 底部装饰 SVG */
+.home-sidebar-deco {
+  flex: 1;
+  position: relative;
+  min-height: 180px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.home-sidebar-deco svg {
+  position: absolute;
+}
+
 /* —— 右侧栏 —— */
 .home-right-panel {
   width: 280px;
