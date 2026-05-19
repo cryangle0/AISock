@@ -30,8 +30,6 @@ const makeDragHandler = (url, name) => (e) => {
 
 export default function AssetPanel({
   onApplyImage,
-  sockTypeId,
-  onSockTypeChange,
 }) {
   const [tab, setTab] = useState('library')
   const [query, setQuery] = useState('')

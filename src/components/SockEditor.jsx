@@ -178,8 +178,6 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
     <div className="sock-editor">
       <AssetPanel
         onApplyImage={applyImage}
-        sockTypeId={sockTypeId}
-        onSockTypeChange={setSockTypeId}
       />
 
       <div className="canvas-wrap">
