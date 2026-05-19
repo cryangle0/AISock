@@ -8,18 +8,10 @@
  */
 import { useState, useRef, useEffect } from 'react'
 import './Sidebar.css'
-import { Home, Brush, ShoppingBag, Layers, FolderHeart, Sun, Moon, LogOut, Bell, ChevronDown } from 'lucide-react'
+import { Sun, Moon, LogOut, Bell, ChevronDown } from 'lucide-react'
 import { BrandLogo } from './BrandLogo'
 
-const menuItems = [
-  { label: '首页', icon: Home },
-  { label: '设计', icon: Brush },
-  { label: '订单管理', icon: ShoppingBag },
-  { label: '素材库', icon: Layers },
-  { label: '我的设计', icon: FolderHeart },
-]
-
-export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDark, onLogout }) {
+export default function Sidebar({ darkMode, onToggleDark, onLogout }) {
   const [avatarOpen, setAvatarOpen] = useState(false)
   const avatarRef = useRef(null)
 
@@ -43,26 +35,8 @@ export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDa
         </span>
       </div>
 
-      {/* 中：导航 */}
-      <nav className="topnav-tabs" aria-label="主导航">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          const active = activeMenu === item.label
-          return (
-            <button
-              key={item.label}
-              className={`topnav-tab ${active ? 'active' : ''}`}
-              onClick={() => onMenuChange(item.label)}
-            >
-              <span className="topnav-tab-icon">
-                <Icon size={16} strokeWidth={active ? 2 : 1.6}/>
-              </span>
-              <span className="topnav-tab-label">{item.label}</span>
-              {active && <span className="topnav-tab-bar" aria-hidden="true"/>}
-            </button>
-          )
-        })}
-      </nav>
+      {/* 中间留空 */}
+      <div className="topnav-spacer"/>
 
       {/* 右：操作 */}
       <div className="topnav-actions">

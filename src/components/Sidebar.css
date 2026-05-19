@@ -108,6 +108,9 @@
 
 .topnav-tab-label { white-space: nowrap; }
 
+/* —— 中间留空 —— */
+.topnav-spacer { flex: 1; }
+
 /* —— 右：操作区 —— */
 .topnav-actions {
   display: flex;
