@@ -309,6 +309,64 @@ function App() {
               </div>
               <button className="home-rp-faq-btn">查看详情</button>
             </div>
+
+            {/* 快捷操作 */}
+            <div className="home-rp-card">
+              <div className="home-rp-head">
+                <h3 className="home-rp-title">快捷操作</h3>
+              </div>
+              <div className="home-rp-shortcuts">
+                <button className="home-rp-shortcut" onClick={() => setActiveMenu('设计')}>✏️ 新建设计</button>
+                <button className="home-rp-shortcut" onClick={() => setActiveMenu('素材库')}>🎨 浏览素材</button>
+                <button className="home-rp-shortcut" onClick={() => setActiveMenu('订单管理')}>📦 查看订单</button>
+                <button className="home-rp-shortcut" onClick={() => setActiveMenu('我的设计')}>📁 我的设计</button>
+              </div>
+            </div>
+
+            {/* 设计灵感 */}
+            <div className="home-rp-card">
+              <div className="home-rp-head">
+                <h3 className="home-rp-title">设计灵感</h3>
+              </div>
+              <div className="home-rp-tips">
+                <div className="home-rp-tip-item">
+                  <span className="home-rp-tip-num">01</span>
+                  <span className="home-rp-tip-text">尝试用 AI 延展生成同款变体</span>
+                </div>
+                <div className="home-rp-tip-item">
+                  <span className="home-rp-tip-num">02</span>
+                  <span className="home-rp-tip-text">搭配色卡映射快速换季配色</span>
+                </div>
+                <div className="home-rp-tip-item">
+                  <span className="home-rp-tip-num">03</span>
+                  <span className="home-rp-tip-text">亲子袜一键生成成人+儿童款</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 最近活动 */}
+            <div className="home-rp-card">
+              <div className="home-rp-head">
+                <h3 className="home-rp-title">最近活动</h3>
+              </div>
+              <div className="home-rp-activity">
+                <div className="home-rp-activity-item">
+                  <span className="home-rp-activity-dot"/>
+                  <span className="home-rp-activity-text">保存了「经典条纹袜」设计</span>
+                  <span className="home-rp-activity-time">2 小时前</span>
+                </div>
+                <div className="home-rp-activity-item">
+                  <span className="home-rp-activity-dot"/>
+                  <span className="home-rp-activity-text">提交了订单 AS20260524</span>
+                  <span className="home-rp-activity-time">昨天</span>
+                </div>
+                <div className="home-rp-activity-item">
+                  <span className="home-rp-activity-dot"/>
+                  <span className="home-rp-activity-text">上传了 3 张新素材</span>
+                  <span className="home-rp-activity-time">3 天前</span>
+                </div>
+              </div>
+            </div>
           </aside>
         )}
       </div>
