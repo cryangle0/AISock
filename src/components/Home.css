@@ -11,7 +11,10 @@
   overflow-y: auto;
   min-height: 0;
   overflow-anchor: none;
+  /* 隐藏滚动条但保留滚动能力 */
+  scrollbar-width: none;
 }
+.home-page::-webkit-scrollbar { display: none; }
 .home-page > * { flex-shrink: 0; }
 
 /* =========================================================================
