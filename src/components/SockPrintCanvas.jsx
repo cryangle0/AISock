@@ -119,17 +119,11 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
       <div className="spc-head">
         <div className="spc-head-left">
           <span className="spc-title">袜版预览</span>
-          <span className="spc-tag">即印花工具</span>
           {onSockTypeChange && (
-            <select
-              className="spc-sock-select"
-              value={sockTypeId}
-              onChange={(e) => onSockTypeChange(e.target.value)}
-            >
-              {SOCK_TYPES.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            <SockTypeDropdown
+              sockTypeId={sockTypeId}
+              onChange={onSockTypeChange}
+            />
           )}
         </div>
         {resources.ready && resources.meta.count > 0 && (
@@ -179,5 +173,56 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
     </div>
   )
 })
+
+function SockTypeDropdown({ sockTypeId, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const current = SOCK_TYPES.find((s) => s.id === sockTypeId) || SOCK_TYPES[0]
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div className="spc-sock-dropdown" ref={ref}>
+      <button
+        className={`spc-sock-trigger ${open ? 'open' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <svg viewBox="0 0 100 100" width="20" height="20" className="spc-sock-trigger-icon">
+          <path d={current.iconPath} fill="none" stroke="currentColor" strokeWidth="3"/>
+        </svg>
+        <span className="spc-sock-trigger-name">{current.name}</span>
+        <svg viewBox="0 0 24 24" width="12" height="12" className="spc-sock-trigger-chevron">
+          <polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="spc-sock-panel">
+          {SOCK_TYPES.map((s) => (
+            <button
+              key={s.id}
+              className={`spc-sock-option ${s.id === sockTypeId ? 'active' : ''}`}
+              onClick={() => { onChange(s.id); setOpen(false) }}
+            >
+              <svg viewBox="0 0 100 100" width="32" height="32" className="spc-sock-option-icon">
+                <path d={s.iconPath} fill={s.id === sockTypeId ? 'var(--accent-soft)' : 'none'} stroke={s.id === sockTypeId ? 'var(--blue)' : 'var(--text-muted)'} strokeWidth="2.5"/>
+              </svg>
+              <div className="spc-sock-option-text">
+                <span className="spc-sock-option-name">{s.name}</span>
+                <span className="spc-sock-option-desc">{s.desc}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default SockPrintCanvas
