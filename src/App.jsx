@@ -310,19 +310,6 @@ function App() {
               <button className="home-rp-faq-btn">查看详情</button>
             </div>
 
-            {/* 快捷操作 */}
-            <div className="home-rp-card">
-              <div className="home-rp-head">
-                <h3 className="home-rp-title">快捷操作</h3>
-              </div>
-              <div className="home-rp-shortcuts">
-                <button className="home-rp-shortcut" onClick={() => setActiveMenu('设计')}>✏️ 新建设计</button>
-                <button className="home-rp-shortcut" onClick={() => setActiveMenu('素材库')}>🎨 浏览素材</button>
-                <button className="home-rp-shortcut" onClick={() => setActiveMenu('订单管理')}>📦 查看订单</button>
-                <button className="home-rp-shortcut" onClick={() => setActiveMenu('我的设计')}>📁 我的设计</button>
-              </div>
-            </div>
-
             {/* 设计灵感 */}
             <div className="home-rp-card">
               <div className="home-rp-head">
