@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Image as ImageIcon, MousePointerClick } from 'lucide-react'
+import { SOCK_TYPES } from './print/sockTypes'
 import './SockPrintCanvas.css'
 import useSockResources from './print/useSockResources'
 import { renderSock } from './print/sockRenderer'
@@ -15,7 +16,7 @@ const loadImage = (src) => new Promise((resolve) => {
 })
 
 const SockPrintCanvas = forwardRef(function SockPrintCanvas(
-  { sockTypeId, printImage, printName, params, colors, onDropImage, onResourceReady, onRegionClick },
+  { sockTypeId, onSockTypeChange, printImage, printName, params, colors, onDropImage, onResourceReady, onRegionClick },
   ref,
 ) {
   const canvasRef = useRef(null)
@@ -119,6 +120,17 @@ const SockPrintCanvas = forwardRef(function SockPrintCanvas(
         <div className="spc-head-left">
           <span className="spc-title">袜版预览</span>
           <span className="spc-tag">即印花工具</span>
+          {onSockTypeChange && (
+            <select
+              className="spc-sock-select"
+              value={sockTypeId}
+              onChange={(e) => onSockTypeChange(e.target.value)}
+            >
+              {SOCK_TYPES.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          )}
         </div>
         {resources.ready && resources.meta.count > 0 && (
           <span className="spc-meta">

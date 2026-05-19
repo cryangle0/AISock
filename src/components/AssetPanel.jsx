@@ -5,7 +5,6 @@ import { PATTERN_LIST } from './patternConstants'
 import { PatternDefs } from './patterns'
 import { aiGenerateImage, patternToImageURL } from './patternImage'
 import useAssetLibrary from './assets/useAssetLibrary'
-import SockTypeSelector from './print/SockTypeSelector'
 
 const TABS = [
   { key: 'library', label: '公共库' },
@@ -112,8 +111,6 @@ export default function AssetPanel({
           query={query}
           onQueryChange={setQuery}
           onApplyImage={onApplyImage}
-          sockTypeId={sockTypeId}
-          onSockTypeChange={onSockTypeChange}
         />
       )}
 
@@ -149,58 +146,26 @@ export default function AssetPanel({
   )
 }
 
-function PublicTab({ items, query, onQueryChange, onApplyImage, sockTypeId, onSockTypeChange }) {
-  const [sub, setSub] = useState('pattern')   // pattern | shape
-
+function PublicTab({ items, query, onQueryChange, onApplyImage }) {
   return (
     <>
-      <div className="asset-subtabs">
-        <button
-          className={`asset-subtab ${sub === 'pattern' ? 'active' : ''}`}
-          onClick={() => setSub('pattern')}
-        >
-          花型
-        </button>
-        <button
-          className={`asset-subtab ${sub === 'shape' ? 'active' : ''}`}
-          onClick={() => setSub('shape')}
-        >
-          袜型
-        </button>
+      <div className="asset-search">
+        <Search size={13} strokeWidth={1.6} />
+        <input
+          placeholder="搜索花型"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+        />
       </div>
-
-      {sub === 'pattern' ? (
-        <>
-          <div className="asset-search">
-            <Search size={13} strokeWidth={1.6} />
-            <input
-              placeholder="搜索花型"
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-            />
-          </div>
-          <div className="asset-drag-tip">
-            <MousePointerClick size={11} strokeWidth={1.6} />
-            拖拽花型到袜版即可应用，双击直接贴印
-          </div>
-          <div className="asset-grid">
-            {items.map((p) => (
-              <PublicItem key={p.id} item={p} onApply={onApplyImage} />
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="asset-shape">
-          <div className="asset-drag-tip soft">
-            选择袜版形状，画布会重新加载对应的蒙版与线稿
-          </div>
-          <SockTypeSelector
-            value={sockTypeId}
-            onChange={onSockTypeChange}
-            variant="full"
-          />
-        </div>
-      )}
+      <div className="asset-drag-tip">
+        <MousePointerClick size={11} strokeWidth={1.6} />
+        拖拽花型到袜版即可应用，双击直接贴印
+      </div>
+      <div className="asset-grid">
+        {items.map((p) => (
+          <PublicItem key={p.id} item={p} onApply={onApplyImage} />
+        ))}
+      </div>
     </>
   )
 }

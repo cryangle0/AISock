@@ -11,7 +11,7 @@ import './Sidebar.css'
 import { Sun, Moon, LogOut, Bell, ChevronDown } from 'lucide-react'
 import { BrandLogo } from './BrandLogo'
 
-export default function Sidebar({ darkMode, onToggleDark, onLogout }) {
+export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDark, onLogout }) {
   const [avatarOpen, setAvatarOpen] = useState(false)
   const avatarRef = useRef(null)
 
@@ -35,8 +35,22 @@ export default function Sidebar({ darkMode, onToggleDark, onLogout }) {
         </span>
       </div>
 
-      {/* 中间留空 */}
-      <div className="topnav-spacer"/>
+      {/* 中间：非首页时显示 tab 导航 */}
+      {activeMenu !== '首页' ? (
+        <nav className="topnav-tabs" aria-label="主导航">
+          {['首页', '设计', '我的设计', '订单管理', '素材库'].map((label) => (
+            <button
+              key={label}
+              className={`topnav-tab ${activeMenu === label ? 'active' : ''}`}
+              onClick={() => onMenuChange(label)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      ) : (
+        <div className="topnav-spacer"/>
+      )}
 
       {/* 右：操作 */}
       <div className="topnav-actions">

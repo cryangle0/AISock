@@ -108,8 +108,41 @@
 
 .topnav-tab-label { white-space: nowrap; }
 
-/* —— 中间留空 —— */
+/* —— 中间留空 / tabs —— */
 .topnav-spacer { flex: 1; }
+
+.topnav-tabs {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.topnav-tab {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.topnav-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+.topnav-tab.active {
+  color: var(--blue);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
 
 /* —— 右：操作区 —— */
 .topnav-actions {

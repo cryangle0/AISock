@@ -186,6 +186,7 @@ export default function SockEditor({ onSaveDesign, onPlaceOrder }) {
         <SockPrintCanvas
           ref={canvasRef}
           sockTypeId={sockTypeId}
+          onSockTypeChange={setSockTypeId}
           printImage={finalPrintImage}
           printName={printName}
           params={params}
