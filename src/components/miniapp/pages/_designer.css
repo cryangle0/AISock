@@ -2481,3 +2481,13 @@
   line-height: 1.5;
 }
 .phone-shell-full .mp-ai-quota-tip { font-size: 12px; }
+
+
+/* AI 抽屉 textarea 加高 */
+.mp-ai-textarea {
+  min-height: 110px;
+  line-height: 1.6;
+}
+.phone-shell-full .mp-ai-textarea {
+  min-height: 140px;
+}

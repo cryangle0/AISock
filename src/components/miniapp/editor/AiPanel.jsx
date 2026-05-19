@@ -35,10 +35,6 @@ export default function AiPanel({
         </div>
       )}
 
-      <div className="mp-ai-hint">
-        <Sparkles size={11} /> 提示词或图片延申
-      </div>
-
       <div className="mp-ai-ref">
         <div className="mp-ai-ref-label">参考图（可选）</div>
         {refImage ? (
@@ -72,10 +68,11 @@ export default function AiPanel({
       </div>
 
       <textarea
-        className="mp-input mp-textarea"
+        className="mp-input mp-textarea mp-ai-textarea"
         placeholder={refImage ? '描述希望的延申方向（可选）' : '描述想要的花型'}
         value={prompt}
         onChange={(e) => onPromptChange(e.target.value)}
+        rows={5}
       />
 
       <button
