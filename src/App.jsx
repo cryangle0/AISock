@@ -137,6 +137,7 @@ function App() {
 
   return (
     <div className={`app-layout ${activeMenu === '首页' ? 'is-home' : ''}`}>
+      {/* 顶部水平导航 */}
       <Sidebar
         activeMenu={activeMenu}
         onMenuChange={setActiveMenu}
@@ -144,41 +145,146 @@ function App() {
         onToggleDark={() => setDarkMode(v => !v)}
         onLogout={handleLogout}
       />
-      <div className="main-area">
+
+      {/* 顶导下方主体 */}
+      <div className="app-body">
+        {/* 左侧垂直菜单（仅首页显示） */}
         {activeMenu === '首页' && (
-          <Home
-            designs={designs}
-            orders={orders}
-            onJump={setActiveMenu}
-            onApplyPreset={handleApplyPreset}
-          />
+          <aside className="home-sidebar">
+            <nav className="home-sidebar-nav">
+              {[
+                { label: '首页', icon: '🏠', active: true },
+                { label: '开始设计', icon: '✏️' },
+                { label: '我的设计', icon: '📁' },
+                { label: '订单管理', icon: '📦' },
+                { label: '素材库', icon: '🎨' },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  className={`home-sidebar-item ${item.active ? 'active' : ''}`}
+                  onClick={() => item.label === '首页' ? null : setActiveMenu(item.label === '开始设计' ? '设计' : item.label)}
+                >
+                  <span className="home-sidebar-icon">{item.icon}</span>
+                  <span className="home-sidebar-label">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
         )}
-        {activeMenu === '设计' && (
-          <>
-            <TopBar
-              currentSession={currentSession}
-              sessions={sessions}
-              onSessionSelect={setCurrentSession}
-              onNewSession={handleNewSession}
-              onRename={handleRenameSession}
-              onDelete={handleDeleteSession}
+
+        {/* 中间主区 */}
+        <div className="main-area">
+          {activeMenu === '首页' && (
+            <Home
+              designs={designs}
+              orders={orders}
+              onJump={setActiveMenu}
+              onApplyPreset={handleApplyPreset}
             />
-            <SockEditor
-              onSaveDesign={handleSaveDesign}
-              onPlaceOrder={handlePlaceOrder}
-            />
-          </>
-        )}
-        {activeMenu === '我的设计' && (
-          <MyDesigns designs={designs} onDelete={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}/>
-        )}
-        {activeMenu === '订单管理' && (
-          <Orders orders={orders} onUpdateOrder={handleUpdateOrder}/>
-        )}
-        {activeMenu === '素材库' && (
-          <AssetLibrary/>
+          )}
+          {activeMenu === '设计' && (
+            <>
+              <TopBar
+                currentSession={currentSession}
+                sessions={sessions}
+                onSessionSelect={setCurrentSession}
+                onNewSession={handleNewSession}
+                onRename={handleRenameSession}
+                onDelete={handleDeleteSession}
+              />
+              <SockEditor
+                onSaveDesign={handleSaveDesign}
+                onPlaceOrder={handlePlaceOrder}
+              />
+            </>
+          )}
+          {activeMenu === '我的设计' && (
+            <MyDesigns designs={designs} onDelete={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}/>
+          )}
+          {activeMenu === '订单管理' && (
+            <Orders orders={orders} onUpdateOrder={handleUpdateOrder}/>
+          )}
+          {activeMenu === '素材库' && (
+            <AssetLibrary/>
+          )}
+        </div>
+
+        {/* 右侧栏（仅首页显示） */}
+        {activeMenu === '首页' && (
+          <aside className="home-right-panel">
+            {/* 资讯中心 */}
+            <div className="home-rp-card">
+              <div className="home-rp-head">
+                <h3 className="home-rp-title">资讯中心</h3>
+                <button className="home-rp-more">查看更多 ›</button>
+              </div>
+              <div className="home-rp-news">
+                <div className="home-rp-news-item">
+                  <span className="home-rp-news-icon" style={{background:'#ffecd2'}}>🌸</span>
+                  <div className="home-rp-news-text">
+                    <div className="home-rp-news-title">2024 春夏趋势花型发布</div>
+                    <div className="home-rp-news-meta">最新花型趋势已上线，快来获取灵感！</div>
+                    <div className="home-rp-news-date">2024-06-20</div>
+                  </div>
+                </div>
+                <div className="home-rp-news-item">
+                  <span className="home-rp-news-icon" style={{background:'#e8f0fe'}}>🏆</span>
+                  <div className="home-rp-news-text">
+                    <div className="home-rp-news-title">设计大赛开启报名</div>
+                    <div className="home-rp-news-meta">参与赢取丰厚奖励，展示你的创意！</div>
+                    <div className="home-rp-news-date">2024-06-15</div>
+                  </div>
+                </div>
+                <div className="home-rp-news-item">
+                  <span className="home-rp-news-icon" style={{background:'#fff3cd'}}>⚙️</span>
+                  <div className="home-rp-news-text">
+                    <div className="home-rp-news-title">系统升级维护通知</div>
+                    <div className="home-rp-news-meta">9月25日 02:00~04:00 系统升级维护</div>
+                    <div className="home-rp-news-date">2024-05-15</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 我的订单 */}
+            <div className="home-rp-card">
+              <div className="home-rp-head">
+                <h3 className="home-rp-title">我的订单</h3>
+                <button className="home-rp-more">查看更多 ›</button>
+              </div>
+              <div className="home-rp-orders">
+                <div className="home-rp-stat">
+                  <span className="home-rp-stat-num">{orders.length}</span>
+                  <span className="home-rp-stat-label">订单总数</span>
+                </div>
+                <div className="home-rp-stat">
+                  <span className="home-rp-stat-num">{orders.filter(o => o.status === '待生产').length}</span>
+                  <span className="home-rp-stat-label">待确认</span>
+                </div>
+                <div className="home-rp-stat">
+                  <span className="home-rp-stat-num">{orders.filter(o => o.status === '生产中').length}</span>
+                  <span className="home-rp-stat-label">生产中</span>
+                </div>
+                <div className="home-rp-stat">
+                  <span className="home-rp-stat-num">{orders.filter(o => o.status === '已完成').length}</span>
+                  <span className="home-rp-stat-label">已完成</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 常见问题 */}
+            <div className="home-rp-card home-rp-faq">
+              <div className="home-rp-faq-icon">🧦</div>
+              <div className="home-rp-faq-text">
+                <h3 className="home-rp-title">常见问题</h3>
+                <p className="home-rp-faq-desc">快速查看使用说明</p>
+              </div>
+              <button className="home-rp-faq-btn">查看详情</button>
+            </div>
+          </aside>
         )}
       </div>
+
       <MiniAppPrototype
         designs={designs}
         orders={orders}
