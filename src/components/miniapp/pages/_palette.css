@@ -1,66 +1,78 @@
 /* =========================================================================
- * 小程序专属配色 token —— 严格按照《爱花型 · 设计》配色主题 & 字体规范
+ * 小程序专属配色 token —— 蓝灰冷色系（与 web 端统一新配色）
  * 作用域：仅在 .phone-shell 内部（手机壳）和 .fs-modal-overlay（全屏放大）。
- * web 端不受影响，继续保持 aihuaxing 中性灰。
+ * web 端不受影响（同 token 名但作用域隔离）。
  * ========================================================================= */
 .phone-shell,
 .fs-modal-overlay,
 .mp-login-root {
-  /* —— 主色 —— */
-  --mp-primary: #8B5A2B;                 /* 深棕：主 CTA / 重要按钮 / 选中态 */
-  --mp-primary-hover: #6f4720;
-  --mp-primary-active: #5a3a1a;
+  /* —— 主色（深蓝） —— */
+  --mp-primary: #162033;
+  --mp-primary-hover: #1E2B44;
+  --mp-primary-active: #0e1622;
   --mp-primary-fg: #ffffff;
-  --mp-primary-soft: rgba(139, 90, 43, 0.08);
-  --mp-primary-soft-strong: rgba(139, 90, 43, 0.16);
-  --mp-primary-glow: rgba(139, 90, 43, 0.22);
+  --mp-primary-soft: #EEF4FF;
+  --mp-primary-soft-strong: rgba(75, 123, 255, 0.16);
+  --mp-primary-glow: rgba(75, 123, 255, 0.22);
 
-  --mp-secondary: #F28B2D;                /* 橙色：辅助强调 / 标签 */
-  --mp-secondary-soft: rgba(242, 139, 45, 0.12);
+  /* —— 辅助 / 强调色 —— */
+  --mp-blue: #4B7BFF;
+  --mp-blue-soft: rgba(75, 123, 255, 0.12);
+  --mp-purple: #9B8CFF;
+  --mp-purple-soft: rgba(155, 140, 255, 0.14);
+  --mp-mint: #61D6C4;
+  --mp-mint-soft: rgba(97, 214, 196, 0.16);
+  --mp-pink: #FF6FAE;
+  --mp-pink-soft: rgba(255, 111, 174, 0.14);
+  --mp-coral: #FF8A65;
+  --mp-coral-soft: rgba(255, 138, 101, 0.14);
 
-  --mp-tertiary: #FFD7A1;                 /* 米橙：高亮背景 / 装饰 */
-  --mp-tertiary-soft: rgba(255, 215, 161, 0.36);
+  /* 兼容旧 secondary/tertiary（小程序原本用的暖色），切到新蓝紫 */
+  --mp-secondary: var(--mp-blue);
+  --mp-secondary-soft: var(--mp-blue-soft);
+  --mp-tertiary: var(--mp-purple);
+  --mp-tertiary-soft: var(--mp-purple-soft);
 
-  /* —— 辅助色（用于状态语义） —— */
-  --mp-aux-green: #8CB369;
-  --mp-aux-green-soft: rgba(140, 179, 105, 0.16);
-  --mp-aux-mint: #B9D9C7;
-  --mp-aux-mint-soft: rgba(185, 217, 199, 0.36);
-  --mp-aux-purple: #D6C4E8;
-  --mp-aux-purple-soft: rgba(214, 196, 232, 0.36);
+  /* —— 中性辅助色 —— */
+  --mp-aux-green: var(--mp-mint);
+  --mp-aux-green-soft: var(--mp-mint-soft);
+  --mp-aux-mint: var(--mp-mint);
+  --mp-aux-mint-soft: var(--mp-mint-soft);
+  --mp-aux-purple: var(--mp-purple);
+  --mp-aux-purple-soft: var(--mp-purple-soft);
 
-  /* —— 中性色（参考表） —— */
-  --mp-text-primary: #2F2F2F;
-  --mp-text-secondary: #666666;
-  --mp-text-muted: #999999;
-  --mp-text-tertiary: #B0B0B0;
+  /* —— 文字 —— */
+  --mp-text-primary: #111827;
+  --mp-text-secondary: #6B7280;
+  --mp-text-muted: #9CA3AF;
+  --mp-text-tertiary: #B0B8C4;
 
-  /* —— 背景色 —— */
-  --mp-bg: #FFF9F3;                       /* 屏幕暖米底 */
-  --mp-bg-card: #FFFFFF;                  /* 白卡 */
-  --mp-bg-tint: #F5F5F5;                  /* 浅灰填充（input/chip 底） */
-  --mp-bg-soft: #FAF3EA;                  /* 暖米弱底（hover） */
+  /* —— 背景 —— */
+  --mp-bg: #F5F7FB;
+  --mp-bg-card: #FFFFFF;
+  --mp-bg-tint: #F8FAFC;
+  --mp-bg-soft: #EEF2FA;
   --mp-bg-elev: rgba(255, 255, 255, 0.94);
-  --mp-bg-overlay: rgba(47, 47, 47, 0.45);
+  --mp-bg-overlay: rgba(15, 23, 42, 0.45);
 
   /* —— 边框 —— */
-  --mp-border: rgba(47, 47, 47, 0.08);
-  --mp-border-strong: rgba(47, 47, 47, 0.16);
-  --mp-divider: rgba(47, 47, 47, 0.06);
+  --mp-border: #E7ECF3;
+  --mp-border-strong: #D1D9E6;
+  --mp-divider: #EEF2F7;
 
-  /* —— 阴影（极扁平、暖灰调） —— */
-  --mp-shadow-sm: 0 1px 3px rgba(94, 60, 30, 0.06);
-  --mp-shadow-md: 0 6px 18px rgba(94, 60, 30, 0.10);
-  --mp-shadow-lg: 0 16px 36px rgba(94, 60, 30, 0.16);
+  /* —— 阴影 —— */
+  --mp-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --mp-shadow-md: 0 6px 18px rgba(15, 23, 42, 0.08);
+  --mp-shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.14);
 
-  /* —— 字号 / 行高（图中字体规范表） —— */
-  --mp-fz-h1: 22px;     --mp-lh-h1: 32px;  /* 页面标题 600 */
-  --mp-fz-h2: 16px;     --mp-lh-h2: 24px;  /* 卡片标题 600 */
-  --mp-fz-body: 14px;   --mp-lh-body: 22px; /* 正文内容 400 */
-  --mp-fz-aux: 12px;    --mp-lh-aux: 18px;  /* 辅助文案 400 */
-  --mp-fz-btn: 15px;    --mp-lh-btn: 22px;  /* 按钮文字 500 */
+  /* —— 字号 / 行高 —— */
+  --mp-fz-h1: 22px;     --mp-lh-h1: 32px;
+  --mp-fz-h2: 16px;     --mp-lh-h2: 24px;
+  --mp-fz-body: 14px;   --mp-lh-body: 22px;
+  --mp-fz-aux: 12px;    --mp-lh-aux: 18px;
+  --mp-fz-btn: 15px;    --mp-lh-btn: 22px;
 
-  /* —— 布局规范（图中布局规范） —— */
+  /* —— 布局规范 —— */
   --mp-h-titlebar: 56px;
   --mp-h-selector: 48px;
   --mp-h-tabs: 48px;

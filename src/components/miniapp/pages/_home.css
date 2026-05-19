@@ -1,5 +1,5 @@
 /* =========================================================================
- * 小程序首页 / 我的 / 登录 —— 用爱花型棕橙暖色 token
+ * 小程序首页 / 我的 / 登录 —— 蓝灰冷色配色（与 web 端统一）
  * ========================================================================= */
 
 /* ============ 首页 ============ */
@@ -8,38 +8,106 @@
   gap: 14px;
 }
 
+/* —— Hero Banner：横向布局，左文案右袜子图 —— */
 .mp-home-hero {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
   background:
-    radial-gradient(180px 120px at 90% 10%, var(--mp-tertiary-soft), transparent 70%),
-    linear-gradient(135deg, #fff 0%, var(--mp-bg-soft) 100%);
+    radial-gradient(140px 80px at 100% 0%, rgba(155, 140, 255, 0.18), transparent 70%),
+    radial-gradient(180px 120px at 0% 100%, rgba(75, 123, 255, 0.10), transparent 70%),
+    linear-gradient(135deg, #EEF4FF 0%, #F8FAFC 100%);
   border: 1px solid var(--mp-border);
   border-radius: var(--mp-radius-lg);
-  padding: 14px 14px 12px;
-  position: relative;
+  padding: 14px;
   overflow: hidden;
+  isolation: isolate;
 }
+
+/* 装饰小球 */
+.mp-home-hero-bubble {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.mp-home-hero-bubble-1 {
+  width: 14px; height: 14px;
+  top: 14%;
+  right: 35%;
+  background: radial-gradient(circle at 30% 30%, #d8d0ff, #9B8CFF);
+  opacity: 0.45;
+}
+.mp-home-hero-bubble-2 {
+  width: 10px; height: 10px;
+  bottom: 22%;
+  right: 30%;
+  background: radial-gradient(circle at 30% 30%, #ffd1e6, #FF6FAE);
+  opacity: 0.55;
+}
+.mp-home-hero-bubble-3 {
+  width: 18px; height: 18px;
+  bottom: 12%;
+  right: 8%;
+  background: radial-gradient(circle at 30% 30%, #d4f5ee, #61D6C4);
+  opacity: 0.5;
+}
+
+.mp-home-hero-text {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mp-home-hero-stage {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 36%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mp-home-hero-sock {
+  width: 100%;
+  max-width: 110px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.12));
+  transform: rotate(-4deg);
+}
+
+.phone-shell-full .mp-home-hero { padding: 20px 22px; gap: 18px; }
+.phone-shell-full .mp-home-hero-sock { max-width: 160px; }
 
 .mp-home-hero-badge {
   display: inline-flex;
+  align-self: flex-start;
   padding: 2px 10px;
-  background: var(--mp-tertiary-soft);
-  color: var(--mp-primary);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(75, 123, 255, 0.18);
+  color: var(--mp-blue);
   border-radius: 999px;
   font-size: 9px;
   letter-spacing: 0.04em;
   font-weight: 600;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .mp-home-hero-title {
   margin-top: 8px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--mp-text-primary);
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
-
-.phone-shell-full .mp-home-hero { padding: 22px 22px 18px; }
 .phone-shell-full .mp-home-hero-title { font-size: 22px; }
 
 .mp-home-hero-desc {
@@ -48,7 +116,6 @@
   color: var(--mp-text-secondary);
   line-height: 1.6;
 }
-
 .phone-shell-full .mp-home-hero-desc { font-size: 12px; }
 
 .mp-home-hero-cta-row {
@@ -71,8 +138,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
+  box-shadow: 0 4px 10px rgba(22, 32, 51, 0.18);
 }
-.mp-home-hero-cta:hover { background: var(--mp-primary-hover); }
+.mp-home-hero-cta:hover {
+  background: var(--mp-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(22, 32, 51, 0.24);
+}
 .phone-shell-full .mp-home-hero-cta { font-size: 13px; padding: 8px 18px; }
 
 .mp-home-hero-share {
@@ -81,9 +153,9 @@
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  background: transparent;
-  color: var(--mp-secondary);
-  border: 1px solid var(--mp-secondary);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--mp-blue);
+  border: 1px solid rgba(75, 123, 255, 0.32);
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
@@ -91,8 +163,9 @@
   transition: all 0.15s;
 }
 .mp-home-hero-share:hover {
-  background: var(--mp-secondary);
+  background: var(--mp-blue);
   color: #fff;
+  border-color: var(--mp-blue);
 }
 .phone-shell-full .mp-home-hero-share { font-size: 13px; padding: 8px 16px; }
 

@@ -26,20 +26,33 @@ export default function BHome({
 
   return (
     <div className="mp-page mp-page-home">
-      {/* —— Hero —— */}
+      {/* —— Hero Banner —— */}
       <section className="mp-home-hero">
-        <span className="mp-home-hero-badge">AI 袜版 · 一键下单</span>
-        <h2 className="mp-home-hero-title">从一根花线到成品</h2>
-        <p className="mp-home-hero-desc">
-          选个预设 3 分钟出袜款，或自由编辑四区花型。
-        </p>
-        <div className="mp-home-hero-cta-row">
-          <button className="mp-home-hero-cta" onClick={() => onNavigate?.('b-editor')}>
-            <Play size={11} strokeWidth={2}/> 开始设计
-          </button>
-          <button className="mp-home-hero-share" onClick={() => setShareOpen(true)}>
-            <Share2 size={11} strokeWidth={1.8}/> 邀请好友
-          </button>
+        <div className="mp-home-hero-bubble mp-home-hero-bubble-1"/>
+        <div className="mp-home-hero-bubble mp-home-hero-bubble-2"/>
+        <div className="mp-home-hero-bubble mp-home-hero-bubble-3"/>
+        <div className="mp-home-hero-text">
+          <span className="mp-home-hero-badge">AI 袜版 · 一键下单</span>
+          <h2 className="mp-home-hero-title">从一根花线到成品</h2>
+          <p className="mp-home-hero-desc">
+            选个预设 3 分钟出袜款，或自由编辑四区花型。
+          </p>
+          <div className="mp-home-hero-cta-row">
+            <button className="mp-home-hero-cta" onClick={() => onNavigate?.('b-editor')}>
+              <Play size={11} strokeWidth={2}/> 开始设计
+            </button>
+            <button className="mp-home-hero-share" onClick={() => setShareOpen(true)}>
+              <Share2 size={11} strokeWidth={1.8}/> 邀请好友
+            </button>
+          </div>
+        </div>
+        <div className="mp-home-hero-stage">
+          <img
+            src={`${import.meta.env.BASE_URL}image-tool/sock.png`}
+            alt="袜款展示"
+            className="mp-home-hero-sock"
+            draggable={false}
+          />
         </div>
       </section>
 
