@@ -38,13 +38,13 @@ export default function Sidebar({ activeMenu, onMenuChange, darkMode, onToggleDa
       {/* 中间：非首页时显示 tab 导航 */}
       {activeMenu !== '首页' ? (
         <nav className="topnav-tabs" aria-label="主导航">
-          {['首页', '设计', '我的设计', '订单管理', '素材库'].map((label) => (
+          {['首页', '推荐', '设计', '购物车', '我的'].map((label) => (
             <button
               key={label}
-              className={`topnav-tab ${activeMenu === label ? 'active' : ''}`}
+              className={`topnav-tab ${activeMenu === label || (label === '设计' && activeMenu === '我的设计') ? 'active' : ''}`}
               onClick={() => onMenuChange(label)}
             >
-              {label}
+              {label === '设计' ? 'AI 设计' : label}
             </button>
           ))}
         </nav>

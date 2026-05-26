@@ -48,7 +48,7 @@ export default function Home({
       <section className="home-quick">
         <QuickCard
           icon={<Sparkles size={18} strokeWidth={1.8}/>}
-          title="开始设计"
+          title="AI 设计"
           desc="进入袜版编辑器"
           onClick={() => onJump?.('设计')}
         />
@@ -60,9 +60,9 @@ export default function Home({
         />
         <QuickCard
           icon={<ShoppingBag size={18} strokeWidth={1.8}/>}
-          title="订单管理"
+          title="购物车"
           desc={`${orders.length} 个订单`}
-          onClick={() => onJump?.('订单管理')}
+          onClick={() => onJump?.('购物车')}
         />
         <QuickCard
           icon={<Layers size={18} strokeWidth={1.8}/>}

@@ -1,0 +1,196 @@
+.mine-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px 28px 40px;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+.mine-page::-webkit-scrollbar { display: none; }
+
+.mine-head { margin-bottom: 4px; }
+.mine-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: 'ZCOOL KuaiLe', var(--font-sans);
+  letter-spacing: 0.04em;
+}
+.mine-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.mine-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.mine-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background:
+    radial-gradient(180px 120px at 90% 0%, var(--coral), transparent 70%),
+    var(--bg-card);
+}
+
+.mine-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--pink) 100%);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mine-user-info { flex: 1; min-width: 0; }
+.mine-user-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.mine-user-phone {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.mine-logout {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.mine-logout:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* 数据概览 */
+.mine-stats {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.mine-stat {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.mine-stat:hover { opacity: 0.7; }
+
+.mine-stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.mine-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mine-stat-sep {
+  width: 1px;
+  height: 28px;
+  background: var(--border-color);
+}
+
+/* 列表 */
+.mine-list {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.mine-list-item {
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.mine-list-item:last-child { border-bottom: none; }
+.mine-list-item:hover:not(.disabled) { background: var(--bg-hover); }
+.mine-list-item.disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mine-list-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.mine-list-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mine-list-extra {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mine-list-item > svg:last-child {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.mine-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 16px 0 0;
+}

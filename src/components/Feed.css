@@ -1,0 +1,145 @@
+.feed-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 28px 40px;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+}
+.feed-page::-webkit-scrollbar { display: none; }
+
+.feed-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feed-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: 'ZCOOL KuaiLe', var(--font-sans);
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.feed-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.feed-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 38px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.feed-cta:hover { background: var(--accent-hover); }
+
+.feed-cta-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.18s;
+}
+.feed-cta-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.feed-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: 'ZCOOL KuaiLe', var(--font-sans);
+  letter-spacing: 0.04em;
+  margin: 0 0 12px;
+}
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.feed-card {
+  appearance: none;
+  border: none;
+  border-radius: 16px;
+  height: 200px;
+  padding: 18px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-family: 'ZCOOL KuaiLe', var(--font-sans);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+.feed-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.feed-card-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  letter-spacing: 0.16em;
+}
+
+.feed-card-name {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.feed-empty {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-strong);
+  border-radius: 16px;
+  padding: 56px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.feed-empty svg { color: var(--accent); margin-bottom: 10px; }
+.feed-empty p { font-size: 13px; margin: 0; }
+
+@media (max-width: 1080px) {
+  .feed-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .feed-grid { grid-template-columns: 1fr; }
+  .feed-page { padding: 16px 18px 32px; }
+}

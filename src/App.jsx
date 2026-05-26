@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import Home from './components/Home'
+import Feed from './components/Feed'
+import Mine from './components/Mine'
 import SockEditor from './components/SockEditor'
 import MyDesigns from './components/MyDesigns'
 import Orders from './components/Orders'
@@ -96,7 +98,7 @@ function App() {
       createdAt: new Date().toLocaleString('zh-CN'),
     }, ...prev])
     setPendingOrder(null)
-    setActiveMenu('订单管理')
+    setActiveMenu('购物车')
   }
 
   const handlePaymentCancel = () => setPendingOrder(null)
@@ -153,16 +155,16 @@ function App() {
           <aside className="home-sidebar">
             <nav className="home-sidebar-nav">
               {[
-                { label: '首页', icon: '🏠', active: true },
-                { label: '开始设计', icon: '✏️' },
-                { label: '我的设计', icon: '📁' },
-                { label: '订单管理', icon: '📦' },
-                { label: '素材库', icon: '🎨' },
+                { key: '首页',     label: '首页',    icon: '🏠' },
+                { key: '推荐',     label: '推荐',    icon: '🧭' },
+                { key: '设计',     label: 'AI 设计', icon: '✏️' },
+                { key: '购物车',   label: '购物车',  icon: '🛒' },
+                { key: '我的',     label: '我的',    icon: '👤' },
               ].map((item) => (
                 <button
-                  key={item.label}
-                  className={`home-sidebar-item ${item.active ? 'active' : ''}`}
-                  onClick={() => item.label === '首页' ? null : setActiveMenu(item.label === '开始设计' ? '设计' : item.label)}
+                  key={item.key}
+                  className={`home-sidebar-item ${activeMenu === item.key ? 'active' : ''}`}
+                  onClick={() => setActiveMenu(item.key)}
                 >
                   <span className="home-sidebar-icon">{item.icon}</span>
                   <span className="home-sidebar-label">{item.label}</span>
@@ -210,6 +212,9 @@ function App() {
               onApplyPreset={handleApplyPreset}
             />
           )}
+          {activeMenu === '推荐' && (
+            <Feed onJump={setActiveMenu}/>
+          )}
           {activeMenu === '设计' && (
             <>
               <TopBar
@@ -225,6 +230,17 @@ function App() {
                 onPlaceOrder={handlePlaceOrder}
               />
             </>
+          )}
+          {activeMenu === '购物车' && (
+            <Orders orders={orders} onUpdateOrder={handleUpdateOrder}/>
+          )}
+          {activeMenu === '我的' && (
+            <Mine
+              designs={designs}
+              orders={orders}
+              onJump={setActiveMenu}
+              onLogout={handleLogout}
+            />
           )}
           {activeMenu === '我的设计' && (
             <MyDesigns designs={designs} onDelete={(id) => setDesigns(prev => prev.filter(d => d.id !== id))}/>
