@@ -134,7 +134,7 @@ export default function BHome({
                 key={d.id}
                 className={`mp-home-showcase-card ${offset === 0 ? 'active' : 'side'}`}
                 style={{
-                  transform: `translateX(${offset * 85}%) scale(${scale})`,
+                  transform: `translateX(${offset * 115}%) scale(${scale})`,
                   zIndex: 10 - abs,
                   background: `linear-gradient(180deg, ${d.mainColor} 0%, #d4b796 100%)`,
                 }}
