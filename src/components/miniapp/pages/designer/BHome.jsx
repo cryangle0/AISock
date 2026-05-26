@@ -58,35 +58,36 @@ export default function BHome({
 
   return (
     <div className="mp-page mp-page-home mp-home-dunhuang">
-      {/* —— 1. 顶部品牌行 —— */}
-      <div className="mp-home-brand">爱花型. 袜稿设计</div>
+      {/* —— 1. 棕色 brand band：包品牌行 + 敦煌梦 banner —— */}
+      <div className="mp-home-band">
+        <div className="mp-home-brand">爱花型. 袜稿设计</div>
 
-      {/* —— 2. 敦煌梦 banner —— */}
-      <section className="mp-home-banner-dunhuang" onClick={() => onNavigate?.('b-feed')}>
-        <div className="mp-home-banner-left">
-          <div className="mp-home-banner-cn">敦<br/>煌<br/>梦</div>
-          <div className="mp-home-banner-en">DUN HUANG DREAM</div>
-        </div>
-        <div className="mp-home-banner-tag">千年壁画艺术之旅</div>
-        <svg className="mp-home-banner-art" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <radialGradient id="bg-glow" cx="50%" cy="50%" r="60%">
-              <stop offset="0%" stopColor="#a8c4b0" stopOpacity="0.6"/>
-              <stop offset="60%" stopColor="#5a8a7d" stopOpacity="0.3"/>
-              <stop offset="100%" stopColor="#3a6fa3" stopOpacity="0.1"/>
-            </radialGradient>
-          </defs>
-          <ellipse cx="140" cy="50" rx="60" ry="40" fill="url(#bg-glow)"/>
-          {/* 飞天剪影 */}
-          <g fill="#5a8a7d" opacity="0.5">
-            <circle cx="120" cy="45" r="4"/>
-            <path d="M 120 49 Q 130 52 140 50 Q 145 60 130 65 Q 120 65 115 60 Z"/>
-          </g>
-          {/* 飘带 */}
-          <path d="M 100 30 Q 130 20 160 35 Q 180 50 170 70" fill="none" stroke="#8C5A3C" strokeWidth="1.5" opacity="0.5"/>
-        </svg>
-        <span className="mp-home-banner-stamp">岁岁年上历史</span>
-      </section>
+        <section className="mp-home-banner-dunhuang" onClick={() => onNavigate?.('b-feed')}>
+          <div className="mp-home-banner-left">
+            <div className="mp-home-banner-cn">敦<br/>煌<br/>梦</div>
+            <div className="mp-home-banner-en">DUN HUANG DREAM</div>
+          </div>
+          <div className="mp-home-banner-tag">千年壁画艺术之旅</div>
+          <svg className="mp-home-banner-art" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="bg-glow" cx="50%" cy="50%" r="60%">
+                <stop offset="0%" stopColor="#a8c4b0" stopOpacity="0.6"/>
+                <stop offset="60%" stopColor="#5a8a7d" stopOpacity="0.3"/>
+                <stop offset="100%" stopColor="#3a6fa3" stopOpacity="0.1"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="140" cy="50" rx="60" ry="40" fill="url(#bg-glow)"/>
+            {/* 飞天剪影 */}
+            <g fill="#5a8a7d" opacity="0.5">
+              <circle cx="120" cy="45" r="4"/>
+              <path d="M 120 49 Q 130 52 140 50 Q 145 60 130 65 Q 120 65 115 60 Z"/>
+            </g>
+            {/* 飘带 */}
+            <path d="M 100 30 Q 130 20 160 35 Q 180 50 170 70" fill="none" stroke="#8C5A3C" strokeWidth="1.5" opacity="0.5"/>
+          </svg>
+          <span className="mp-home-banner-stamp">岁岁年上历史</span>
+        </section>
+      </div>
 
       {/* —— 3. 主题随心订 —— */}
       <section className="mp-home-themes">
