@@ -87,6 +87,28 @@
   padding: 12px 16px;
 }
 
+/* —— 首页：状态栏 + 标题栏 = 棕色暖带（融入敦煌 banner） —— */
+.phone-shell-page-b-home {
+  background: linear-gradient(180deg, #8C7359 0%, #2B1F14 100%);
+}
+.phone-shell-page-b-home .phone-shell-status {
+  color: #FFFCF6;
+}
+.phone-shell-page-b-home .phone-shell-titlebar {
+  background: #BFA990;             /* banner 顶部的暖棕 */
+  color: #2B1F14;
+  border-bottom: none;
+}
+.phone-shell-page-b-home .phone-shell-back,
+.phone-shell-page-b-home .phone-shell-expand {
+  background: rgba(255, 252, 246, 0.32);
+  color: #2B1F14;
+}
+.phone-shell-page-b-home .phone-shell-back:hover,
+.phone-shell-page-b-home .phone-shell-expand:hover {
+  background: rgba(255, 252, 246, 0.52);
+}
+
 .phone-shell-title-text {
   flex: 1;
   text-align: center;

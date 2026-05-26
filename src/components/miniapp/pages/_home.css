@@ -10,26 +10,28 @@
 }
 .mp-page-home > * { flex-shrink: 0; }
 
-/* 顶部品牌行 */
+/* 顶部品牌行 —— 暖棕底 + 浅色字（衔接顶栏的棕色带） */
 .mp-home-brand {
-  padding: 16px 18px 10px;
+  padding: 14px 18px 12px;
   font-size: 13px;
   font-weight: 700;
-  color: var(--mp-text-primary);
+  color: #2B1F14;
   letter-spacing: 0.04em;
+  background: #BFA990;
+  font-family: 'ZCOOL KuaiLe', var(--font-sans);
 }
 .phone-shell-full .mp-home-brand {
-  padding: 22px 24px 14px;
+  padding: 18px 24px 16px;
   font-size: 18px;
 }
 
-/* —— 1. 敦煌梦 banner —— */
+/* —— 1. 敦煌梦 banner —— 与顶部品牌行棕色带连成一片 */
 .mp-home-banner-dunhuang {
   position: relative;
-  width: calc(100% - 32px);
-  margin: 0 16px 14px;
-  height: 100px;
-  border-radius: 16px;
+  width: 100%;
+  margin: 0 0 14px;
+  height: 110px;
+  border-radius: 0;
   background: linear-gradient(135deg, #BFA990 0%, #8C7359 100%);
   overflow: hidden;
   cursor: pointer;
@@ -40,10 +42,10 @@
   padding: 0;
 }
 .phone-shell-full .mp-home-banner-dunhuang {
-  width: calc(100% - 48px);
-  margin: 0 24px 18px;
-  height: 150px;
-  border-radius: 22px;
+  width: 100%;
+  margin: 0 0 18px;
+  height: 170px;
+  border-radius: 0;
 }
 
 .mp-home-banner-left {

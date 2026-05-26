@@ -55,7 +55,7 @@ export default function PhoneShell({
 
   return (
     <PhoneShellContext.Provider value={{ shellRef }}>
-    <div className={`phone-shell phone-shell-${size}`} ref={shellRef}>
+    <div className={`phone-shell phone-shell-${size} phone-shell-page-${page}`} ref={shellRef}>
       <div className="phone-shell-notch" />
 
       <div className="phone-shell-status">
