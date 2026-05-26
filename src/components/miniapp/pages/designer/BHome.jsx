@@ -50,7 +50,7 @@ export default function BHome({
   onNavigate,
 }) {
   const [shareOpen, setShareOpen] = useState(false)
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState(1)   // 默认选中中间一张
   const { toast, show } = useToast()
 
   // 让侧边能露出前后两张（参考稿效果）
@@ -134,7 +134,7 @@ export default function BHome({
                 key={d.id}
                 className={`mp-home-showcase-card ${offset === 0 ? 'active' : 'side'}`}
                 style={{
-                  transform: `translateX(${offset * 60}%) scale(${scale})`,
+                  transform: `translateX(${offset * 110}%) scale(${scale})`,
                   zIndex: 10 - abs,
                   background: `linear-gradient(180deg, ${d.mainColor} 0%, #d4b796 100%)`,
                 }}
