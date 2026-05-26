@@ -8,18 +8,21 @@
   gap: 24px;
   height: 64px;
   padding: 0 28px;
-  background: var(--bg-card) url('/AISock/topnav-bg.png') center / cover no-repeat;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 246, 0.92) 0%, rgba(242, 230, 210, 0.85) 100%),
+    var(--bg-card);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
   position: relative;
   z-index: 100;
-  /* 黑色文字 */
-  color: #111827;
+  color: var(--text-primary);
 }
 
-/* 首页：去掉底边 */
+/* 首页：去掉底边，更暖棕色 */
 .app-layout.is-home .topnav {
-  background: url('/AISock/topnav-bg.png') center / cover no-repeat;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 246, 0.94) 0%, rgba(222, 195, 138, 0.30) 100%),
+    var(--bg-card);
   border-bottom: none;
 }
 
@@ -46,7 +49,7 @@
 .topnav-brand-cn {
   font-size: 17px;
   font-weight: 800;
-  color: #111827;
+  color: var(--text-primary);
   letter-spacing: 0.06em;
   font-family: 'ZCOOL KuaiLe', 'ZCOOL XiaoWei', cursive, var(--font-sans);
   text-shadow: none;
@@ -56,7 +59,7 @@
   margin-top: 2px;
   font-size: 9px;
   font-weight: 600;
-  color: rgba(17, 24, 39, 0.55);
+  color: var(--text-secondary);
   letter-spacing: 0.18em;
 }
 
@@ -93,7 +96,7 @@
 
 .topnav-tab.active {
   color: var(--accent);
-  background: rgba(242, 139, 45, 0.10);  /* 橙色高亮（呼应 hero 暖橙） */
+  background: var(--accent-soft);
 }
 
 .topnav-tab-icon {
@@ -103,10 +106,10 @@
 }
 
 .topnav-tab.active .topnav-tab-icon {
-  color: #f28b2d;
+  color: var(--accent);
 }
 .topnav-tab.active {
-  color: #c66e1a;
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -131,7 +134,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: rgba(17, 24, 39, 0.6);
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -139,12 +142,12 @@
   white-space: nowrap;
 }
 .topnav-tab:hover {
-  color: #111827;
-  background: rgba(17, 24, 39, 0.06);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 .topnav-tab.active {
-  color: #111827;
-  background: rgba(17, 24, 39, 0.1);
+  color: var(--accent);
+  background: var(--accent-soft);
   font-weight: 600;
 }
 
@@ -163,18 +166,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(17, 24, 39, 0.04);
-  border: 1px solid rgba(17, 24, 39, 0.1);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  color: rgba(17, 24, 39, 0.7);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .topnav-icon-btn:hover {
-  border-color: rgba(17, 24, 39, 0.2);
-  background: rgba(17, 24, 39, 0.08);
-  color: #111827;
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .topnav-icon-dot {
@@ -184,7 +187,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--pink);
 }
 
 body.dark .topnav-icon-btn { color: var(--text-secondary); }
@@ -202,10 +205,10 @@ body.dark .topnav-icon-btn[aria-label="切换亮色"] {
   gap: 8px;
   height: 36px;
   padding: 0 12px 0 4px;
-  background: rgba(17, 24, 39, 0.04);
-  border: 1px solid rgba(17, 24, 39, 0.1);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 999px;
-  color: #111827;
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -214,15 +217,15 @@ body.dark .topnav-icon-btn[aria-label="切换亮色"] {
 
 .topnav-user:hover,
 .topnav-user.open {
-  border-color: rgba(17, 24, 39, 0.2);
-  background: rgba(17, 24, 39, 0.08);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
 }
 
 .topnav-user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--pink) 100%);
   color: #fff;
   display: inline-flex;
   align-items: center;

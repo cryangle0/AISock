@@ -7,62 +7,62 @@
 }
 
 /* =========================================================================
- * 设计 Token —— 参考 aihuaxing.cn 的「中性灰 + 深灰栏 + 极简画廊」体系。
- * 全站让花型/袜样本身说话，UI 只用中性灰，避免品牌色干扰素材。
+ * 设计 Token —— 敦煌主题
+ * 米色暖底 + 棕色 accent + 朱砂红 / 沙金 / 山水绿 / 螺青 矿物质感色
  * ========================================================================= */
 :root {
   /* —— Primary —— */
-  --bg-primary: #F5F7FB;
-  --bg-secondary: #F8FAFC;
-  --bg-elevated: rgba(255, 255, 255, 0.94);
-  --bg-card: #FFFFFF;
-  --bg-hover: #F0F3F8;
-  --bg-active: #E7ECF3;
+  --bg-primary: #F5EDE0;
+  --bg-secondary: #F0E4D1;
+  --bg-elevated: rgba(255, 252, 246, 0.94);
+  --bg-card: #FFFCF6;
+  --bg-hover: #EFE5D4;
+  --bg-active: #E5D8C0;
 
   /* —— 边框 —— */
-  --border-color: #E7ECF3;
-  --border-strong: #D1D9E6;
+  --border-color: #E5D8C0;
+  --border-strong: #C9B89A;
 
   /* —— 文本 —— */
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-  --text-tertiary: #B0B8C4;
+  --text-primary: #2B1F14;
+  --text-secondary: #6B5A48;
+  --text-muted: #998975;
+  --text-tertiary: #B8A892;
 
   /* —— 图标 —— */
-  --icon-default: #111827;
-  --icon-muted: #9CA3AF;
-  --icon-strong: #111827;
+  --icon-default: #2B1F14;
+  --icon-muted: #998975;
+  --icon-strong: #2B1F14;
 
-  /* —— Accent：深蓝主色 —— */
-  --accent: #162033;
-  --accent-hover: #1E2B44;
-  --accent-soft: #EEF4FF;
-  --accent-soft-strong: rgba(75, 123, 255, 0.12);
-  --accent-glow: rgba(75, 123, 255, 0.18);
+  /* —— Accent：深棕 —— */
+  --accent: #8C5A3C;
+  --accent-hover: #6F4528;
+  --accent-soft: #F2E6D2;
+  --accent-soft-strong: rgba(140, 90, 60, 0.16);
+  --accent-glow: rgba(140, 90, 60, 0.22);
   --accent-fg: #ffffff;
 
-  /* —— 功能色 —— */
-  --blue: #4B7BFF;
-  --purple: #9B8CFF;
-  --mint: #61D6C4;
-  --pink: #FF6FAE;
-  --coral: #FF8A65;
+  /* —— 功能色（敦煌矿物质感） —— */
+  --blue: #3a6fa3;       /* 螺青 */
+  --purple: #9B7BB8;     /* 紫檀 */
+  --mint: #5a8a7d;       /* 山水绿 */
+  --pink: #C5483C;       /* 朱砂 */
+  --coral: #DEC38A;      /* 沙金 */
 
   /* —— 状态色 —— */
-  --status-success: #4a9772;
-  --status-success-soft: rgba(74, 151, 114, 0.14);
+  --status-success: #5a8a7d;
+  --status-success-soft: rgba(90, 138, 125, 0.14);
   --status-warning: #c69130;
   --status-warning-soft: rgba(198, 145, 48, 0.14);
-  --status-info: #4B7BFF;
-  --status-info-soft: rgba(75, 123, 255, 0.12);
-  --status-danger: #b94a4a;
-  --status-danger-soft: rgba(185, 74, 74, 0.12);
+  --status-info: #3a6fa3;
+  --status-info-soft: rgba(58, 111, 163, 0.12);
+  --status-danger: #C5483C;
+  --status-danger-soft: rgba(197, 72, 60, 0.12);
 
   /* —— 阴影 —— */
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 12px 36px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 2px 8px rgba(94, 60, 30, 0.05);
+  --shadow-md: 0 6px 18px rgba(94, 60, 30, 0.10);
+  --shadow-lg: 0 12px 36px rgba(94, 60, 30, 0.18);
 
   --sidebar-width: 76px;
 
@@ -108,34 +108,34 @@ body {
 }
 
 /* =========================================================================
- * 暗色模式 —— 仍保持中性灰系，accent 由深灰翻成浅灰
+ * 暗色模式 —— 暗木纹 + 暖棕 accent
  * ========================================================================= */
 body.dark {
-  --bg-primary: #0F1219;
-  --bg-secondary: #151B26;
-  --bg-elevated: rgba(21, 27, 38, 0.86);
-  --bg-card: #1A2233;
-  --bg-hover: #1E2840;
-  --bg-active: #253350;
+  --bg-primary: #1A130C;
+  --bg-secondary: #221912;
+  --bg-elevated: rgba(34, 25, 18, 0.86);
+  --bg-card: #2B1F14;
+  --bg-hover: #38291A;
+  --bg-active: #4A3623;
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-color: rgba(255, 245, 220, 0.08);
+  --border-strong: rgba(255, 245, 220, 0.16);
 
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-tertiary: #475569;
+  --text-primary: #F5EDE0;
+  --text-secondary: #C9B89A;
+  --text-muted: #998975;
+  --text-tertiary: #6B5A48;
 
-  --icon-default: #E2E8F0;
-  --icon-muted: #94A3B8;
-  --icon-strong: #F8FAFC;
+  --icon-default: #E8DCC4;
+  --icon-muted: #998975;
+  --icon-strong: #F5EDE0;
 
-  --accent: #4B7BFF;
-  --accent-hover: #6B93FF;
-  --accent-soft: rgba(75, 123, 255, 0.14);
-  --accent-soft-strong: rgba(75, 123, 255, 0.22);
-  --accent-glow: rgba(75, 123, 255, 0.28);
-  --accent-fg: #ffffff;
+  --accent: #C8945E;
+  --accent-hover: #DEAA72;
+  --accent-soft: rgba(200, 148, 94, 0.14);
+  --accent-soft-strong: rgba(200, 148, 94, 0.22);
+  --accent-glow: rgba(200, 148, 94, 0.28);
+  --accent-fg: #1A130C;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.4);

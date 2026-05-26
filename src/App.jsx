@@ -169,32 +169,32 @@ function App() {
                 </button>
               ))}
             </nav>
-            {/* 底部装饰：分散排布的袜版/花型 SVG */}
+            {/* 底部装饰：分散排布的袜版/花型 SVG —— 敦煌矿物色 */}
             <div className="home-sidebar-deco" aria-hidden="true">
-              <svg className="home-sidebar-deco-sock" viewBox="0 0 80 120" width="52" height="78" style={{top:'20%',left:'10%',opacity:0.35,transform:'rotate(-12deg)'}}>
-                <path d="M20 10 L60 10 L60 70 Q60 85 50 92 L35 105 Q28 110 22 108 L18 106 Q14 104 14 98 L14 70 Z" fill="none" stroke="#c4a882" strokeWidth="2"/>
-                <rect x="20" y="10" width="40" height="12" rx="2" fill="#e8d5b8" opacity="0.6"/>
+              <svg className="home-sidebar-deco-sock" viewBox="0 0 80 120" width="52" height="78" style={{top:'20%',left:'10%',opacity:0.4,transform:'rotate(-12deg)'}}>
+                <path d="M20 10 L60 10 L60 70 Q60 85 50 92 L35 105 Q28 110 22 108 L18 106 Q14 104 14 98 L14 70 Z" fill="none" stroke="#8C5A3C" strokeWidth="2"/>
+                <rect x="20" y="10" width="40" height="12" rx="2" fill="#DEC38A" opacity="0.6"/>
               </svg>
-              <svg className="home-sidebar-deco-pattern" viewBox="0 0 40 40" width="32" height="32" style={{top:'55%',left:'60%',opacity:0.25,transform:'rotate(8deg)'}}>
-                <circle cx="10" cy="10" r="3" fill="#d4a574"/>
-                <circle cx="30" cy="10" r="3" fill="#d4a574"/>
-                <circle cx="10" cy="30" r="3" fill="#d4a574"/>
-                <circle cx="30" cy="30" r="3" fill="#d4a574"/>
-                <circle cx="20" cy="20" r="3" fill="#d4a574"/>
+              <svg className="home-sidebar-deco-pattern" viewBox="0 0 40 40" width="32" height="32" style={{top:'55%',left:'60%',opacity:0.3,transform:'rotate(8deg)'}}>
+                <circle cx="10" cy="10" r="3" fill="#C5483C"/>
+                <circle cx="30" cy="10" r="3" fill="#C5483C"/>
+                <circle cx="10" cy="30" r="3" fill="#C5483C"/>
+                <circle cx="30" cy="30" r="3" fill="#C5483C"/>
+                <circle cx="20" cy="20" r="3" fill="#C5483C"/>
               </svg>
-              <svg className="home-sidebar-deco-sock" viewBox="0 0 80 120" width="44" height="66" style={{top:'70%',left:'20%',opacity:0.3,transform:'rotate(6deg)'}}>
-                <path d="M20 10 L60 10 L60 70 Q60 85 50 92 L35 105 Q28 110 22 108 L18 106 Q14 104 14 98 L14 70 Z" fill="none" stroke="#a8c4e0" strokeWidth="2"/>
-                <line x1="20" y1="20" x2="60" y2="20" stroke="#a8c4e0" strokeWidth="1.5" opacity="0.5"/>
-                <line x1="20" y1="28" x2="60" y2="28" stroke="#a8c4e0" strokeWidth="1.5" opacity="0.5"/>
+              <svg className="home-sidebar-deco-sock" viewBox="0 0 80 120" width="44" height="66" style={{top:'70%',left:'20%',opacity:0.32,transform:'rotate(6deg)'}}>
+                <path d="M20 10 L60 10 L60 70 Q60 85 50 92 L35 105 Q28 110 22 108 L18 106 Q14 104 14 98 L14 70 Z" fill="none" stroke="#5a8a7d" strokeWidth="2"/>
+                <line x1="20" y1="20" x2="60" y2="20" stroke="#5a8a7d" strokeWidth="1.5" opacity="0.5"/>
+                <line x1="20" y1="28" x2="60" y2="28" stroke="#5a8a7d" strokeWidth="1.5" opacity="0.5"/>
               </svg>
-              <svg className="home-sidebar-deco-pattern" viewBox="0 0 40 40" width="28" height="28" style={{top:'40%',left:'5%',opacity:0.2,transform:'rotate(-20deg)'}}>
-                <rect x="5" y="5" width="12" height="12" fill="#e8b4c8" rx="2"/>
-                <rect x="23" y="5" width="12" height="12" fill="#e8b4c8" rx="2"/>
-                <rect x="5" y="23" width="12" height="12" fill="#e8b4c8" rx="2"/>
-                <rect x="23" y="23" width="12" height="12" fill="#e8b4c8" rx="2"/>
+              <svg className="home-sidebar-deco-pattern" viewBox="0 0 40 40" width="28" height="28" style={{top:'40%',left:'5%',opacity:0.22,transform:'rotate(-20deg)'}}>
+                <rect x="5" y="5" width="12" height="12" fill="#3a6fa3" rx="2"/>
+                <rect x="23" y="5" width="12" height="12" fill="#3a6fa3" rx="2"/>
+                <rect x="5" y="23" width="12" height="12" fill="#3a6fa3" rx="2"/>
+                <rect x="23" y="23" width="12" height="12" fill="#3a6fa3" rx="2"/>
               </svg>
-              <svg className="home-sidebar-deco-pattern" viewBox="0 0 50 50" width="36" height="36" style={{top:'85%',left:'55%',opacity:0.22,transform:'rotate(15deg)'}}>
-                <path d="M25 5 L30 20 L45 20 L33 30 L37 45 L25 36 L13 45 L17 30 L5 20 L20 20 Z" fill="none" stroke="#c4a882" strokeWidth="1.5"/>
+              <svg className="home-sidebar-deco-pattern" viewBox="0 0 50 50" width="36" height="36" style={{top:'85%',left:'55%',opacity:0.24,transform:'rotate(15deg)'}}>
+                <path d="M25 5 L30 20 L45 20 L33 30 L37 45 L25 36 L13 45 L17 30 L5 20 L20 20 Z" fill="none" stroke="#8C5A3C" strokeWidth="1.5"/>
               </svg>
             </div>
           </aside>
@@ -248,7 +248,7 @@ function App() {
               </div>
               <div className="home-rp-news">
                 <div className="home-rp-news-item">
-                  <span className="home-rp-news-icon" style={{background:'#ffecd2'}}>🌸</span>
+                  <span className="home-rp-news-icon" style={{background:'rgba(222, 195, 138, 0.4)'}}>🌸</span>
                   <div className="home-rp-news-text">
                     <div className="home-rp-news-title">2024 春夏趋势花型发布</div>
                     <div className="home-rp-news-meta">最新花型趋势已上线，快来获取灵感！</div>
@@ -256,7 +256,7 @@ function App() {
                   </div>
                 </div>
                 <div className="home-rp-news-item">
-                  <span className="home-rp-news-icon" style={{background:'#e8f0fe'}}>🏆</span>
+                  <span className="home-rp-news-icon" style={{background:'rgba(197, 72, 60, 0.18)'}}>🏆</span>
                   <div className="home-rp-news-text">
                     <div className="home-rp-news-title">设计大赛开启报名</div>
                     <div className="home-rp-news-meta">参与赢取丰厚奖励，展示你的创意！</div>
@@ -264,7 +264,7 @@ function App() {
                   </div>
                 </div>
                 <div className="home-rp-news-item">
-                  <span className="home-rp-news-icon" style={{background:'#fff3cd'}}>⚙️</span>
+                  <span className="home-rp-news-icon" style={{background:'rgba(90, 138, 125, 0.20)'}}>⚙️</span>
                   <div className="home-rp-news-text">
                     <div className="home-rp-news-title">系统升级维护通知</div>
                     <div className="home-rp-news-meta">9月25日 02:00~04:00 系统升级维护</div>
