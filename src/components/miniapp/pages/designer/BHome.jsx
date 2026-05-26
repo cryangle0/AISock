@@ -126,12 +126,15 @@ export default function BHome({
         <div className="mp-home-showcase-track">
           {FEATURED_DESIGNS.map((d, i) => {
             const offset = i - active
+            const abs = Math.abs(offset)
+            const scale = 1 - 0.12 * abs
             return (
               <button
                 key={d.id}
                 className={`mp-home-showcase-card ${offset === 0 ? 'active' : 'side'}`}
                 style={{
-                  '--card-offset': offset,
+                  transform: `translateX(${offset * 60}%) scale(${scale})`,
+                  zIndex: 10 - abs,
                   background: `linear-gradient(180deg, ${d.mainColor} 0%, #d4b796 100%)`,
                 }}
                 onClick={() => handleSelect(i)}
@@ -145,6 +148,17 @@ export default function BHome({
               </button>
             )
           })}
+        </div>
+        <div className="mp-home-showcase-dots">
+          {FEATURED_DESIGNS.map((d, i) => (
+            <button
+              key={d.id}
+              type="button"
+              aria-label={`切换到 ${d.title}`}
+              className={`mp-home-showcase-dot ${i === active ? 'active' : ''}`}
+              onClick={() => setActive(i)}
+            />
+          ))}
         </div>
         <div className="mp-home-showcase-music">
           <Music size={10} strokeWidth={1.6}/>
