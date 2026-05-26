@@ -1,8 +1,8 @@
 /* =========================================================================
- * Phone Shell —— 爱花型棕橙暖色系（小程序专属，不影响 web 端）
+ * Phone Shell —— 敦煌米色暖底 + 棕色顶栏 + 凸起 AI 设计 FAB
  * ========================================================================= */
 .phone-shell {
-  background: #1f1814;
+  background: #2B1F14;
   border-radius: 28px;
   padding: 8px 8px 6px;
   box-shadow:
@@ -28,7 +28,6 @@
   border-radius: 34px;
 }
 
-/* 刘海 */
 .phone-shell-notch {
   position: absolute;
   top: 8px;
@@ -36,18 +35,16 @@
   transform: translateX(-50%);
   width: 60px;
   height: 14px;
-  background: #1f1814;
+  background: #2B1F14;
   border-radius: 0 0 12px 12px;
   z-index: 5;
 }
-
 .phone-shell-full .phone-shell-notch {
   width: 88px;
   height: 18px;
   top: 10px;
 }
 
-/* 状态栏 */
 .phone-shell-status {
   display: flex;
   align-items: center;
@@ -59,19 +56,17 @@
   font-weight: 600;
   flex-shrink: 0;
 }
-
 .phone-shell-full .phone-shell-status {
   padding: 6px 24px 8px;
   font-size: 12px;
 }
-
 .phone-shell-status-icons {
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 
-/* 标题栏 —— 白底 + 棕色文字（aihuaxing 配色稿沿用纯白头部） */
+/* 标题栏 —— 透明融入下方 banner（首页是棕色 banner 起始） */
 .phone-shell-titlebar {
   display: flex;
   align-items: center;
@@ -84,10 +79,9 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   flex-shrink: 0;
-  background: var(--mp-bg-card);
+  background: var(--mp-bg);
   border-bottom: 1px solid var(--mp-divider);
 }
-
 .phone-shell-full .phone-shell-titlebar {
   font-size: 14px;
   padding: 12px 16px;
@@ -118,26 +112,22 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-
-.phone-shell-back { left: 8px; }
-.phone-shell-expand { right: 8px; }
-
+.phone-shell-back  { left: 8px; }
+.phone-shell-expand{ right: 8px; }
 .phone-shell-back:hover,
 .phone-shell-expand:hover {
-  background: var(--mp-tertiary-soft);
+  background: var(--mp-coral-soft);
   color: var(--mp-primary);
 }
-
 .phone-shell-full .phone-shell-back,
 .phone-shell-full .phone-shell-expand {
   width: 32px;
   height: 32px;
 }
+.phone-shell-full .phone-shell-back  { left: 12px; }
+.phone-shell-full .phone-shell-expand{ right: 12px; }
 
-.phone-shell-full .phone-shell-back { left: 12px; }
-.phone-shell-full .phone-shell-expand { right: 12px; }
-
-/* 屏幕 —— 暖米底 */
+/* 屏幕 —— 敦煌米底 */
 .phone-shell-screen {
   flex: 1;
   background: var(--mp-bg);
@@ -149,41 +139,43 @@
   font-size: var(--mp-fz-body);
   line-height: var(--mp-lh-body);
 }
-
-.phone-shell-screen::-webkit-scrollbar {
-  width: 2px;
-}
+.phone-shell-screen::-webkit-scrollbar { width: 2px; }
 .phone-shell-screen::-webkit-scrollbar-thumb {
   background: rgba(94, 60, 30, 0.18);
   border-radius: 2px;
 }
 
-/* tabBar */
+/* =========================================================================
+ * 底部 tabbar —— 5 个 tab，中间凸起圆形 FAB
+ * ========================================================================= */
 .phone-shell-tabbar {
   background: var(--mp-bg-card);
   border-top: 1px solid var(--mp-divider);
   display: grid;
   flex-shrink: 0;
   position: relative;
-  overflow: visible;             /* 允许 FAB 凸出 */
+  overflow: visible;          /* 允许 FAB 凸出 */
+  padding-top: 0;
 }
 
-/* —— 凸起：tab bar 顶端边线在中间向上鼓成平滑 S 曲线 —— */
-.phone-shell-tabbar-bump {
+/* FAB 背景圆环（凸起视觉） */
+.phone-shell-tabbar-fab-bg {
   position: absolute;
-  /* SVG 顶端在 tabbar 顶端往上 26px，底部与 tabbar 顶端贴合（盖掉 border-top 中段） */
-  bottom: 100%;
+  top: -22px;
   left: 50%;
-  transform: translate(-50%, 1px);
-  width: 100px;
-  height: 26px;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--mp-bg-card);
+  z-index: 0;
   pointer-events: none;
-  display: block;
-  z-index: 1;
+  box-shadow: 0 -2px 6px rgba(94, 60, 30, 0.06);
 }
-.phone-shell-full .phone-shell-tabbar-bump {
-  width: 140px;
-  height: 36px;
+.phone-shell-full .phone-shell-tabbar-fab-bg {
+  top: -30px;
+  width: 76px;
+  height: 76px;
 }
 
 .phone-shell-tab {
@@ -201,9 +193,8 @@
   justify-content: center;
   gap: 3px;
   position: relative;
-  z-index: 2;            /* 让 tab 内容（含 FAB）盖住凹槽 */
+  z-index: 1;
 }
-
 .phone-shell-full .phone-shell-tab {
   padding: 10px 0 12px;
   font-size: 12px;
@@ -225,53 +216,49 @@
   color: var(--mp-text-muted);
 }
 
-/* —— 中间圆形按钮（嵌在凸起里）—— */
+/* —— 中间凸起 FAB —— */
 .phone-shell-tab-fab {
-  /* 圆形向上凸出于 tabbar 顶端，给文字预留空间 */
-  padding-top: 22px;
+  /* 给文字预留位置：圆形向上凸出 */
+  padding-top: 30px;
 }
 .phone-shell-full .phone-shell-tab-fab {
-  padding-top: 32px;
+  padding-top: 42px;
 }
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  /* 圆按钮置于凸起内：顶端尽量贴近凸起顶端 */
-  top: -22px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #a06d36 0%, var(--mp-primary) 100%);
+  background: linear-gradient(180deg, #A06D36 0%, #8C5A3C 100%);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 仅用一层柔和阴影体现凸起感 */
-  box-shadow: 0 3px 8px rgba(139, 90, 43, 0.28);
+  box-shadow:
+    0 4px 12px rgba(140, 90, 60, 0.4),
+    0 0 0 4px var(--mp-bg-card);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
-  z-index: 3;
+  z-index: 2;
 }
-
 .phone-shell-full .phone-shell-tab-fab-circle {
-  width: 52px;
-  height: 52px;
-  top: -30px;
-  box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
+  width: 60px;
+  height: 60px;
+  top: -24px;
+  box-shadow:
+    0 6px 16px rgba(140, 90, 60, 0.42),
+    0 0 0 5px var(--mp-bg-card);
 }
 
 .phone-shell-tab-fab:hover .phone-shell-tab-fab-circle {
-  transform: translateX(-50%) translateY(-1px);
-  box-shadow: 0 5px 12px rgba(139, 90, 43, 0.36);
-}
-.phone-shell-full .phone-shell-tab-fab:hover .phone-shell-tab-fab-circle {
-  box-shadow: 0 6px 16px rgba(139, 90, 43, 0.36);
+  transform: translateX(-50%) translateY(-2px);
 }
 
 .phone-shell-tab-fab.active .phone-shell-tab-fab-circle {
-  background: linear-gradient(180deg, #b07d44 0%, var(--mp-primary) 100%);
-  box-shadow: 0 5px 12px rgba(139, 90, 43, 0.4);
+  background: linear-gradient(180deg, #B07D44 0%, #8C5A3C 100%);
 }
 
 .phone-shell-tab-fab-label {

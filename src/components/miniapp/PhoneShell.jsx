@@ -1,11 +1,11 @@
 /**
  * PhoneShell —— 手机外壳（小窗 + 全屏复用）
- * 重构后底部 3 个 tab：首页 / 设计 / 我的
+ * 底部 5 个 tab，中间「AI 设计」凸起为圆形按钮（袜子图标）
  */
 import { useRef } from 'react'
 import {
   Wifi, BatteryFull, Signal, ChevronLeft, Maximize2,
-  Home as HomeIcon, Brush, User,
+  Home as HomeIcon, Compass, ShoppingCart, User,
 } from 'lucide-react'
 import { PAGE_META, getTabs } from './pageMeta'
 import { PhoneShellContext } from './phoneShellContext'
@@ -13,8 +13,26 @@ import './PhoneShell.css'
 
 const TAB_ICONS = {
   'b-home':   HomeIcon,
-  'b-editor': Brush,
+  'b-feed':   Compass,
+  'b-editor': null,            // 中间用自定义袜子图标
+  'b-cart':   ShoppingCart,
   'b-mine':   User,
+}
+
+// 袜子 SVG 图标（用于中间凸起按钮）
+function SockIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+      <path
+        d="M40 14 L60 14 L60 64 Q60 76 56 80 L48 86 Q44 88 41 88 L36 88 Q34 88 34 86 L34 78 Q34 68 36 64 L40 60 Z"
+        fill="none"
+        stroke={color}
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+      <line x1="40" y1="22" x2="60" y2="22" stroke={color} strokeWidth="3" opacity="0.6"/>
+    </svg>
+  )
 }
 
 export default function PhoneShell({
@@ -26,7 +44,6 @@ export default function PhoneShell({
   children,
   size = 'mini',
   hideTabbar = false,
-  // 未登录态时由调用方覆盖标题文案
   titleOverride,
 }) {
   const meta = PAGE_META[page] || {}
@@ -34,7 +51,6 @@ export default function PhoneShell({
   const activeTabKey = meta.parentTab || page
   const shellRef = useRef(null)
 
-  // 标题：登录态优先用 override；否则按 PAGE_META.title
   const title = titleOverride || (meta.title ? `爱花型 · ${meta.title}` : '爱花型')
 
   return (
@@ -79,33 +95,13 @@ export default function PhoneShell({
           className="phone-shell-tabbar"
           style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
         >
-          {/* 凸起：tab bar 顶端边线在中间向上鼓起一段平滑 S 曲线，把圆按钮装在里面 */}
-          {tabs.length % 2 === 1 && (
-            <svg
-              className="phone-shell-tabbar-bump"
-              viewBox="0 0 100 26"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              {/* 凸起填充 = tab bar 颜色，让凸起和 tab bar 内部连成一片 */}
-              {/* 三段贝塞尔：左 S → 平缓圆顶 → 右 S，整体连续无尖角 */}
-              <path
-                d="M 0,26 C 18,26 28,0 50,0 C 72,0 82,26 100,26 Z"
-                fill="var(--mp-bg-card)"
-              />
-              <path
-                d="M 0,26 C 18,26 28,0 50,0 C 72,0 82,26 100,26"
-                fill="none"
-                stroke="var(--mp-divider)"
-                strokeWidth="1"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-          )}
-          {tabs.map((t, i) => {
+          {/* 中间凸起的圆形 FAB 套圈（仅作为视觉装饰，按钮本身在下方 map 里渲染） */}
+          <div className="phone-shell-tabbar-fab-bg" aria-hidden="true"/>
+
+          {tabs.map((t) => {
             const Icon = TAB_ICONS[t.key]
             const active = activeTabKey === t.key
-            const isCenter = i === Math.floor(tabs.length / 2) && tabs.length % 2 === 1
+            const isCenter = t.key === 'b-editor'
             return (
               <button
                 key={t.key}
@@ -117,12 +113,7 @@ export default function PhoneShell({
                 {isCenter ? (
                   <>
                     <span className="phone-shell-tab-fab-circle">
-                      {Icon && (
-                        <Icon
-                          size={size === 'full' ? 22 : 15}
-                          strokeWidth={active ? 2.2 : 2}
-                        />
-                      )}
+                      <SockIcon size={size === 'full' ? 26 : 18} color="#fff"/>
                     </span>
                     <span className="phone-shell-tab-fab-label">
                       {t.tabLabel || t.title}
@@ -132,10 +123,7 @@ export default function PhoneShell({
                   <>
                     {Icon && (
                       <span className="phone-shell-tab-icon">
-                        <Icon
-                          size={size === 'full' ? 18 : 14}
-                          strokeWidth={active ? 2 : 1.6}
-                        />
+                        <Icon size={size === 'full' ? 20 : 15} strokeWidth={active ? 2 : 1.6}/>
                       </span>
                     )}
                     {t.tabLabel || t.title}

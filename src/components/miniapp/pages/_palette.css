@@ -1,39 +1,39 @@
 /* =========================================================================
- * 小程序专属配色 token —— 蓝灰冷色系（与 web 端统一新配色）
- * 作用域：仅在 .phone-shell 内部（手机壳）和 .fs-modal-overlay（全屏放大）。
+ * 小程序专属配色 token —— 敦煌主题（暖米底 + 棕色 banner + 矿物质感色）
+ * 作用域：仅在 .phone-shell 内部和 .fs-modal-overlay。
  * web 端不受影响（同 token 名但作用域隔离）。
  * ========================================================================= */
 .phone-shell,
 .fs-modal-overlay,
 .mp-login-root {
-  /* —— 主色（深蓝） —— */
-  --mp-primary: #162033;
-  --mp-primary-hover: #1E2B44;
-  --mp-primary-active: #0e1622;
+  /* —— 主色（深棕 - 敦煌色） —— */
+  --mp-primary: #8C5A3C;
+  --mp-primary-hover: #6F4528;
+  --mp-primary-active: #5a3a1f;
   --mp-primary-fg: #ffffff;
-  --mp-primary-soft: #EEF4FF;
-  --mp-primary-soft-strong: rgba(75, 123, 255, 0.16);
-  --mp-primary-glow: rgba(75, 123, 255, 0.22);
+  --mp-primary-soft: rgba(140, 90, 60, 0.08);
+  --mp-primary-soft-strong: rgba(140, 90, 60, 0.16);
+  --mp-primary-glow: rgba(140, 90, 60, 0.22);
 
-  /* —— 辅助 / 强调色 —— */
-  --mp-blue: #4B7BFF;
-  --mp-blue-soft: rgba(75, 123, 255, 0.12);
-  --mp-purple: #9B8CFF;
+  /* —— 辅助色（敦煌矿物质感） —— */
+  --mp-blue:    #4B7BFF;     /* 通用蓝（订单状态等） */
+  --mp-blue-soft:   rgba(75, 123, 255, 0.12);
+  --mp-purple:  #9B8CFF;
   --mp-purple-soft: rgba(155, 140, 255, 0.14);
-  --mp-mint: #61D6C4;
-  --mp-mint-soft: rgba(97, 214, 196, 0.16);
-  --mp-pink: #FF6FAE;
-  --mp-pink-soft: rgba(255, 111, 174, 0.14);
-  --mp-coral: #FF8A65;
-  --mp-coral-soft: rgba(255, 138, 101, 0.14);
+  --mp-mint:    #61D6C4;
+  --mp-mint-soft:   rgba(97, 214, 196, 0.16);
+  --mp-pink:    #C5483C;     /* 朱砂 */
+  --mp-pink-soft:   rgba(197, 72, 60, 0.12);
+  --mp-coral:   #DEC38A;     /* 沙金 */
+  --mp-coral-soft:  rgba(222, 195, 138, 0.20);
 
-  /* 兼容旧 secondary/tertiary（小程序原本用的暖色），切到新蓝紫 */
-  --mp-secondary: var(--mp-blue);
-  --mp-secondary-soft: var(--mp-blue-soft);
-  --mp-tertiary: var(--mp-purple);
-  --mp-tertiary-soft: var(--mp-purple-soft);
+  /* 兼容旧 secondary/tertiary */
+  --mp-secondary: var(--mp-pink);
+  --mp-secondary-soft: var(--mp-pink-soft);
+  --mp-tertiary: var(--mp-coral);
+  --mp-tertiary-soft: var(--mp-coral-soft);
 
-  /* —— 中性辅助色 —— */
+  /* —— 中性辅助色（保留旧别名） —— */
   --mp-aux-green: var(--mp-mint);
   --mp-aux-green-soft: var(--mp-mint-soft);
   --mp-aux-mint: var(--mp-mint);
@@ -42,28 +42,28 @@
   --mp-aux-purple-soft: var(--mp-purple-soft);
 
   /* —— 文字 —— */
-  --mp-text-primary: #111827;
-  --mp-text-secondary: #6B7280;
-  --mp-text-muted: #9CA3AF;
-  --mp-text-tertiary: #B0B8C4;
+  --mp-text-primary: #2B1F14;
+  --mp-text-secondary: #6B5A48;
+  --mp-text-muted: #998975;
+  --mp-text-tertiary: #b8a892;
 
-  /* —— 背景 —— */
-  --mp-bg: #F5F7FB;
-  --mp-bg-card: #FFFFFF;
-  --mp-bg-tint: #F8FAFC;
-  --mp-bg-soft: #EEF2FA;
-  --mp-bg-elev: rgba(255, 255, 255, 0.94);
-  --mp-bg-overlay: rgba(15, 23, 42, 0.45);
+  /* —— 背景（米色暖底） —— */
+  --mp-bg: #F5EDE0;
+  --mp-bg-card: #FFFCF6;
+  --mp-bg-tint: #EFE5D4;
+  --mp-bg-soft: #F0E4D1;
+  --mp-bg-elev: rgba(255, 252, 246, 0.94);
+  --mp-bg-overlay: rgba(43, 31, 20, 0.45);
 
   /* —— 边框 —— */
-  --mp-border: #E7ECF3;
-  --mp-border-strong: #D1D9E6;
-  --mp-divider: #EEF2F7;
+  --mp-border: #E5D8C0;
+  --mp-border-strong: #C9B89A;
+  --mp-divider: #EBE0CE;
 
   /* —— 阴影 —— */
-  --mp-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
-  --mp-shadow-md: 0 6px 18px rgba(15, 23, 42, 0.08);
-  --mp-shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.14);
+  --mp-shadow-sm: 0 2px 8px rgba(94, 60, 30, 0.05);
+  --mp-shadow-md: 0 6px 18px rgba(94, 60, 30, 0.10);
+  --mp-shadow-lg: 0 16px 36px rgba(94, 60, 30, 0.18);
 
   /* —— 字号 / 行高 —— */
   --mp-fz-h1: 22px;     --mp-lh-h1: 32px;

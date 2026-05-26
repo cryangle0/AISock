@@ -1,10 +1,12 @@
 /**
  * 页面注册表 —— 重构后小程序结构
- *   tab：首页 / 设计 / 我的
+ *   tab：首页 / 推荐 / AI 设计 / 购物车 / 我的
  *   子页：我的设计 / 订单管理 / 素材库 / 订单详情
  */
 import BHome from './designer/BHome'
+import BFeed from './designer/BFeed'
 import BEditor from './designer/BEditor'
+import BCart from './designer/BCart'
 import BMine from './designer/BMine'
 import BDesigns from './designer/BDesigns'
 import BAssets from './designer/BAssets'
@@ -13,7 +15,9 @@ import BOrderDetail from './designer/BOrderDetail'
 
 export const PAGE_COMPONENTS = {
   'b-home':         BHome,
+  'b-feed':         BFeed,
   'b-editor':       BEditor,
+  'b-cart':         BCart,
   'b-mine':         BMine,
   'b-designs':      BDesigns,
   'b-assets':       BAssets,
