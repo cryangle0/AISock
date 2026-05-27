@@ -113,7 +113,7 @@ export default function PhoneShell({
                 {isCenter ? (
                   <>
                     <span className="phone-shell-tab-fab-circle">
-                      <SockIcon size={size === 'full' ? 22 : 15} color="#fff"/>
+                      <SockIcon size={size === 'full' ? 28 : 20} color="#fff"/>
                     </span>
                     <span className="phone-shell-tab-fab-label">
                       {t.tabLabel || t.title}
