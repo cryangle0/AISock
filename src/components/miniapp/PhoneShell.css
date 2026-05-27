@@ -183,11 +183,11 @@
 /* FAB 背景圆环（凸起视觉） */
 .phone-shell-tabbar-fab-bg {
   position: absolute;
-  top: -22px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 56px;
-  height: 56px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   background: var(--mp-bg-card);
   z-index: 0;
@@ -195,9 +195,9 @@
   box-shadow: 0 -2px 6px rgba(94, 60, 30, 0.06);
 }
 .phone-shell-full .phone-shell-tabbar-fab-bg {
-  top: -30px;
-  width: 76px;
-  height: 76px;
+  top: -14px;
+  width: 62px;
+  height: 62px;
 }
 
 .phone-shell-tab {
@@ -241,19 +241,19 @@
 /* —— 中间凸起 FAB —— */
 .phone-shell-tab-fab {
   /* 给文字预留位置：圆形向上凸出 */
-  padding-top: 30px;
+  padding-top: 22px;
 }
 .phone-shell-full .phone-shell-tab-fab {
-  padding-top: 42px;
+  padding-top: 30px;
 }
 
 .phone-shell-tab-fab-circle {
   position: absolute;
-  top: -16px;
+  top: -4px;
   left: 50%;
   transform: translateX(-50%);
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(180deg, #A06D36 0%, #8C5A3C 100%);
   color: #fff;
@@ -267,9 +267,9 @@
   z-index: 2;
 }
 .phone-shell-full .phone-shell-tab-fab-circle {
-  width: 60px;
-  height: 60px;
-  top: -24px;
+  width: 50px;
+  height: 50px;
+  top: -8px;
   box-shadow:
     0 6px 16px rgba(140, 90, 60, 0.42),
     0 0 0 5px var(--mp-bg-card);
