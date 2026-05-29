@@ -89,12 +89,46 @@ async function seedBanners() {
   console.log(`✓ 已插入 ${banners.length} 个 Banner`)
 }
 
+async function seedArticles() {
+  const exists = await query('SELECT id FROM article LIMIT 1').catch(() => [])
+  if (exists.length) {
+    console.log('· 文章已存在，跳过')
+    return
+  }
+  const feeds = [
+    ['feed', '敦煌九色鹿', '主题', '九色鹿壁画同款，矿物色系'],
+    ['feed', '飞天乐舞', '主题', '飞天飘带纹样，灵动优雅'],
+    ['feed', '千手观音', '主题', '繁复对称之美'],
+    ['feed', '二十四节气', '系列', '一节气一配色'],
+    ['feed', '文创物语', '系列', '博物馆联名'],
+    ['feed', '色卡推荐', '工具', '一键换季配色'],
+  ]
+  const news = [
+    ['news', '2024 春夏趋势花型发布', '趋势', '最新花型趋势已上线，快来获取灵感'],
+    ['news', '敦煌主题设计大赛开启', '活动', '参与赢取丰厚奖励'],
+    ['news', '系统升级维护通知', '公告', '9月25日 02:00~04:00 系统升级'],
+  ]
+  const faqs = [
+    ['faq', '如何下单生产？', '帮助', '设计完成后点击下单，填写尺码与收货信息即可'],
+    ['faq', '起订量是多少？', '帮助', '不同袜型起订量 50-100 双不等'],
+    ['faq', '多久能收到货？', '帮助', '生产周期约 7-15 个工作日'],
+  ]
+  for (const [kind, title, tag, summary] of [...feeds, ...news, ...faqs]) {
+    await execute(
+      'INSERT INTO article (kind, title, tag, summary, published_at) VALUES (?,?,?,?, NOW())',
+      [kind, title, tag, summary],
+    )
+  }
+  console.log(`✓ 已插入 ${feeds.length + news.length + faqs.length} 篇文章（推荐/资讯/FAQ）`)
+}
+
 async function main() {
   console.log('开始种子数据...')
   await seedAdmin()
   await seedSocks()
   await seedPatterns()
   await seedBanners()
+  await seedArticles()
   console.log('完成 ✓')
 }
 

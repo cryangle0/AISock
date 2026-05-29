@@ -23,11 +23,21 @@ authRouter.post('/sms-login', async (c) => {
   return ok(c, { token, user: toPublicUser(user) })
 })
 
-/** 微信登录（前端先 code2session 换 openid 再传入；此处简化为直接传 openid） */
+/** 微信登录：前端传 jscode（uni.login 获取），后端 code2session 拿 openid */
 authRouter.post('/wechat-login', async (c) => {
-  const { openid } = await c.req.json<{ openid?: string }>()
-  if (!openid) return fail(c, 'openid 不能为空')
+  const { code, openid: openidDirect, inviterId } = await c.req.json<{ code?: string; openid?: string; inviterId?: number }>()
+  let openid = openidDirect
+  if (!openid && code) {
+    const { code2session } = await import('../../services/wechat.service.js')
+    openid = (await code2session(code)).openid
+  }
+  if (!openid) return fail(c, 'code 或 openid 不能为空')
   const { token, user } = await wechatLogin(openid)
+  // 邀请关系：新用户首次登录时，建立邀请关系并给双方加额度
+  if (inviterId && inviterId !== user.id) {
+    const { ensureInvitation } = await import('../../services/invitation.service.js')
+    await ensureInvitation(inviterId, user.id)
+  }
   return ok(c, { token, user: toPublicUser(user) })
 })
 

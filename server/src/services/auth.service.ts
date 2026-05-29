@@ -5,6 +5,7 @@
 import { queryOne, execute } from '../db.js'
 import { getRedis, CacheKey } from '../redis.js'
 import { signToken } from '../utils/jwt.js'
+import { sendSms } from './sms.service.js'
 
 const SMS_CODE_TTL = 300 // 验证码 5 分钟
 const TOKEN_TTL = 7 * 24 * 3600
@@ -29,7 +30,7 @@ export async function sendSmsCode(phone: string): Promise<void> {
   const code = process.env.NODE_ENV === 'production' ? genCode() : '1234'
   await redis.set(CacheKey.SMS_CODE + phone, code, 'EX', SMS_CODE_TTL)
   await redis.set(limitKey, '1', 'EX', 60) // 60s 限频
-  // 生产环境：此处调用短信服务商发送 code
+  await sendSms(phone, code)
 }
 
 function genCode(): string {
