@@ -1,0 +1,13 @@
+{
+  "name": "@aisock/composition",
+  "version": "1.0.0",
+  "description": "组合式函数 - Composables & Stores",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@aisock/common": "workspace:*",
+    "@aisock/service": "workspace:*",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.12"
+  }
+}

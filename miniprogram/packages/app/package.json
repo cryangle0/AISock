@@ -1,0 +1,29 @@
+{
+  "name": "@aisock/app",
+  "version": "1.0.0",
+  "description": "小程序应用",
+  "scripts": {
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "dev:h5": "uni -p h5",
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@aisock/common": "workspace:*",
+    "@aisock/composition": "workspace:*",
+    "@aisock/service": "workspace:*",
+    "@dcloudio/uni-app": "3.0.0-4020920240930001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-4020920240930001",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.12"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "3.4.15",
+    "@dcloudio/vite-plugin-uni": "3.0.0-4020920240930001",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "sass": "^1.93.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.0.0",
+    "vue-tsc": "^2.1.10"
+  }
+}

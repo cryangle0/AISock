@@ -1,0 +1,10 @@
+{
+  "name": "@aisock/service",
+  "version": "1.0.0",
+  "description": "服务层 - API 请求封装",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@aisock/common": "workspace:*"
+  }
+}

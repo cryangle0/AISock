@@ -1,0 +1,15 @@
+{
+  "name": "aisock-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "爱花型 · AI 袜版设计系统 - 微信小程序（uni-app monorepo）",
+  "scripts": {
+    "dev:mp-weixin": "pnpm -F @aisock/app dev:mp-weixin",
+    "build:mp-weixin": "pnpm -F @aisock/app build:mp-weixin",
+    "dev:h5": "pnpm -F @aisock/app dev:h5",
+    "type-check": "pnpm -F @aisock/app type-check"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.0"
+  }
+}
