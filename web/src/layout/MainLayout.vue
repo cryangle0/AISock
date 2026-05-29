@@ -105,6 +105,8 @@ async function onLogout() {
 .brand-cn {
   font-size: 17px;
   font-weight: 800;
+  font-family: var(--font-art);
+  letter-spacing: 0.06em;
 }
 .brand-en {
   font-size: 9px;

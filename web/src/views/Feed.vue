@@ -26,6 +26,8 @@ const featured = [
 .page-title {
   font-size: 26px;
   font-weight: 800;
+  font-family: var(--font-art);
+  letter-spacing: 0.04em;
 }
 .page-sub {
   margin: 6px 0 20px;

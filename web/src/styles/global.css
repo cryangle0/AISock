@@ -1,19 +1,29 @@
-/* 敦煌主题 token */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=ZCOOL+KuaiLe&display=swap');
+
+/* 敦煌主题 token（与原型 / 小程序对齐） */
 :root {
   --bg: #f5ede0;
+  --bg-secondary: #f0e4d1;
   --bg-card: #fffcf6;
+  --bg-hover: #efe5d4;
   --primary: #8c5a3c;
   --primary-hover: #6f4528;
+  --primary-soft: #f2e6d2;
   --text: #2b1f14;
   --text-2: #6b5a48;
   --text-3: #998975;
   --border: #e5d8c0;
-  --pink: #c5483c;
-  --coral: #dec38a;
-  --mint: #5a8a7d;
+  --border-strong: #c9b89a;
+  /* 矿物质感辅助色 */
+  --blue: #3a6fa3; /* 螺青 */
+  --purple: #9b7bb8; /* 紫檀 */
+  --mint: #5a8a7d; /* 山水绿 */
+  --pink: #c5483c; /* 朱砂 */
+  --coral: #dec38a; /* 沙金 */
   --radius: 14px;
   --shadow-sm: 0 2px 8px rgba(94, 60, 30, 0.06);
   --shadow-md: 0 8px 24px rgba(94, 60, 30, 0.12);
+  --font-art: 'ZCOOL KuaiLe', 'PingFang SC', sans-serif;
 }
 
 * {
