@@ -332,7 +332,7 @@ async function onPaid(payment: { method: string; paidAt: string; amount: number 
   const data = pendingOrder.value
   if (!data) return
   try {
-    await orderApi.createOrder({
+    const created = await orderApi.createOrder({
       designName: data.designName,
       sizes: data.sizes,
       quantity: data.total,
@@ -342,6 +342,9 @@ async function onPaid(payment: { method: string; paidAt: string; amount: number 
       address: data.address,
       remark: data.note,
     })
+    // 走真实预下单 + 回调（dev 用 mock-paid 落库支付成功）
+    const pre = await orderApi.prepay(created.data.id)
+    await orderApi.mockPaid(pre.data.outTradeNo)
   } catch {
     /* 拦截器已提示 */
   }

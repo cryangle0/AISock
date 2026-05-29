@@ -44,6 +44,18 @@
       <view class="row total"><text>订单金额</text><text>¥{{ Number(order.total_amount).toFixed(2) }}</text></view>
     </view>
 
+    <!-- 物流轨迹 -->
+    <view class="card" v-if="shipment">
+      <view class="card-title">物流 · {{ shipment.carrier || '—' }} {{ shipment.tracking_no || '' }}</view>
+      <view v-for="(t, i) in (shipment.traces || [])" :key="i" class="trace-row">
+        <view class="trace-dot" :class="{ first: i === 0 }" />
+        <view class="trace-body">
+          <text class="trace-desc">{{ t.desc }}</text>
+          <text class="trace-time">{{ t.time.slice(0, 19).replace('T', ' ') }}</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 备注（可编辑） -->
     <view class="card">
       <view class="card-title">
@@ -79,6 +91,7 @@ const statusText: Record<string, string> = { paid: '待生产', producing: '生�
 const statusLabels = statusFlow.map((s) => statusText[s])
 
 const order = ref<(Order & { material?: string; craft?: string; address?: string; remark?: string; pay_method?: string; cover_url?: string; sizes?: Record<string, number> }) | null>(null)
+const shipment = ref<{ carrier: string | null; tracking_no: string | null; traces: Array<{ time: string; desc: string }> | null } | null>(null)
 const editing = ref(false)
 const draftNote = ref('')
 
@@ -91,6 +104,8 @@ onLoad(async (q) => {
   try {
     const res = await orderApi.getOrder(id)
     order.value = res.data as typeof order.value
+    const sh = await orderApi.getShipment(id)
+    shipment.value = sh.data
   } catch {
     /* 忽略 */
   }
@@ -243,6 +258,35 @@ function goBack() {
 }
 .muted {
   color: $mp-text-tertiary;
+}
+.trace-row {
+  display: flex;
+  gap: 16rpx;
+  padding: 8rpx 0;
+}
+.trace-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: $mp-border;
+  margin-top: 8rpx;
+  flex-shrink: 0;
+}
+.trace-dot.first {
+  background: $mp-primary;
+}
+.trace-body {
+  flex: 1;
+}
+.trace-desc {
+  font-size: 24rpx;
+  color: $mp-text-primary;
+}
+.trace-time {
+  display: block;
+  font-size: 20rpx;
+  color: $mp-text-muted;
+  margin-top: 4rpx;
 }
 .dist-row {
   display: flex;

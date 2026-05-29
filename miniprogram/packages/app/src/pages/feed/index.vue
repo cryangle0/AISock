@@ -15,17 +15,47 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { switchTab } from '@aisock/common/utils'
+import { catalogApi } from '@aisock/service'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 
-const featured = [
-  { id: 'f1', title: '敦煌九色鹿', tag: '主题', bg: 'linear-gradient(135deg,#C9B89A,#8C5A3C)' },
-  { id: 'f2', title: '飞天乐舞', tag: '主题', bg: 'linear-gradient(135deg,#A8C4B0,#5a8a7d)' },
-  { id: 'f3', title: '千手观音', tag: '主题', bg: 'linear-gradient(135deg,#D6A87A,#A05A3C)' },
-  { id: 'f4', title: '二十四节气', tag: '系列', bg: 'linear-gradient(135deg,#E8D5B8,#C9B89A)' },
-  { id: 'f5', title: '文创物语', tag: '系列', bg: 'linear-gradient(135deg,#DEC38A,#C7A66E)' },
-  { id: 'f6', title: '色卡推荐', tag: '工具', bg: 'linear-gradient(135deg,#F0E4D1,#C5483C)' },
+// 渐变兜底色（后端文章无 cover 时用）
+const BGS = [
+  'linear-gradient(135deg,#C9B89A,#8C5A3C)',
+  'linear-gradient(135deg,#A8C4B0,#5a8a7d)',
+  'linear-gradient(135deg,#D6A87A,#A05A3C)',
+  'linear-gradient(135deg,#E8D5B8,#C9B89A)',
+  'linear-gradient(135deg,#DEC38A,#C7A66E)',
+  'linear-gradient(135deg,#F0E4D1,#C5483C)',
 ]
+const FALLBACK = [
+  { id: 'f1', title: '敦煌九色鹿', tag: '主题' },
+  { id: 'f2', title: '飞天乐舞', tag: '主题' },
+  { id: 'f3', title: '千手观音', tag: '主题' },
+  { id: 'f4', title: '二十四节气', tag: '系列' },
+  { id: 'f5', title: '文创物语', tag: '系列' },
+  { id: 'f6', title: '色卡推荐', tag: '工具' },
+]
+
+const featured = ref(FALLBACK.map((f, i) => ({ ...f, bg: BGS[i % BGS.length] })))
+
+onShow(async () => {
+  try {
+    const res = await catalogApi.listFeed()
+    if (res.data.length) {
+      featured.value = res.data.map((a, i) => ({
+        id: String(a.id),
+        title: a.title,
+        tag: a.tag || '推荐',
+        bg: BGS[i % BGS.length],
+      }))
+    }
+  } catch {
+    /* 后端不可用时用兜底 */
+  }
+})
 
 const goEditor = () => switchTab('/pages/editor/index')
 </script>

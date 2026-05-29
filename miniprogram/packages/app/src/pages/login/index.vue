@@ -71,9 +71,23 @@ async function onLogin() {
 }
 
 async function onWechat() {
-  // 真机：uni.login 拿 code → 后端 code2session 换 openid。此处用占位 openid 演示。
-  await userStore.loginByWechat(`wx_${Date.now()}`)
-  goBackOrHome()
+  // 真机：uni.login 拿 code → 后端 code2session 换 openid
+  uni.login({
+    provider: 'weixin',
+    success: async (res) => {
+      try {
+        await userStore.loginByWechatCode(res.code)
+        goBackOrHome()
+      } catch {
+        /* 拦截器已提示 */
+      }
+    },
+    fail: async () => {
+      // 取不到 code（如 H5 调试）时兜底
+      await userStore.loginByWechat(`wx_${Date.now()}`)
+      goBackOrHome()
+    },
+  })
 }
 
 function goBackOrHome() {

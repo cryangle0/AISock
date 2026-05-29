@@ -33,3 +33,22 @@ export function uploadMyPattern(data: { name: string; imageUrl: string; thumbUrl
 export function deleteMyPattern(id: number) {
   return http.delete(`/api/v1/app/patterns/mine/${id}`)
 }
+
+// ── 推荐流 / 资讯 / FAQ ──
+export interface Article {
+  id: number
+  kind: string
+  title: string
+  cover_url: string | null
+  summary: string | null
+  tag: string | null
+  link: string | null
+}
+
+export function listFeed() {
+  return http.get<Article[]>('/api/v1/app/feed', undefined, { showLoading: false })
+}
+
+export function listNews() {
+  return http.get<Article[]>('/api/v1/app/feed/news', undefined, { showLoading: false })
+}

@@ -37,3 +37,31 @@ export function payOrder(id: number, payMethod = '微信支付') {
 export function updateOrder(id: number, patch: { remark?: string; address?: string }) {
   return http.put(`/api/v1/app/orders/${id}`, patch)
 }
+
+// ── 微信支付 ──
+export interface PrepayResult {
+  prepayId: string
+  outTradeNo: string
+  jsApi?: { timeStamp: string; nonceStr: string; package: string; signType: 'RSA'; paySign: string }
+}
+
+export function prepay(orderId: number) {
+  return http.post<PrepayResult>('/api/v1/app/pay/prepay', { orderId })
+}
+
+export function mockPaid(outTradeNo: string) {
+  return http.post('/api/v1/app/pay/mock-paid', { outTradeNo })
+}
+
+// ── 物流 ──
+export interface Shipment {
+  order_id: number
+  carrier: string | null
+  tracking_no: string | null
+  status: string
+  traces: Array<{ time: string; desc: string }> | null
+}
+
+export function getShipment(orderId: number) {
+  return http.get<Shipment | null>(`/api/v1/app/shipment/${orderId}`, undefined, { showLoading: false })
+}
