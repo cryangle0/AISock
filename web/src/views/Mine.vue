@@ -1,0 +1,170 @@
+<template>
+  <div class="mine">
+    <div class="user card">
+      <div class="avatar">{{ avatarText }}</div>
+      <div class="info">
+        <div class="name">{{ userStore.userInfo?.nickname || '用户' }}</div>
+        <div class="phone">{{ userStore.userInfo?.phone || '-' }}</div>
+      </div>
+      <button class="btn-ghost" @click="onLogout">退出登录</button>
+    </div>
+
+    <div class="stats card">
+      <div class="stat">
+        <span class="num">{{ overview.designs }}</span>
+        <span class="label">我的设计</span>
+      </div>
+      <span class="sep" />
+      <div class="stat">
+        <span class="num">{{ orderTotal }}</span>
+        <span class="label">我的订单</span>
+      </div>
+    </div>
+
+    <div class="designs card">
+      <h3 class="title">我的设计</h3>
+      <div v-if="designs.length === 0" class="empty">还没有保存的设计</div>
+      <div v-else class="design-grid">
+        <div v-for="d in designs" :key="d.id" class="design-item">
+          <div class="cover">{{ d.cover_url ? '' : '🧦' }}</div>
+          <div class="d-name">{{ d.name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store'
+import { userApi, designApi, type Design } from '@/api'
+
+const router = useRouter()
+const userStore = useUserStore()
+const overview = reactive<{ designs: number; orders: Record<string, number> }>({ designs: 0, orders: {} })
+const designs = ref<Design[]>([])
+
+const avatarText = computed(() => (userStore.userInfo?.nickname || '客').charAt(0))
+const orderTotal = computed(() => overview.orders.total ?? 0)
+
+onMounted(async () => {
+  try {
+    await userStore.refreshProfile()
+    const [ov, ds] = await Promise.all([userApi.overview(), designApi.list()])
+    overview.designs = ov.data.designs
+    overview.orders = ov.data.orders
+    designs.value = ds.data
+  } catch {
+    /* 忽略 */
+  }
+})
+
+async function onLogout() {
+  await userStore.logout()
+  router.push({ name: 'Home' })
+}
+</script>
+
+<style scoped>
+.mine {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+}
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--pink));
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.info {
+  flex: 1;
+}
+.name {
+  font-size: 18px;
+  font-weight: 700;
+}
+.phone {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+.stats {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  margin-top: 16px;
+}
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+.label {
+  font-size: 13px;
+  color: var(--text-3);
+}
+.sep {
+  width: 1px;
+  height: 30px;
+  background: var(--border);
+}
+.designs {
+  margin-top: 16px;
+  padding: 20px;
+}
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.empty {
+  color: var(--text-3);
+  font-size: 14px;
+  padding: 20px 0;
+  text-align: center;
+}
+.design-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.design-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.cover {
+  height: 110px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+.d-name {
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+</style>
