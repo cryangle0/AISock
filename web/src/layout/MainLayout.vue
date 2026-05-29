@@ -61,7 +61,7 @@
         </div>
       </aside>
 
-      <main class="content" :class="{ 'content-home': isHome }">
+      <main class="content" :class="{ 'content-home': isFull }">
         <router-view />
       </main>
     </div>
@@ -78,6 +78,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const isHome = computed(() => route.name === 'Home')
+const isFull = computed(() => route.name === 'Home' || route.name === 'Editor')
 
 const tabs = [
   { name: 'Home', label: '首页', icon: '🏠' },
