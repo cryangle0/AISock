@@ -88,6 +88,27 @@ export const designApi = {
 export const orderApi = {
   list: (status?: string) => http.get<unknown, { data: Order[] }>('/api/v1/app/orders', { params: status ? { status } : {} }),
   stats: () => http.get<unknown, { data: Record<string, number> }>('/api/v1/app/orders/stats'),
+  get: (id: number) => http.get<unknown, { data: Order }>(`/api/v1/app/orders/${id}`),
+  create: (data: { designName?: string; sizes?: Record<string, number>; quantity: number; unitPrice: number; material?: string; craft?: string; address?: string; remark?: string }) =>
+    http.post<unknown, { data: { id: number; orderNo: string } }>('/api/v1/app/orders', data),
+  prepay: (orderId: number) =>
+    http.post<unknown, { data: { prepayId: string; outTradeNo: string } }>('/api/v1/app/pay/prepay', { orderId }),
+  mockPaid: (outTradeNo: string) => http.post('/api/v1/app/pay/mock-paid', { outTradeNo }),
+  shipment: (orderId: number) =>
+    http.get<unknown, { data: { carrier: string | null; tracking_no: string | null; status: string; traces: Array<{ time: string; desc: string }> | null } | null }>(`/api/v1/app/shipment/${orderId}`),
+}
+
+// ── 推荐流 ──
+export interface Article {
+  id: number
+  title: string
+  tag: string | null
+  summary: string | null
+  cover_url: string | null
+}
+export const feedApi = {
+  list: () => http.get<unknown, { data: Article[] }>('/api/v1/app/feed'),
+  news: () => http.get<unknown, { data: Article[] }>('/api/v1/app/feed/news'),
 }
 
 // ── AI ──

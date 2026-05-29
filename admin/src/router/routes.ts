@@ -38,6 +38,24 @@ export const appRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/banners/index.vue'),
     meta: { title: 'Banner 管理', icon: 'icon-image' },
   },
+  {
+    path: 'articles',
+    name: 'Articles',
+    component: () => import('@/views/articles/index.vue'),
+    meta: { title: '推荐/资讯', icon: 'icon-bulb' },
+  },
+  {
+    path: 'shipments',
+    name: 'Shipments',
+    component: () => import('@/views/shipments/index.vue'),
+    meta: { title: '物流管理', icon: 'icon-send' },
+  },
+  {
+    path: 'ai-monitor',
+    name: 'AiMonitor',
+    component: () => import('@/views/ai-monitor/index.vue'),
+    meta: { title: 'AI 监控', icon: 'icon-thunderbolt' },
+  },
 ]
 
 export const routes: RouteRecordRaw[] = [
