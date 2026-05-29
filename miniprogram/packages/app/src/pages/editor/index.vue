@@ -115,6 +115,20 @@
       <button class="dock-btn order" @tap="onOrder">下单</button>
     </view>
 
+    <!-- 下单 / 支付 抽屉 -->
+    <OrderSheet
+      v-if="orderOpen"
+      :default-design-name="printName ? `${printName} 袜款` : '未命名袜版'"
+      @close="orderOpen = false"
+      @submit="onOrderSubmit"
+    />
+    <PaymentSheet
+      v-if="pendingOrder"
+      :order="pendingOrder"
+      @cancel="pendingOrder = null"
+      @paid="onPaid"
+    />
+
     <custom-tab-bar current="editor" />
   </view>
 </template>
@@ -127,9 +141,11 @@ import {
 } from '@aisock/common'
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
-import { aiApi, designApi } from '@aisock/service'
+import { aiApi, designApi, orderApi } from '@aisock/service'
 import SockPreview from '@/components/SockPreview.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import OrderSheet from '@/components/editor/OrderSheet.vue'
+import PaymentSheet from '@/components/editor/PaymentSheet.vue'
 
 const userStore = useUserStore()
 const sockTypes = SOCK_TYPES
@@ -160,6 +176,22 @@ const colors = reactive<{ bodyHex: string | null; weltHex: string | null; heelHe
 })
 const paletteId = ref<string | null>(null)
 const quota = reactive({ limit: 5, remaining: 5 })
+const orderOpen = ref(false)
+const pendingOrder = ref<OrderSubmit | null>(null)
+
+interface OrderSubmit {
+  designName: string
+  sizes: Record<string, number>
+  total: number
+  material: string
+  materialValue: string
+  craft: string
+  craftValue: string
+  contact: string
+  phone: string
+  address: string
+  note: string
+}
 
 const hasPrint = computed(() => !!printImage.value || !!patternId.value)
 
@@ -233,7 +265,38 @@ async function onSave() {
 }
 function onOrder() {
   if (!ensureLogin()) return
-  navigateTo('/pages/orders/index')
+  if (!hasPrint.value) {
+    uni.showToast({ title: '请先选择印花', icon: 'none' })
+    return
+  }
+  orderOpen.value = true
+}
+
+function onOrderSubmit(data: OrderSubmit) {
+  orderOpen.value = false
+  pendingOrder.value = data
+}
+
+async function onPaid(payment: { method: string; paidAt: string; amount: number }) {
+  const data = pendingOrder.value
+  if (!data) return
+  try {
+    await orderApi.createOrder({
+      designName: data.designName,
+      sizes: data.sizes,
+      quantity: data.total,
+      unitPrice: data.total ? +(payment.amount / data.total).toFixed(2) : 0,
+      material: data.material,
+      craft: data.craft,
+      address: data.address,
+      remark: data.note,
+    })
+  } catch {
+    /* 拦截器已提示 */
+  }
+  pendingOrder.value = null
+  uni.showToast({ title: '支付成功，订单已提交', icon: 'success' })
+  setTimeout(() => navigateTo('/pages/orders/index'), 800)
 }
 function goDesigns() {
   if (!ensureLogin()) return

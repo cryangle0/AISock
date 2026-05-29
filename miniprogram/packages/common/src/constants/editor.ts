@@ -71,3 +71,27 @@ export const BASE_COLOR_PRESETS: ColorPreset[] = [
 ]
 
 export const AI_PRESETS = ['春日樱花', '海蓝清爽', '复古条纹', '简约几何', '金色奢华', '薄荷清新']
+
+// ── 下单：材质 / 工艺 / 单价 ──
+export interface MaterialOpt { value: string; label: string; desc: string }
+export const MATERIALS: MaterialOpt[] = [
+  { value: 'cotton', label: '棉', desc: '舒适亲肤，日常款首选' },
+  { value: 'nylon', label: '尼龙', desc: '弹性强韧，运动/通勤' },
+]
+export const CRAFTS: MaterialOpt[] = [
+  { value: 'uv', label: 'UV 印花', desc: '色彩鲜艳，纹理细腻' },
+  { value: '3d', label: '3D 印花', desc: '立体浮雕感，触感丰富' },
+  { value: 'jacquard', label: '针织提花', desc: '织线成花，质感传统' },
+]
+/** 材质单价（元/双） */
+export const UNIT_PRICE: Record<string, number> = { cotton: 28, nylon: 32 }
+/** 工艺加价（元/双） */
+export const CRAFT_FEE: Record<string, number> = { uv: 0, '3d': 6, jacquard: 12 }
+
+export const PAY_METHODS = [
+  { value: 'wechat', label: '微信支付', tip: '推荐 · 免手续费', accent: '#1aad19' },
+  { value: 'alipay', label: '支付宝', tip: '快捷支付', accent: '#1677ff' },
+  { value: 'bank', label: '银行卡', tip: '储蓄卡 / 信用卡', accent: '#7e6cf2' },
+]
+
+export const SIZE_LIST = ['S', 'M', 'L', 'XL']
