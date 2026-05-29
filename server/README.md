@@ -49,3 +49,29 @@ npm run dev                # 启动（默认 :8199）
 - 分页：`{ list, total, pageNum, pageSize, pages }`
 - 鉴权：请求头 `Authorization: Bearer <token>`
 - App 端前缀 `/api/v1/app/*`，后台前缀 `/api/v1/admin/*`
+
+## 接口总览
+
+App 端（`/api/v1/app`）：
+- `auth`：sms-send / sms-login / wechat-login(code2session) / logout
+- `user`：profile / overview
+- `home`：首页聚合（banner + 袜型 + 分类）
+- `socks` / `patterns`（含 mine 个人库 CRUD）
+- `designs`：设计稿 CRUD
+- `orders`：列表 / 详情 / 创建 / stats / 改备注
+- `ai`：quota（新用户7天5次/后2次）/ generate / tasks / derive(款式衍生) / family(亲子袜) / invite-bonus
+- `pay`：prepay(微信预下单) / notify(回调) / mock-paid(开发)
+- `feed`：推荐流 / news / faq
+- `shipment`：物流轨迹查询
+- `upload`：multipart 文件上传（本地磁盘，OSS 可切换）
+
+Admin 端（`/api/v1/admin`）：
+- `auth`(账密) / `socks` / `patterns` / `orders` / `users` / `banners` / `dashboard`
+- `articles`(推荐/资讯/FAQ) / `shipments`(录单+轨迹) / `ai-tasks`(监控+设计稿)
+
+## 微信支付 / OSS / 短信 接入
+
+- 微信支付：配置 `WXPAY_*` 后在 `wxpay.service.ts` 启用 `wechatpay-node-v3`（预下单/回调验签 hook 已留）
+- 短信：配置 `SMS_PROVIDER` + 厂商凭证（`sms.service.ts`）
+- OSS：配置 `OSS_*` 后在 `upload.service.ts` 切换（本地磁盘为默认）
+- 文件静态访问：`/uploads/*`
