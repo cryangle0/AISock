@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./constants": "./src/constants/index.ts",
+    "./constants/editor": "./src/constants/editor.ts",
     "./types": "./src/types/index.ts",
     "./utils": "./src/utils/index.ts",
     "./styles/*": "./src/styles/*"
