@@ -25,3 +25,11 @@ export function listPatterns(params: { pageNum?: number; pageSize?: number; cate
 export function listMyPatterns(params: { pageNum?: number; pageSize?: number }) {
   return http.get<PageResult<Pattern>>('/api/v1/app/patterns/mine', params)
 }
+
+export function uploadMyPattern(data: { name: string; imageUrl: string; thumbUrl?: string; categoryId?: number }) {
+  return http.post<{ id: number }>('/api/v1/app/patterns/mine', data)
+}
+
+export function deleteMyPattern(id: number) {
+  return http.delete(`/api/v1/app/patterns/mine/${id}`)
+}

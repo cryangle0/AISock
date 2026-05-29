@@ -52,9 +52,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { PATTERN_LIST } from '@aisock/common'
+import { catalogApi } from '@aisock/service'
+import { useUserStore } from '@aisock/composition'
 import PatternThumb from '@/components/PatternThumb.vue'
 
+const userStore = useUserStore()
 const scopes = [
   { key: 'public', label: '公共库' },
   { key: 'mine', label: '我的' },
@@ -67,17 +71,39 @@ const mine = ref<{ id: number; url: string; name: string }[]>([])
 const visiblePublic = computed(() => publicItems.filter((p) => !query.value || p.name.includes(query.value)))
 const visibleMine = computed(() => mine.value.filter((m) => !query.value || m.name.includes(query.value)))
 
+async function fetchMine() {
+  if (!userStore.isLogin) return
+  try {
+    const res = await catalogApi.listMyPatterns({ pageNum: 1, pageSize: 100 })
+    mine.value = res.data.list.map((p) => ({ id: p.id, url: p.image_url, name: p.name }))
+  } catch {
+    /* 忽略 */
+  }
+}
+onShow(fetchMine)
+
 function onUpload() {
   uni.chooseImage({
     count: 1,
-    success: (res) => {
+    success: async (res) => {
       const path = res.tempFilePaths[0]
-      mine.value.unshift({ id: Date.now(), url: path, name: `素材${mine.value.length + 1}` })
-      uni.showToast({ title: '已上传', icon: 'none' })
+      // 真机：先 uni.uploadFile 上传到 OSS 拿 URL，再调后端。演示用本地路径兜底。
+      try {
+        await catalogApi.uploadMyPattern({ name: `素材${mine.value.length + 1}`, imageUrl: path })
+        uni.showToast({ title: '已上传', icon: 'none' })
+        fetchMine()
+      } catch {
+        mine.value.unshift({ id: Date.now(), url: path, name: `素材${mine.value.length + 1}` })
+      }
     },
   })
 }
-function onRemove(id: number) {
+async function onRemove(id: number) {
+  try {
+    await catalogApi.deleteMyPattern(id)
+  } catch {
+    /* 忽略 */
+  }
   mine.value = mine.value.filter((m) => m.id !== id)
 }
 </script>
