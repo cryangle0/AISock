@@ -12,6 +12,23 @@ dist
 dist-ssr
 *.local
 
+# Build outputs / deps for sub-projects
+**/node_modules/
+**/dist/
+miniprogram/packages/app/dist/
+server/dist/
+admin/dist/
+web/dist/
+
+# Env files (keep .example)
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# uni-app
+unpackage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

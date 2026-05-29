@@ -1,42 +1,43 @@
-# AISock — 爱花型袜版设计系统
+# 爱花型 · AI 袜版设计系统
 
-> AI 驱动的袜版花型设计原型 · React + Vite
+一套面向「AI 袜款设计 → 在线下单 → 工厂量产」的完整系统，包含 Web 前端、微信小程序、运营后台与后端服务。
 
-在线预览：<https://cryangle0.github.io/AISock/>
+## 仓库结构（Monorepo）
 
-## 主要功能
+```
+.
+├── prototype/      # 原型（React + Vite）—— 交互/视觉验证，部署到 GitHub Pages
+├── server/         # 后端服务（Hono + TypeScript + MySQL + Redis）
+├── admin/          # 运营后台（Vue3 + Arco Design Pro + Vite）
+├── miniprogram/    # 微信小程序（uni-app + Vue3 + Pinia，pnpm monorepo）
+├── web/            # Web 前端（Vue3 + Vite，复用 server API）
+└── docs/           # 文档（客户准备清单等）
+```
 
-- **可视化袜版编辑器**：袜口 / 螺口 / 主体+袜跟 / 袜头 四区独立填花
-- **花型素材库**：内置碎花 / 条纹 / 圆点 / 方格 / 大花 / 蓝花 / 单色 / 金色 / 薄荷 9 套花型
-- **AI 同款生成**：基于当前设计生成 1 / 2 / 4 个风格变体（前端模拟）
-- **设计参数面板**:密度 / 旋转 / 间距 三个滑块 + 平铺 / 拉伸 / 智能分块 三种填充策略
-- **下单流程**:尺码 / 数量 / 材质 / 收货地址 / 备注，一键提交至爱花型
-- **我的设计 + 订单管理**：设计稿网格视图 + 订单状态列表
-- **小程序端预览**：右下角悬浮微信小程序模拟器，移动端版式实时预览
+各子项目均为**独立工程**，拥有各自的 `package.json`、依赖与构建脚本，互不耦合。
 
 ## 技术栈
 
-- React 19 + Vite 8
-- Lucide Icons
-- 纯 SVG `<pattern>` 模拟花型 — 单文件零图片依赖
-- GitHub Actions 自动部署到 GitHub Pages
+| 子系统 | 技术框架 |
+| --- | --- |
+| 后端 `server` | Hono · TypeScript(ESM) · MySQL2 · ioredis · JWT · 微信支付 |
+| 后台 `admin` | Vue3 · TypeScript · Arco Design Vue · Pinia · Vue Router · Vite · axios |
+| 小程序 `miniprogram` | uni-app · Vue3 · TypeScript · Pinia（app/service/common/composition 分包） |
+| Web `web` | Vue3 · TypeScript · Pinia · Vue Router · Vite |
+| 原型 `prototype` | React 19 · Vite |
 
-## 本地开发
+## 工程规范（所有子项目共同遵循）
 
-```bash
-npm install
-npm run dev
-```
+- **组件化 / 模块化 / 工程化**：单文件职责单一，避免超长文件；按领域分目录。
+- **逻辑清晰、性能优先**：请求统一封装、状态集中管理、按需加载。
+- **易扩展**：领域模块解耦，新增功能不改动核心。
+- **极致体验**：加载态、错误态、空态完备，交互即时反馈。
+- **最佳工程规范**：TypeScript 全量类型、ESLint + Prettier 统一风格。
 
-打开 <http://localhost:5173/AISock/>
+## 快速开始
 
-## 生产构建
-
-```bash
-npm run build
-npm run preview
-```
+各子项目的启动方式见对应目录下的 README。
 
 ## 部署
 
-推送到 main 分支即触发 `.github/workflows/deploy-pages.yml`，自动构建并发布到 GitHub Pages。
+`prototype/` 通过 GitHub Actions 自动构建并发布到 GitHub Pages。
