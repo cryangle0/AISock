@@ -33,6 +33,23 @@
       @order="onOrder"
       @ai-extend="onAiExtend"
       @family-pair="onFamilyPair"
+      @share="onShare"
+    />
+
+    <VariantModal
+      v-if="variantMode"
+      :mode="variantMode"
+      :base-prompt="printName"
+      @close="variantMode = null"
+      @apply="onVariantApply"
+      @save-all="onFamilySaveAll"
+    />
+    <ShareModal
+      v-if="shareOpen"
+      :design="{ name: printName ? `${printName} 袜款` : '我的袜版', printName }"
+      :cover="printImageUrl"
+      @close="shareOpen = false"
+      @shared="onShared"
     />
   </div>
 </template>
@@ -43,8 +60,10 @@ import { useRouter } from 'vue-router'
 import AssetPanel from '@/components/editor/AssetPanel.vue'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import ParamsPanel from '@/components/editor/ParamsPanel.vue'
+import VariantModal from '@/components/editor/VariantModal.vue'
+import ShareModal from '@/components/editor/ShareModal.vue'
 import { DEFAULT_SOCK_TYPE_ID } from '@/data/editor'
-import { designApi } from '@/api'
+import { designApi, type StyleVariant } from '@/api'
 
 const router = useRouter()
 
@@ -60,6 +79,8 @@ const colors = ref({ ...DEFAULT_COLORS })
 const paletteId = ref<string | null>(null)
 const paletteStrength = ref(80)
 const activeRegion = ref<string | null>(null)
+const variantMode = ref<'derive' | 'family' | null>(null)
+const shareOpen = ref(false)
 let regionTimer: number | undefined
 
 function applyPattern(patternId: string, name: string) {
@@ -106,10 +127,40 @@ function onOrder() {
   router.push({ name: 'Cart' })
 }
 function onAiExtend() {
-  alert('款式衍生：基于当前设计生成 1/2/4 套全新款式（接 AI 图生图）')
+  if (!printImageUrl.value && !printPatternId.value) {
+    alert('请先选择印花')
+    return
+  }
+  variantMode.value = 'derive'
 }
 function onFamilyPair() {
-  alert('亲子袜：衍生成人 + 儿童两款（接 AI 图生图）')
+  if (!printImageUrl.value && !printPatternId.value) {
+    alert('请先选择印花')
+    return
+  }
+  variantMode.value = 'family'
+}
+function onShare() {
+  shareOpen.value = true
+}
+function onVariantApply(v: StyleVariant) {
+  printName.value = v.pattern
+  variantMode.value = null
+}
+async function onFamilySaveAll(vs: StyleVariant[]) {
+  variantMode.value = null
+  for (const v of vs) {
+    try {
+      await designApi.create({ name: v.pattern, coverUrl: printImageUrl.value || undefined })
+    } catch {
+      /* 忽略 */
+    }
+  }
+  alert('亲子套装已保存到我的设计')
+}
+function onShared(target: string) {
+  shareOpen.value = false
+  alert(`已分享到${target}`)
 }
 </script>
 

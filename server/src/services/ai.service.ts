@@ -27,6 +27,33 @@ export async function getRemainingQuota(userId: number, dailyLimit: number): Pro
   return Math.max(0, dailyLimit - used)
 }
 
+/**
+ * 计算用户当日免费额度：
+ * 注册 7 天内为新用户每日 5 次；之后每日 2 次。
+ * 若 user.ai_quota_daily 被后台手动调高，取较大值。
+ */
+const NEW_USER_DAYS = 7
+const NEW_USER_DAILY = 5
+const RETURNING_DAILY = 2
+
+export function computeDailyLimit(createdAt: string | Date | null, override?: number): number {
+  let base = RETURNING_DAILY
+  if (createdAt) {
+    const ts = new Date(createdAt).getTime()
+    if (Date.now() - ts < NEW_USER_DAYS * 24 * 3600 * 1000) base = NEW_USER_DAILY
+  }
+  return Math.max(base, override ?? 0)
+}
+
+/** 邀请奖励：给用户额外增加今日额度（通过减少 used 计数实现） */
+export async function grantBonusQuota(userId: number, bonus: number): Promise<void> {
+  const redis = getRedis()
+  const key = quotaKey(userId)
+  const used = Number((await redis.get(key)) || 0)
+  const next = Math.max(0, used - bonus)
+  await redis.set(key, String(next), 'EX', secondsUntilMidnight())
+}
+
 function quotaKey(userId: number): string {
   const today = new Date().toISOString().slice(0, 10)
   return `${CacheKey.AI_QUOTA}${today}:${userId}`
@@ -109,4 +136,40 @@ async function invokeProvider(input: CreateTaskInput): Promise<string[]> {
 
 export async function listTasks(userId: number, limit = 20): Promise<AiTask[]> {
   return query<AiTask>('SELECT * FROM ai_task WHERE user_id = ? ORDER BY id DESC LIMIT ?', [userId, limit])
+}
+
+/**
+ * 款式衍生：基于基础设计生成 N 套变体（占位实现：换色卡 + 提示词）。
+ * 真实场景接 AI 图生图，这里返回结构化变体供前端预览。
+ */
+export interface StyleVariant {
+  id: string
+  pattern: string
+  scheme: string
+  prompt: string
+}
+
+const VARIANT_SCHEMES = [
+  { pattern: '同款 · 暖调', scheme: '朱砂 + 沙金' },
+  { pattern: '同款 · 冷调', scheme: '螺青 + 月白' },
+  { pattern: '同款 · 撞色', scheme: '帝王红 + 松绿' },
+  { pattern: '同款 · 低饱和', scheme: '莫兰迪灰粉' },
+]
+
+export function deriveStyleVariants(basePrompt: string, count: number): StyleVariant[] {
+  const n = Math.max(1, Math.min(4, count))
+  return VARIANT_SCHEMES.slice(0, n).map((s, i) => ({
+    id: `v${i}`,
+    pattern: s.pattern,
+    scheme: s.scheme,
+    prompt: `${basePrompt || '袜款'} ${s.scheme}`,
+  }))
+}
+
+/** 亲子袜：成人 + 儿童两款 */
+export function deriveFamilyPair(basePrompt: string): StyleVariant[] {
+  return [
+    { id: 'adult', pattern: '成人款', scheme: '标准尺码', prompt: `${basePrompt || '袜款'} 成人款` },
+    { id: 'kid', pattern: '儿童款', scheme: '缩小比例', prompt: `${basePrompt || '袜款'} 儿童款` },
+  ]
 }

@@ -91,8 +91,20 @@ export const orderApi = {
 }
 
 // ── AI ──
+export interface StyleVariant {
+  id: string
+  pattern: string
+  scheme: string
+  prompt: string
+}
 export const aiApi = {
   quota: () => http.get<unknown, { data: { limit: number; remaining: number } }>('/api/v1/app/ai/quota'),
   generate: (data: { type?: string; prompt?: string }) =>
     http.post<unknown, { data: { id: number; result_urls: string[] | null; status: string } }>('/api/v1/app/ai/generate', data),
+  derive: (prompt: string, count: number) =>
+    http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/derive', { prompt, count }),
+  family: (prompt: string) =>
+    http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/family', { prompt }),
+  inviteBonus: (bonus = 3) =>
+    http.post<unknown, { data: { remaining: number } }>('/api/v1/app/ai/invite-bonus', { bonus }),
 }

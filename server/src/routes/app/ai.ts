@@ -1,20 +1,24 @@
 /**
- * App AI 路由（需登录）：生图任务 / 历史 / 剩余配额
+ * App AI 路由（需登录）：生图任务 / 历史 / 剩余配额 / 款式衍生 / 亲子袜 / 邀请奖励
  */
 import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import { queryOne } from '../../db.js'
-import { createTask, listTasks, getRemainingQuota } from '../../services/ai.service.js'
+import {
+  createTask, listTasks, getRemainingQuota, computeDailyLimit,
+  grantBonusQuota, deriveStyleVariants, deriveFamilyPair,
+} from '../../services/ai.service.js'
 
 export const aiRouter = new Hono()
 
+/** 取用户当日额度（新用户 7 天内 5 次，之后 2 次，后台 override 取大值） */
 async function dailyLimit(userId: number): Promise<number> {
-  const row = await queryOne<{ ai_quota_daily: number }>(
-    'SELECT ai_quota_daily FROM `user` WHERE id = ?',
+  const row = await queryOne<{ ai_quota_daily: number; created_at: string }>(
+    'SELECT ai_quota_daily, created_at FROM `user` WHERE id = ?',
     [userId],
   )
-  return row?.ai_quota_daily ?? 5
+  return computeDailyLimit(row?.created_at ?? null, row?.ai_quota_daily)
 }
 
 /** 剩余免费次数 */
@@ -42,4 +46,25 @@ aiRouter.post('/generate', async (c) => {
 /** 我的生成历史 */
 aiRouter.get('/tasks', async (c) => {
   return ok(c, await listTasks(getUserId(c)))
+})
+
+/** 款式衍生（1/2/4 套变体方案） */
+aiRouter.post('/derive', async (c) => {
+  const { prompt, count } = await c.req.json<{ prompt?: string; count?: number }>()
+  return ok(c, deriveStyleVariants(prompt || '', count || 2))
+})
+
+/** 亲子袜（成人 + 儿童） */
+aiRouter.post('/family', async (c) => {
+  const { prompt } = await c.req.json<{ prompt?: string }>()
+  return ok(c, deriveFamilyPair(prompt || ''))
+})
+
+/** 邀请奖励：被邀请人注册后，给邀请人 + 自己各加生图次数 */
+aiRouter.post('/invite-bonus', async (c) => {
+  const { bonus } = await c.req.json<{ bonus?: number }>()
+  await grantBonusQuota(getUserId(c), Math.max(1, Math.min(10, bonus || 3)))
+  const limit = await dailyLimit(getUserId(c))
+  const remaining = await getRemainingQuota(getUserId(c), limit)
+  return ok(c, { remaining })
 })

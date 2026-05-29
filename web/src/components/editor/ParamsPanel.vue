@@ -75,8 +75,9 @@
       </div>
       <div class="act-row">
         <button class="btn ghost" @click="$emit('reset')">↺ 重置参数</button>
-        <button class="btn ghost" :disabled="!hasPrint" @click="$emit('clear')">⌫ 清除印花</button>
+        <button class="btn ghost" @click="$emit('share')">↗ 分享</button>
       </div>
+      <button class="btn ghost" :disabled="!hasPrint" style="width:100%" @click="$emit('clear')">⌫ 清除印花</button>
     </section>
 
     <!-- 保存 / 下单 -->
@@ -118,6 +119,7 @@ const emit = defineEmits<{
   order: []
   aiExtend: []
   familyPair: []
+  share: []
 }>()
 
 const palettes = COLOR_PALETTES

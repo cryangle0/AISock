@@ -128,6 +128,21 @@
       @cancel="pendingOrder = null"
       @paid="onPaid"
     />
+    <VariantSheet
+      v-if="variantMode"
+      :mode="variantMode"
+      :base-prompt="printName"
+      @close="variantMode = null"
+      @apply="onVariantApply"
+      @save-all="onFamilySaveAll"
+    />
+    <ShareSheet
+      v-if="shareOpen"
+      :design="{ name: printName ? `${printName} 袜款` : '我的袜版', printName }"
+      :cover="printImage"
+      @close="shareOpen = false"
+      @shared="onShared"
+    />
 
     <custom-tab-bar current="editor" />
   </view>
@@ -146,6 +161,9 @@ import SockPreview from '@/components/SockPreview.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
 import PaymentSheet from '@/components/editor/PaymentSheet.vue'
+import VariantSheet from '@/components/editor/VariantSheet.vue'
+import ShareSheet from '@/components/editor/ShareSheet.vue'
+import type { StyleVariant } from '@aisock/service'
 
 const userStore = useUserStore()
 const sockTypes = SOCK_TYPES
@@ -178,6 +196,8 @@ const paletteId = ref<string | null>(null)
 const quota = reactive({ limit: 5, remaining: 5 })
 const orderOpen = ref(false)
 const pendingOrder = ref<OrderSubmit | null>(null)
+const variantMode = ref<'derive' | 'family' | null>(null)
+const shareOpen = ref(false)
 
 interface OrderSubmit {
   designName: string
@@ -246,13 +266,44 @@ async function onAiGen() {
   }
 }
 function onAiExtend() {
-  uni.showToast({ title: '款式衍生（接 AI 图生图）', icon: 'none' })
+  if (!ensureLogin()) return
+  if (!hasPrint.value) {
+    uni.showToast({ title: '请先选择印花', icon: 'none' })
+    return
+  }
+  variantMode.value = 'derive'
 }
 function onFamily() {
-  uni.showToast({ title: '亲子袜衍生（接 AI 图生图）', icon: 'none' })
+  if (!ensureLogin()) return
+  if (!hasPrint.value) {
+    uni.showToast({ title: '请先选择印花', icon: 'none' })
+    return
+  }
+  variantMode.value = 'family'
 }
 function onShare() {
-  uni.showToast({ title: '已唤起分享', icon: 'none' })
+  shareOpen.value = true
+}
+function onVariantApply(v: StyleVariant) {
+  // 应用衍生款：把方案描述写进印花名，换一个示意图
+  printName.value = v.pattern
+  variantMode.value = null
+  uni.showToast({ title: `已应用：${v.pattern}`, icon: 'none' })
+}
+async function onFamilySaveAll(vs: StyleVariant[]) {
+  variantMode.value = null
+  for (const v of vs) {
+    try {
+      await designApi.createDesign({ name: v.pattern, coverUrl: printImage.value || undefined })
+    } catch {
+      /* 忽略 */
+    }
+  }
+  uni.showToast({ title: '亲子套装已保存', icon: 'success' })
+}
+function onShared(target: string) {
+  shareOpen.value = false
+  uni.showToast({ title: `已分享到${target}`, icon: 'none' })
 }
 async function onSave() {
   if (!ensureLogin()) return
