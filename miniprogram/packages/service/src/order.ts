@@ -33,3 +33,7 @@ export function createOrder(data: CreateOrderInput) {
 export function payOrder(id: number, payMethod = '微信支付') {
   return http.post(`/api/v1/app/orders/${id}/pay`, { payMethod })
 }
+
+export function updateOrder(id: number, patch: { remark?: string; address?: string }) {
+  return http.put(`/api/v1/app/orders/${id}`, patch)
+}

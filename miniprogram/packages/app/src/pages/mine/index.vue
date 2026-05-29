@@ -29,6 +29,9 @@
       <view class="list-item" @tap="goOrders">
         <text class="list-icon">📦</text><text class="list-label">订单管理</text><text class="arrow">›</text>
       </view>
+      <view class="list-item" @tap="goAssets">
+        <text class="list-icon">🎨</text><text class="list-label">素材库</text><text class="arrow">›</text>
+      </view>
       <view class="list-item disabled">
         <text class="list-icon">⚙️</text><text class="list-label">设置</text><text class="arrow">›</text>
       </view>
@@ -76,6 +79,7 @@ function requireLogin(cb: () => void) {
 const goLogin = () => reLaunch('/pages/login/index')
 const goDesigns = () => requireLogin(() => navigateTo('/pages/designs/index'))
 const goOrders = () => requireLogin(() => navigateTo('/pages/orders/index'))
+const goAssets = () => navigateTo('/pages/assets/index')
 
 async function onLogout() {
   await userStore.logout()

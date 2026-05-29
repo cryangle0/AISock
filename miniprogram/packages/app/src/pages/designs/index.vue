@@ -1,34 +1,49 @@
 <template>
   <view class="designs">
     <view v-if="list.length === 0" class="empty">
-      <text class="empty-icon">📁</text>
-      <text class="empty-text">还没有保存的设计</text>
-      <button class="empty-btn" @tap="goEditor">去设计</button>
+      <text class="empty-icon">🧦</text>
+      <text class="empty-text">暂无设计稿</text>
+      <button class="empty-btn" @tap="goEditor">去创建第一个袜版</button>
     </view>
-    <view v-else class="grid">
-      <view v-for="d in list" :key="d.id" class="card">
-        <image v-if="d.cover_url" :src="d.cover_url" mode="aspectFill" class="cover" />
-        <view v-else class="cover placeholder">🧦</view>
-        <view class="meta">
-          <text class="name">{{ d.name }}</text>
-          <text class="date">{{ d.created_at?.slice(0, 10) }}</text>
-        </view>
-        <view class="ops">
-          <text class="op" @tap="onDelete(d.id)">删除</text>
+    <template v-else>
+      <view class="search-bar">
+        <text class="search-icon">🔍</text>
+        <input v-model="query" placeholder="搜索设计名称" />
+      </view>
+      <view class="summary">已保存 {{ list.length }} 个袜版</view>
+
+      <view class="grid">
+        <view v-for="d in filtered" :key="d.id" class="card">
+          <view class="cover" @tap="goEditor">
+            <image v-if="d.cover_url" :src="d.cover_url" mode="aspectFill" class="cover-img" />
+            <view v-else class="cover-empty">🧦</view>
+          </view>
+          <view class="meta">
+            <text class="name">{{ d.name }}</text>
+            <text class="date">{{ (d.created_at || '').slice(0, 10) }}</text>
+          </view>
+          <view class="actions">
+            <view class="icon-btn" @tap="goEditor">✨</view>
+            <view class="icon-btn danger" @tap="onDelete(d.id)">🗑</view>
+          </view>
         </view>
       </view>
-    </view>
+
+      <view v-if="filtered.length === 0" class="empty-mini">没有匹配的设计</view>
+    </template>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { designApi } from '@aisock/service'
 import { switchTab } from '@aisock/common/utils'
 import type { Design } from '@aisock/common/types'
 
 const list = ref<Design[]>([])
+const query = ref('')
+const filtered = computed(() => list.value.filter((d) => !query.value || (d.name || '').includes(query.value)))
 
 async function fetchList() {
   try {
@@ -38,7 +53,6 @@ async function fetchList() {
     /* 忽略 */
   }
 }
-
 onShow(fetchList)
 
 async function onDelete(id: number) {
@@ -48,7 +62,6 @@ async function onDelete(id: number) {
   uni.showToast({ title: '已删除', icon: 'none' })
   fetchList()
 }
-
 const goEditor = () => switchTab('/pages/editor/index')
 </script>
 
@@ -80,6 +93,26 @@ const goEditor = () => switchTab('/pages/editor/index')
   font-size: 26rpx;
   padding: 0 48rpx;
 }
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: $mp-bg-card;
+  border: 1rpx solid $mp-border;
+  border-radius: 16rpx;
+  padding: 0 20rpx;
+  height: 72rpx;
+  margin-bottom: 16rpx;
+}
+.search-bar input {
+  flex: 1;
+  font-size: 26rpx;
+}
+.summary {
+  font-size: 22rpx;
+  color: $mp-text-muted;
+  margin-bottom: 16rpx;
+}
 .grid {
   display: flex;
   flex-wrap: wrap;
@@ -96,7 +129,13 @@ const goEditor = () => switchTab('/pages/editor/index')
   width: 100%;
   height: 240rpx;
 }
-.cover.placeholder {
+.cover-img {
+  width: 100%;
+  height: 100%;
+}
+.cover-empty {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,7 +143,7 @@ const goEditor = () => switchTab('/pages/editor/index')
   background: $mp-bg;
 }
 .meta {
-  padding: 16rpx;
+  padding: 14rpx 16rpx 4rpx;
 }
 .name {
   font-size: 26rpx;
@@ -117,12 +156,29 @@ const goEditor = () => switchTab('/pages/editor/index')
   font-size: 20rpx;
   color: $mp-text-muted;
 }
-.ops {
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
   padding: 0 16rpx 16rpx;
-  text-align: right;
 }
-.op {
-  font-size: 22rpx;
+.icon-btn {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  background: $mp-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+}
+.icon-btn.danger {
   color: $mp-pink;
+}
+.empty-mini {
+  text-align: center;
+  color: $mp-text-muted;
+  font-size: 24rpx;
+  padding: 40rpx 0;
 }
 </style>

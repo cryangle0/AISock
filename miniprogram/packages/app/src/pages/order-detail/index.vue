@@ -1,0 +1,316 @@
+<template>
+  <view class="od" v-if="order">
+    <!-- 状态进度 -->
+    <view class="card steps">
+      <view
+        v-for="(label, i) in statusLabels"
+        :key="label"
+        :class="['step', { done: i < currentIdx, active: i === currentIdx }]"
+      >
+        <view class="step-dot">{{ stepIcon(label) }}</view>
+        <text class="step-label">{{ label }}</text>
+        <view v-if="i < statusLabels.length - 1" class="step-line" />
+      </view>
+    </view>
+
+    <!-- 设计稿 -->
+    <view class="card">
+      <view class="card-title">设计稿</view>
+      <view class="design-cover">
+        <image v-if="order.cover_url" :src="order.cover_url" mode="aspectFill" class="design-img" />
+        <view v-else class="design-empty">无预览图</view>
+      </view>
+      <view class="row"><text>设计名称</text><text>{{ order.design_name || '袜款设计' }}</text></view>
+      <view class="row"><text>材质</text><text>{{ order.material || '棉' }}</text></view>
+      <view class="row"><text>工艺</text><text>{{ order.craft || 'UV 印花' }}</text></view>
+    </view>
+
+    <!-- 尺码分布 -->
+    <view class="card" v-if="sizeEntries.length">
+      <view class="card-title">尺码分布 · 共 {{ order.quantity }} 双</view>
+      <view v-for="[s, qty] in sizeEntries" :key="s" class="dist-row">
+        <text class="dist-size">{{ s }}</text>
+        <view class="dist-bar"><view class="dist-fill" :style="{ width: percent(qty) + '%' }" /></view>
+        <text class="dist-qty">{{ qty }} 双 · {{ percent(qty) }}%</text>
+      </view>
+    </view>
+
+    <!-- 订单信息 -->
+    <view class="card">
+      <view class="row"><text>订单号</text><text>{{ order.order_no }}</text></view>
+      <view class="row"><text>下单时间</text><text>{{ order.created_at }}</text></view>
+      <view class="row" v-if="order.pay_method"><text>支付方式</text><text>{{ order.pay_method }}</text></view>
+      <view class="row" v-if="order.address"><text>收货地址</text><text class="addr">{{ order.address }}</text></view>
+      <view class="row total"><text>订单金额</text><text>¥{{ Number(order.total_amount).toFixed(2) }}</text></view>
+    </view>
+
+    <!-- 备注（可编辑） -->
+    <view class="card">
+      <view class="card-title">
+        备注
+        <text class="edit-btn" @tap="toggleEdit">{{ editing ? '保存' : '编辑' }}</text>
+      </view>
+      <textarea v-if="editing" v-model="draftNote" class="note-edit" placeholder="包装要求、加急说明、修改建议等" />
+      <view v-else class="row"><text>备注</text><text :class="{ muted: !order.remark }">{{ order.remark || '暂无' }}</text></view>
+    </view>
+
+    <!-- 操作 -->
+    <view class="footer">
+      <button class="cta secondary">联系客服</button>
+      <button class="cta primary" @tap="goBack">返回列表</button>
+    </view>
+  </view>
+
+  <view v-else class="empty">
+    <text>订单不存在</text>
+    <button class="cta primary" @tap="goBack">返回列表</button>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { orderApi } from '@aisock/service'
+import { navigateBack } from '@aisock/common/utils'
+import type { Order } from '@aisock/common/types'
+
+const statusFlow = ['paid', 'producing', 'shipped', 'done']
+const statusText: Record<string, string> = { paid: '待生产', producing: '生产中', shipped: '已发货', done: '已完成' }
+const statusLabels = statusFlow.map((s) => statusText[s])
+
+const order = ref<(Order & { material?: string; craft?: string; address?: string; remark?: string; pay_method?: string; cover_url?: string; sizes?: Record<string, number> }) | null>(null)
+const editing = ref(false)
+const draftNote = ref('')
+
+const currentIdx = computed(() => Math.max(0, statusFlow.indexOf(order.value?.status || 'paid')))
+const sizeEntries = computed(() => Object.entries(order.value?.sizes || {}))
+
+onLoad(async (q) => {
+  const id = Number((q as { id?: string }).id)
+  if (!id) return
+  try {
+    const res = await orderApi.getOrder(id)
+    order.value = res.data as typeof order.value
+  } catch {
+    /* 忽略 */
+  }
+})
+
+function stepIcon(label: string) {
+  return { 待生产: '⏱', 生产中: '📦', 已发货: '🚚', 已完成: '✓' }[label] || '•'
+}
+function percent(qty: number) {
+  const total = order.value?.quantity || 0
+  return total ? Math.round((qty / total) * 100) : 0
+}
+function toggleEdit() {
+  if (editing.value) {
+    if (order.value) {
+      orderApi.updateOrder(order.value.id, { remark: draftNote.value })
+      order.value.remark = draftNote.value
+    }
+    editing.value = false
+    uni.showToast({ title: '已保存', icon: 'none' })
+  } else {
+    draftNote.value = order.value?.remark || ''
+    editing.value = true
+  }
+}
+function goBack() {
+  navigateBack()
+}
+</script>
+
+<style scoped lang="scss">
+@import '@aisock/common/styles/variables.scss';
+
+.od {
+  min-height: 100vh;
+  padding: 24rpx 32rpx 40rpx;
+}
+.card {
+  background: $mp-bg-card;
+  border: 1rpx solid $mp-border;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+.card-title {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: $mp-text-primary;
+  margin-bottom: 16rpx;
+}
+.edit-btn {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: $mp-primary;
+}
+.steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  position: relative;
+}
+.step-dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: $mp-bg;
+  border: 1rpx solid $mp-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  color: $mp-text-muted;
+  z-index: 1;
+}
+.step.done .step-dot,
+.step.active .step-dot {
+  background: $mp-primary;
+  color: #fff;
+  border-color: $mp-primary;
+}
+.step-label {
+  font-size: 20rpx;
+  color: $mp-text-muted;
+}
+.step.active .step-label {
+  color: $mp-primary;
+  font-weight: 600;
+}
+.step-line {
+  position: absolute;
+  top: 24rpx;
+  left: 60%;
+  width: 80%;
+  height: 2rpx;
+  background: $mp-border;
+  z-index: 0;
+}
+.step.done .step-line {
+  background: $mp-primary;
+}
+.design-cover {
+  width: 100%;
+  height: 320rpx;
+  border-radius: 14rpx;
+  overflow: hidden;
+  background: $mp-bg;
+  margin-bottom: 16rpx;
+}
+.design-img {
+  width: 100%;
+  height: 100%;
+}
+.design-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $mp-text-muted;
+  font-size: 24rpx;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 24rpx;
+  color: $mp-text-secondary;
+  padding: 10rpx 0;
+}
+.row text:first-child {
+  color: $mp-text-muted;
+}
+.row .addr {
+  max-width: 60%;
+  text-align: right;
+}
+.row.total text:last-child {
+  color: $mp-pink;
+  font-weight: 700;
+  font-size: 30rpx;
+}
+.muted {
+  color: $mp-text-tertiary;
+}
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+.dist-size {
+  width: 50rpx;
+  font-size: 24rpx;
+  color: $mp-text-primary;
+}
+.dist-bar {
+  flex: 1;
+  height: 14rpx;
+  border-radius: 999rpx;
+  background: $mp-bg;
+  overflow: hidden;
+}
+.dist-fill {
+  height: 100%;
+  background: $mp-primary;
+}
+.dist-qty {
+  font-size: 20rpx;
+  color: $mp-text-muted;
+  width: 150rpx;
+  text-align: right;
+}
+.note-edit {
+  width: 100%;
+  height: 140rpx;
+  background: $mp-bg;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  font-size: 24rpx;
+  box-sizing: border-box;
+}
+.footer {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+.cta {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  padding: 0;
+}
+.cta.secondary {
+  background: $mp-bg-card;
+  color: $mp-text-secondary;
+  border: 1rpx solid $mp-border;
+}
+.cta.primary {
+  background: $mp-primary;
+  color: #fff;
+}
+.empty {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  font-size: 26rpx;
+  color: $mp-text-secondary;
+}
+</style>

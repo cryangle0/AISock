@@ -16,7 +16,7 @@
       <text class="empty-text">暂无订单</text>
     </view>
     <view v-else class="list">
-      <view v-for="o in list" :key="o.id" class="order-card">
+      <view v-for="o in list" :key="o.id" class="order-card" @tap="goDetail(o.id)">
         <view class="order-top">
           <text class="order-no">{{ o.order_no }}</text>
           <text class="order-status">{{ statusText(o.status) }}</text>
@@ -27,7 +27,7 @@
         </view>
         <view class="order-foot">
           <text class="order-qty">数量 {{ o.quantity }}</text>
-          <button v-if="o.status === 'pending'" class="pay-btn" @tap="onPay(o)">去支付</button>
+          <button v-if="o.status === 'pending'" class="pay-btn" @tap.stop="onPay(o)">去支付</button>
         </view>
       </view>
     </view>
@@ -74,6 +74,10 @@ async function onPay(o: Order) {
 }
 
 const statusText = (s: string) => ORDER_STATUS_TEXT[s] || s
+
+function goDetail(id: number) {
+  uni.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
+}
 </script>
 
 <style scoped lang="scss">
