@@ -1,0 +1,28 @@
+{
+  "name": "aisock-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "爱花型 · AI 袜版设计系统 - 后端服务（Hono + TS + MySQL + Redis）",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "start": "tsx --env-file=.env src/index.ts",
+    "seed": "tsx --env-file=.env scripts/seed.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "bcryptjs": "^2.4.3",
+    "hono": "^4.7.0",
+    "ioredis": "^5.4.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

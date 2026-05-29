@@ -1,0 +1,127 @@
+/**
+ * 鉴权中间件
+ * - 白名单路径放行（可选附带 userId）
+ * - 其余路径要求 Bearer token，校验 JWT + Redis 会话存在
+ * - admin 区域要求 token.type === 'admin'
+ * - token 校验加进程内 30s 缓存，降低 Redis QPS
+ */
+import type { Context, Next } from 'hono'
+import { getRedis, CacheKey } from '../redis.js'
+import { parseToken } from '../utils/jwt.js'
+import { fail } from '../utils/response.js'
+
+const TOKEN_RENEW_SECONDS = 7 * 24 * 3600
+
+const TOKEN_CACHE_TTL_MS = 30 * 1000
+const TOKEN_CACHE_MAX = 5000
+const tokenCache = new Map<string, number>()
+
+function cacheGet(token: string): boolean {
+  const exp = tokenCache.get(token)
+  if (exp == null) return false
+  if (exp < Date.now()) {
+    tokenCache.delete(token)
+    return false
+  }
+  return true
+}
+
+function cacheSet(token: string): void {
+  if (tokenCache.size >= TOKEN_CACHE_MAX) {
+    const first = tokenCache.keys().next().value
+    if (first) tokenCache.delete(first)
+  }
+  tokenCache.set(token, Date.now() + TOKEN_CACHE_TTL_MS)
+}
+
+export function invalidateTokenCache(token: string): void {
+  tokenCache.delete(token)
+}
+
+/** 公开端点：未登录也可访问（须与前端 http 层白名单保持一致） */
+const AUTH_WHITELIST = new Set<string>([
+  '/api/v1/app/auth/wechat-login',
+  '/api/v1/app/auth/sms-login',
+  '/api/v1/app/auth/sms-send',
+  '/api/v1/app/auth/refresh',
+  '/api/v1/app/home',
+  '/api/v1/app/socks', // 袜型列表（访客可浏览）
+  '/api/v1/app/patterns', // 花型列表
+  '/api/v1/app/patterns/categories',
+  '/api/v1/admin/auth/login',
+])
+
+const AUTH_WHITELIST_PREFIX = ['/api/v1/app/socks/', '/api/v1/app/patterns/']
+
+function isWhitelisted(path: string): boolean {
+  if (AUTH_WHITELIST.has(path)) return true
+  return AUTH_WHITELIST_PREFIX.some((p) => path.startsWith(p))
+}
+
+async function attachUserIfPresent(c: Context): Promise<void> {
+  const authHeader = c.req.header('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) return
+  const token = authHeader.slice(7)
+  try {
+    const { userId } = parseToken(token)
+    if (cacheGet(token)) {
+      c.set('userId', userId)
+      return
+    }
+    const redis = getRedis()
+    const key = CacheKey.TOKEN + token
+    if (!(await redis.exists(key))) return
+    await redis.expire(key, TOKEN_RENEW_SECONDS)
+    cacheSet(token)
+    c.set('userId', userId)
+  } catch {
+    /* optional auth: 忽略无效 token */
+  }
+}
+
+export async function requireAuth(c: Context, next: Next) {
+  const path = new URL(c.req.url).pathname
+
+  if (isWhitelisted(path)) {
+    await attachUserIfPresent(c)
+    return next()
+  }
+  if (c.req.method === 'OPTIONS') return next()
+
+  const authHeader = c.req.header('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return fail(c, '未提供有效的认证令牌', 401)
+  }
+  const token = authHeader.slice(7)
+
+  let userId: number
+  let tokenType: string
+  try {
+    const parsed = parseToken(token)
+    userId = parsed.userId
+    tokenType = parsed.type
+  } catch {
+    return fail(c, '令牌无效或已过期', 401)
+  }
+
+  const isAdminArea = path.startsWith('/api/v1/admin/')
+  if (isAdminArea && tokenType !== 'admin') {
+    return fail(c, '无权访问管理后台', 403)
+  }
+
+  if (cacheGet(token)) {
+    c.set('userId', userId)
+    return next()
+  }
+
+  const redis = getRedis()
+  const key = CacheKey.TOKEN + token
+  if (!(await redis.exists(key))) {
+    invalidateTokenCache(token)
+    return fail(c, '登录已过期，请重新登录', 401)
+  }
+  await redis.expire(key, TOKEN_RENEW_SECONDS)
+  cacheSet(token)
+  c.set('userId', userId)
+  return next()
+}
