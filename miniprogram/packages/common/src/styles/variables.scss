@@ -11,6 +11,12 @@ $mp-pink: #c5483c; // 朱砂
 $mp-coral: #dec38a; // 沙金
 $mp-mint: #5a8a7d; // 山水绿
 
+// 衍生色（供组件统一引用，避免散落硬编码）
+$mp-primary-soft: rgba(140, 90, 60, 0.12); // 主色浅底（选中态）
+$mp-coral-soft: rgba(222, 195, 138, 0.18); // 沙金浅底
+$mp-divider: #efe6d6; // 分隔线
+$mp-text-tertiary: #b3a690; // 三级文字（更浅）
+
 $mp-radius-sm: 8rpx;
 $mp-radius-md: 16rpx;
 $mp-radius-lg: 24rpx;

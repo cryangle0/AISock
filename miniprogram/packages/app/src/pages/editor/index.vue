@@ -21,8 +21,8 @@
       <text class="arrow">›</text>
     </view>
 
-    <!-- 袜版预览 -->
-    <SockPreview :print-image="printImage" :pattern-id="patternId" :params="params" :colors="colors" />
+    <!-- 袜版预览（真实 canvas 矢量渲染） -->
+    <SockCanvas ref="canvasRef" :print-image="printImage" :pattern-id="patternId" :params="params" :colors="colors" @region-click="onRegionClick" />
 
     <!-- 快捷操作 -->
     <view class="quick-row">
@@ -67,6 +67,10 @@
         <view class="seg">
           <view :class="['seg-btn', { active: params.singleMode }]" @tap="params.singleMode = true">单张</view>
           <view :class="['seg-btn', { active: !params.singleMode }]" @tap="params.singleMode = false">平铺</view>
+        </view>
+        <view v-if="!params.singleMode" class="slider-row">
+          <view class="slider-head"><text>平铺密度</text><text class="sv">{{ params.tileDensity }}×</text></view>
+          <slider :value="params.tileDensity" :min="2" :max="8" :disabled="!hasPrint" activeColor="#8C5A3C" block-size="18" @changing="onTile" @change="onTile" />
         </view>
       </template>
 
@@ -132,6 +136,7 @@
       v-if="variantMode"
       :mode="variantMode"
       :base-prompt="printName"
+      :base-design="{ patternId, colors, params }"
       @close="variantMode = null"
       @apply="onVariantApply"
       @save-all="onFamilySaveAll"
@@ -157,13 +162,13 @@ import {
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
 import { aiApi, designApi, orderApi } from '@aisock/service'
-import SockPreview from '@/components/SockPreview.vue'
+import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
 import PaymentSheet from '@/components/editor/PaymentSheet.vue'
 import VariantSheet from '@/components/editor/VariantSheet.vue'
 import ShareSheet from '@/components/editor/ShareSheet.vue'
-import type { StyleVariant } from '@aisock/service'
+import type { MiniVariant } from '../../components/editor/variantGen'
 
 const userStore = useUserStore()
 const sockTypes = SOCK_TYPES
@@ -188,12 +193,13 @@ const sockTypeId = ref(DEFAULT_SOCK_TYPE_ID)
 const printImage = ref<string | null>(null)
 const patternId = ref<string | null>(null)
 const printName = ref('')
-const params = reactive({ density: 100, rotation: 0, singleMode: true })
+const params = reactive({ density: 100, rotation: 0, singleMode: true, tileDensity: 3 })
 const colors = reactive<{ bodyHex: string | null; weltHex: string | null; heelHex: string | null; toeHex: string | null }>({
   bodyHex: null, weltHex: null, heelHex: null, toeHex: null,
 })
 const paletteId = ref<string | null>(null)
 const quota = reactive({ limit: 5, remaining: 5 })
+const canvasRef = ref<{ exportImage?: () => Promise<string> } | null>(null)
 const orderOpen = ref(false)
 const pendingOrder = ref<OrderSubmit | null>(null)
 const variantMode = ref<'derive' | 'family' | null>(null)
@@ -242,6 +248,13 @@ function applyPattern(id: string, name: string) {
 }
 function onScale(e: any) { params.density = e.detail.value }
 function onRotate(e: any) { params.rotation = e.detail.value }
+function onTile(e: any) { params.tileDensity = e.detail.value }
+function onRegionClick(region: string) {
+  // 点击袜版区域 → 切到颜色 tab 并提示
+  tab.value = 'color'
+  const label = region === 'welt' ? '螺口' : region === 'heel' || region === 'toe' ? '袜跟/袜头' : '袜身'
+  uni.showToast({ title: `调整${label}颜色`, icon: 'none', duration: 800 })
+}
 function setColor(field: 'bodyHex' | 'weltHex' | 'heelHex', hex: string | null) {
   colors[field] = hex
   if (field === 'heelHex') colors.toeHex = hex
@@ -284,17 +297,21 @@ function onFamily() {
 function onShare() {
   shareOpen.value = true
 }
-function onVariantApply(v: StyleVariant) {
-  // 应用衍生款：把方案描述写进印花名，换一个示意图
+function onVariantApply(v: MiniVariant) {
+  // 应用衍生款：一次性回填 花型 + 四区颜色 + 调节参数
+  patternId.value = v.patternId
+  printImage.value = null
   printName.value = v.pattern
+  Object.assign(colors, v.colors)
+  Object.assign(params, v.params)
   variantMode.value = null
   uni.showToast({ title: `已应用：${v.pattern}`, icon: 'none' })
 }
-async function onFamilySaveAll(vs: StyleVariant[]) {
+async function onFamilySaveAll(vs: MiniVariant[]) {
   variantMode.value = null
   for (const v of vs) {
     try {
-      await designApi.createDesign({ name: v.pattern, coverUrl: printImage.value || undefined })
+      await designApi.createDesign({ name: v.pattern, coverUrl: v.cover || undefined })
     } catch {
       /* 忽略 */
     }
@@ -307,10 +324,11 @@ function onShared(target: string) {
 }
 async function onSave() {
   if (!ensureLogin()) return
+  const cover = (await canvasRef.value?.exportImage?.()) || printImage.value || undefined
   await designApi.createDesign({
     name: printName.value ? `${printName.value} 袜款` : '未命名袜版',
     sockModelId: undefined,
-    coverUrl: printImage.value || undefined,
+    coverUrl: cover,
   })
   uni.showToast({ title: '已保存', icon: 'success' })
 }

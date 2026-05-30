@@ -9,7 +9,7 @@ import { API_BASE_URL, STORAGE_KEYS } from '@aisock/common/constants'
 interface RequestOptions {
   url: string
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  data?: Record<string, unknown> | unknown[]
+  data?: object
   showLoading?: boolean
   loadingText?: string
   silent?: boolean
@@ -93,19 +93,19 @@ class Http {
     })
   }
 
-  get<T = unknown>(url: string, data?: Record<string, unknown>, options?: Partial<RequestOptions>) {
+  get<T = unknown>(url: string, data?: object, options?: Partial<RequestOptions>) {
     return this.request<T>({ url, method: 'GET', data, ...options })
   }
 
-  post<T = unknown>(url: string, data?: Record<string, unknown> | unknown[], options?: Partial<RequestOptions>) {
+  post<T = unknown>(url: string, data?: object, options?: Partial<RequestOptions>) {
     return this.request<T>({ url, method: 'POST', data, ...options })
   }
 
-  put<T = unknown>(url: string, data?: Record<string, unknown>, options?: Partial<RequestOptions>) {
+  put<T = unknown>(url: string, data?: object, options?: Partial<RequestOptions>) {
     return this.request<T>({ url, method: 'PUT', data, ...options })
   }
 
-  delete<T = unknown>(url: string, data?: Record<string, unknown>, options?: Partial<RequestOptions>) {
+  delete<T = unknown>(url: string, data?: object, options?: Partial<RequestOptions>) {
     return this.request<T>({ url, method: 'DELETE', data, ...options })
   }
 }

@@ -19,14 +19,15 @@
           :class="['variant-card', { active: picked === v.id }]"
           @tap="picked = v.id"
         >
-          <view class="variant-thumb" :style="{ background: thumbBg(v.id) }">🧦</view>
+          <image v-if="v.cover" :src="v.cover" mode="aspectFit" class="variant-thumb" />
+          <view v-else class="variant-thumb placeholder">🧦</view>
           <text class="variant-name">{{ v.pattern }}</text>
           <text class="variant-scheme">{{ v.scheme }}</text>
         </view>
       </template>
     </view>
 
-    <view v-if="loading" class="loading-tip">AI 正在创作中…</view>
+    <view v-if="loading" class="loading-tip">AI 正在创作并渲染预览…</view>
 
     <template #footer>
       <view class="footer-row">
@@ -41,33 +42,31 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
-import { aiApi, type StyleVariant } from '@aisock/service'
+import { deriveVariants, deriveFamily, type MiniVariant } from './variantGen'
+import type { SockColors, SockParams } from './sockShape'
 
-const props = defineProps<{ mode: 'derive' | 'family'; basePrompt: string }>()
-const emit = defineEmits<{ close: []; apply: [v: StyleVariant]; saveAll: [vs: StyleVariant[]] }>()
+const props = defineProps<{
+  mode: 'derive' | 'family'
+  basePrompt: string
+  baseDesign?: { patternId?: string | null; colors?: Partial<SockColors>; params?: Partial<SockParams> }
+}>()
+const emit = defineEmits<{ close: []; apply: [v: MiniVariant]; saveAll: [vs: MiniVariant[]] }>()
 
 const count = ref(2)
-const variants = ref<StyleVariant[]>([])
+const variants = ref<MiniVariant[]>([])
 const picked = ref<string | null>(null)
 const loading = ref(true)
 
 const title = computed(() => (props.mode === 'family' ? '亲子袜' : '款式衍生'))
 const subtitle = computed(() => (props.mode === 'family' ? '一键生成成人 + 儿童两款' : '基于当前设计 AI 推荐变体'))
 
-const COLORS = ['#C9B89A', '#A8C4B0', '#D6A87A', '#bcb0c0']
-function thumbBg(id: string) {
-  const idx = variants.value.findIndex((v) => v.id === id)
-  return `linear-gradient(180deg, ${COLORS[idx % COLORS.length]}, #d4b796)`
-}
-
 async function load() {
   loading.value = true
   try {
-    const res = props.mode === 'family' ? await aiApi.family(props.basePrompt) : await aiApi.derive(props.basePrompt, count.value)
-    variants.value = res.data
-    picked.value = res.data[0]?.id ?? null
-  } catch {
-    /* 拦截器已提示 */
+    const base = { printName: props.basePrompt, ...props.baseDesign }
+    const res = props.mode === 'family' ? await deriveFamily(base) : await deriveVariants(base, count.value)
+    variants.value = res
+    picked.value = res[0]?.id ?? null
   } finally {
     loading.value = false
   }
@@ -133,6 +132,9 @@ function saveAll() {
   width: 100%;
   height: 200rpx;
   border-radius: 12rpx;
+  background: $mp-bg;
+}
+.variant-thumb.placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,6 +153,7 @@ function saveAll() {
   font-size: 24rpx;
   font-weight: 600;
   color: $mp-text-primary;
+  text-align: center;
 }
 .variant-scheme {
   font-size: 20rpx;

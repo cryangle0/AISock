@@ -1,56 +1,79 @@
 <template>
   <div class="sock-editor">
-    <AssetPanel @apply="applyPattern" @apply-image="applyImage" />
+    <!-- 左：素材库 / AI 生成 -->
+    <AssetPanel @apply="onApplyPattern" @apply-image="onApplyImage" />
 
+    <!-- 中：真实 canvas 袜版预览 -->
     <SockCanvas
+      ref="canvasRef"
       v-model:sock-type-id="sockTypeId"
-      :print-image-url="printImageUrl"
-      :print-pattern-id="printPatternId"
+      :print-image-url="finalPrintImage"
       :params="params"
       :colors="colors"
       @region-click="onRegionClick"
-      @drop-pattern="applyPattern"
-      @drop-image="applyImage"
+      @drop-image="onApplyImage"
+      @resource-ready="onResourceReady"
     />
 
+    <!-- 右：参数 / 颜色 / 色卡 / 操作 -->
     <ParamsPanel
-      :print-image-url="printImageUrl"
-      :print-pattern-id="printPatternId"
+      :print-image-url="printImage"
+      :print-pattern-id="null"
       :print-name="printName"
       :params="params"
       :colors="colors"
       :palette-id="paletteId"
       :palette-strength="paletteStrength"
       :active-region="activeRegion"
-      @update:params="params = $event"
-      @update:colors="colors = $event"
+      @update:params="setParams"
+      @update:colors="setColors"
       @update:palette-id="paletteId = $event"
       @update:palette-strength="paletteStrength = $event"
       @upload-file="onUploadFile"
-      @clear="onClear"
-      @reset="onReset"
+      @clear="clearPrint"
+      @reset="resetParams"
       @save="onSave"
       @order="onOrder"
       @ai-extend="onAiExtend"
       @family-pair="onFamilyPair"
-      @share="onShare"
+      @share="shareOpen = true"
     />
 
+    <!-- 款式衍生 / 亲子袜 -->
     <VariantModal
       v-if="variantMode"
       :mode="variantMode"
-      :base-prompt="printName"
+      :base-design="{ printName, colors, params }"
+      :resources="resources"
       @close="variantMode = null"
       @apply="onVariantApply"
       @save-all="onFamilySaveAll"
     />
+
+    <!-- 分享 -->
     <ShareModal
       v-if="shareOpen"
-      :design="{ name: printName ? `${printName} 袜款` : '我的袜版', printName }"
-      :cover="printImageUrl"
+      :design="{ name: composeName(), printName }"
+      :cover="finalPrintImage"
       @close="shareOpen = false"
       @shared="onShared"
     />
+
+    <!-- 下单 -->
+    <OrderModal
+      v-if="orderOpen"
+      :default-design-name="composeName()"
+      @close="orderOpen = false"
+      @submit="onOrderSubmit"
+    />
+
+    <!-- 支付 -->
+    <PaymentModal v-if="pendingOrder" :order="pendingOrder" @cancel="pendingOrder = null" @paid="onPaid" />
+
+    <!-- 全局轻提示 -->
+    <Transition name="toast">
+      <div v-if="toast" class="editor-toast">{{ toast }}</div>
+    </Transition>
   </div>
 </template>
 
@@ -62,52 +85,64 @@ import SockCanvas from '@/components/editor/SockCanvas.vue'
 import ParamsPanel from '@/components/editor/ParamsPanel.vue'
 import VariantModal from '@/components/editor/VariantModal.vue'
 import ShareModal from '@/components/editor/ShareModal.vue'
-import { DEFAULT_SOCK_TYPE_ID } from '@/data/editor'
-import { designApi, type StyleVariant } from '@/api'
+import OrderModal, { type OrderFormData } from '@/components/order/OrderModal.vue'
+import PaymentModal from '@/components/order/PaymentModal.vue'
+import { useSockEditor } from '@/composables/useSockEditor'
+import { compressDataURL, type DesignVariant, type SockResources } from '@/engine'
+import { designApi } from '@/api'
 
 const router = useRouter()
 
-const DEFAULT_PARAMS = { density: 100, rotation: 0, singleMode: true }
-const DEFAULT_COLORS = { bodyHex: null as string | null, weltHex: null as string | null, heelHex: null as string | null, toeHex: null as string | null }
+const {
+  sockTypeId,
+  printImage,
+  printName,
+  params,
+  colors,
+  paletteId,
+  paletteStrength,
+  hasPrint,
+  finalPrintImage,
+  composeName,
+  applyImage,
+  applyPattern,
+  clearPrint,
+  resetParams,
+  setColors,
+  setParams,
+  applyDesign,
+} = useSockEditor()
 
-const sockTypeId = ref(DEFAULT_SOCK_TYPE_ID)
-const printImageUrl = ref<string | null>(null)
-const printPatternId = ref<string | null>(null)
-const printName = ref('')
-const params = ref({ ...DEFAULT_PARAMS })
-const colors = ref({ ...DEFAULT_COLORS })
-const paletteId = ref<string | null>(null)
-const paletteStrength = ref(80)
+const canvasRef = ref<InstanceType<typeof SockCanvas> | null>(null)
+const resources = ref<SockResources | null>(null)
 const activeRegion = ref<string | null>(null)
 const variantMode = ref<'derive' | 'family' | null>(null)
 const shareOpen = ref(false)
+const orderOpen = ref(false)
+const pendingOrder = ref<OrderFormData | null>(null)
+const toast = ref('')
 let regionTimer: number | undefined
+let toastTimer: number | undefined
 
-function applyPattern(patternId: string, name: string) {
-  printPatternId.value = patternId
-  printImageUrl.value = null
-  printName.value = name
+function showToast(msg: string) {
+  toast.value = msg
+  window.clearTimeout(toastTimer)
+  toastTimer = window.setTimeout(() => (toast.value = ''), 2000)
 }
-function applyImage(url: string, name: string) {
-  printImageUrl.value = url
-  printPatternId.value = null
-  printName.value = name
+
+function onApplyPattern(patternId: string, name: string) {
+  applyPattern(patternId, name)
+}
+function onApplyImage(url: string, name: string) {
+  applyImage(url, name)
 }
 function onUploadFile(file: File) {
   const reader = new FileReader()
   reader.onload = (e) => applyImage(e.target?.result as string, file.name.replace(/\.[^.]+$/, ''))
   reader.readAsDataURL(file)
 }
-function onClear() {
-  printImageUrl.value = null
-  printPatternId.value = null
-  printName.value = ''
-  paletteId.value = null
-}
-function onReset() {
-  params.value = { ...DEFAULT_PARAMS }
-  colors.value = { ...DEFAULT_COLORS }
-  paletteId.value = null
+function onResourceReady(res: SockResources) {
+  resources.value = res
 }
 function onRegionClick(region: string) {
   activeRegion.value = region
@@ -115,52 +150,73 @@ function onRegionClick(region: string) {
   regionTimer = window.setTimeout(() => (activeRegion.value = null), 1400)
 }
 
+async function snapshotCover(): Promise<string | undefined> {
+  const raw = canvasRef.value?.getDataURL?.() || ''
+  if (!raw) return undefined
+  return (await compressDataURL(raw, 360)) || undefined
+}
+
 async function onSave() {
-  await designApi.create({
-    name: printName.value ? `${printName.value} 袜款` : '未命名袜版',
-    sockModelId: undefined,
-    coverUrl: printImageUrl.value || undefined,
-  })
-  alert('已保存到我的设计')
+  const cover = await snapshotCover()
+  try {
+    await designApi.create({ name: composeName(), coverUrl: cover })
+    showToast('已保存到我的设计')
+  } catch (e) {
+    showToast((e as Error).message || '保存失败')
+  }
 }
+
 function onOrder() {
-  router.push({ name: 'Cart' })
+  if (!hasPrint.value) {
+    showToast('请先选择或生成印花')
+    return
+  }
+  orderOpen.value = true
 }
+function onOrderSubmit(data: OrderFormData) {
+  orderOpen.value = false
+  pendingOrder.value = data
+}
+function onPaid(payment: { orderNo: string }) {
+  pendingOrder.value = null
+  showToast(`支付成功，订单 ${payment.orderNo} 已提交`)
+  setTimeout(() => router.push({ name: 'Cart' }), 900)
+}
+
 function onAiExtend() {
-  if (!printImageUrl.value && !printPatternId.value) {
-    alert('请先选择印花')
+  if (!hasPrint.value) {
+    showToast('请先选择印花')
     return
   }
   variantMode.value = 'derive'
 }
 function onFamilyPair() {
-  if (!printImageUrl.value && !printPatternId.value) {
-    alert('请先选择印花')
+  if (!hasPrint.value) {
+    showToast('请先选择印花')
     return
   }
   variantMode.value = 'family'
 }
-function onShare() {
-  shareOpen.value = true
-}
-function onVariantApply(v: StyleVariant) {
-  printName.value = v.pattern
+function onVariantApply(v: DesignVariant) {
+  applyDesign(v)
   variantMode.value = null
+  showToast(`已应用：${v.pattern}`)
 }
-async function onFamilySaveAll(vs: StyleVariant[]) {
+async function onFamilySaveAll(vs: DesignVariant[]) {
   variantMode.value = null
   for (const v of vs) {
     try {
-      await designApi.create({ name: v.pattern, coverUrl: printImageUrl.value || undefined })
+      const cover = v.cover ? await compressDataURL(v.cover, 360) : undefined
+      await designApi.create({ name: v.printName, coverUrl: cover })
     } catch {
-      /* 忽略 */
+      /* 忽略单个失败 */
     }
   }
-  alert('亲子套装已保存到我的设计')
+  showToast('亲子套装已保存到我的设计')
 }
 function onShared(target: string) {
   shareOpen.value = false
-  alert(`已分享到${target}`)
+  showToast(`已分享到${target}`)
 }
 </script>
 
@@ -169,5 +225,26 @@ function onShared(target: string) {
   display: flex;
   height: calc(100vh - 64px);
   overflow: hidden;
+}
+.editor-toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(43, 31, 20, 0.9);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  z-index: 400;
+}
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.25s, transform 0.25s;
+}
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 10px);
 }
 </style>

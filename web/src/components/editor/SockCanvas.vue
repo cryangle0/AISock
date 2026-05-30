@@ -1,8 +1,8 @@
 <template>
   <div class="canvas-wrap">
-    <!-- 顶部：袜型选择 -->
+    <!-- 顶部：袜型选择 + 提示 -->
     <div class="canvas-toolbar">
-      <div class="sock-select" @click="sockMenuOpen = !sockMenuOpen">
+      <div class="sock-select" @click.stop="sockMenuOpen = !sockMenuOpen">
         <span class="sock-current">{{ currentSock.name }}</span>
         <span class="sock-caret">▾</span>
         <div v-if="sockMenuOpen" class="sock-menu" @click.stop>
@@ -17,113 +17,162 @@
           </button>
         </div>
       </div>
-      <span class="canvas-hint">单击袜版区域可定位颜色</span>
+      <span v-if="resources.ready && resources.meta.count" class="canvas-meta">
+        可印区域 {{ resources.meta.count.toLocaleString() }} px · 单击袜版定位颜色
+      </span>
     </div>
 
-    <!-- 袜版预览 -->
+    <!-- 袜版预览（真实 canvas 合成） -->
     <div
       class="canvas-stage"
-      :class="{ dragover: isDragover }"
+      :class="{ dragover: isDragover, clickable: true }"
       @dragover.prevent="isDragover = true"
-      @dragleave="isDragover = false"
-      @drop="onDrop"
+      @dragleave="onDragLeave"
+      @drop.prevent="onDrop"
+      @click="onCanvasClick"
     >
-      <svg viewBox="0 0 480 640" class="sock-svg">
-        <defs>
-          <clipPath id="sock-body-clip">
-            <path :d="sockPath" />
-          </clipPath>
-          <pattern v-if="printPatternId" id="sock-print" patternUnits="userSpaceOnUse" :width="patternTile" :height="patternTile" :patternTransform="`rotate(${params.rotation})`">
-            <rect :width="patternTile" :height="patternTile" :fill="patternBg" />
-            <circle :cx="patternTile / 2" :cy="patternTile / 2" :r="patternTile / 4" :fill="patternFg" />
-          </pattern>
-        </defs>
+      <canvas ref="canvasEl" class="sock-canvas" />
 
-        <g clip-path="url(#sock-body-clip)">
-          <!-- 底色分区 -->
-          <rect x="100" y="60" width="280" height="44" :fill="weltColor" />
-          <rect x="100" y="104" width="280" height="56" :fill="cuffColor" />
-          <rect x="100" y="160" width="280" height="320" :fill="bodyColor" />
-          <rect x="100" y="478" width="280" height="120" :fill="toeColor" />
-          <!-- 印花覆盖 body 区 -->
-          <image v-if="printImageUrl" :href="printImageUrl" x="100" y="160" width="280" height="320" preserveAspectRatio="xMidYMid slice" :transform="`rotate(${params.rotation} 240 320)`" :style="{ opacity: 1 }" />
-          <rect v-else-if="printPatternId" x="100" y="160" width="280" height="320" fill="url(#sock-print)" />
-        </g>
+      <div v-if="!resources.ready" class="canvas-loading">
+        <div class="spinner" />
+        <span>正在加载袜版…</span>
+      </div>
 
-        <!-- 区域可点击热区 -->
-        <g class="regions" fill="transparent">
-          <rect x="100" y="60" width="280" height="44" @click="clickRegion('welt')" />
-          <rect x="100" y="104" width="280" height="56" @click="clickRegion('welt')" />
-          <rect x="100" y="160" width="280" height="320" @click="clickRegion('body')" />
-          <rect x="100" y="478" width="280" height="120" @click="clickRegion('toe')" />
-        </g>
-
-        <!-- 袜版轮廓 -->
-        <path :d="sockPath" fill="none" stroke="rgba(43,31,20,0.18)" stroke-width="2" />
-      </svg>
-
-      <div v-if="!printImageUrl && !printPatternId" class="drop-hint">
+      <div v-else-if="!hasPrint" class="drop-hint">
         <div class="drop-icon">🧦</div>
         <p>把花型拖到这里</p>
-        <small>从左侧花型库拖入，或点右侧「上传印花」</small>
+        <small>从左侧素材库 / AI 结果拖入，或点右侧「上传印花」</small>
+      </div>
+
+      <div v-if="isDragover" class="drop-mask">
+        <div class="drop-pill">松开应用为印花</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { SOCK_TYPES, PATTERN_LIST } from '@/data/editor'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { SOCK_TYPES } from '@/data/editor'
+import { useSockResources, renderSock, hitTestRegion, loadImage, type SockColors, type SockParams, type SockResources } from '@/engine'
 
 const props = defineProps<{
   sockTypeId: string
   printImageUrl: string | null
-  printPatternId: string | null
-  params: { density: number; rotation: number; singleMode: boolean }
-  colors: { bodyHex: string | null; weltHex: string | null; heelHex: string | null; toeHex: string | null }
+  params: SockParams
+  colors: SockColors
 }>()
 
 const emit = defineEmits<{
   'update:sockTypeId': [id: string]
   regionClick: [region: string]
-  dropPattern: [patternId: string, name: string]
   dropImage: [url: string, name: string]
+  resourceReady: [res: SockResources]
 }>()
 
 const sockTypes = SOCK_TYPES
 const sockMenuOpen = ref(false)
 const isDragover = ref(false)
+const canvasEl = ref<HTMLCanvasElement | null>(null)
+const patternImg = ref<HTMLImageElement | null>(null)
 
-const sockPath =
-  'M100 60 L380 60 L380 380 Q380 420 360 442 L228 574 Q210 592 188 592 L120 592 Q100 592 100 572 Z'
+const sockTypeRef = computed(() => props.sockTypeId)
+const { resources } = useSockResources(sockTypeRef)
 
 const currentSock = computed(() => sockTypes.find((s) => s.id === props.sockTypeId) || sockTypes[0])
+const hasPrint = computed(() => !!props.printImageUrl)
 
-const DEFAULT_BG = '#efe4cc'
-const bodyColor = computed(() => props.colors.bodyHex || DEFAULT_BG)
-const weltColor = computed(() => props.colors.weltHex || '#d9c8a8')
-const cuffColor = computed(() => props.colors.weltHex || '#e3d3b3')
-const toeColor = computed(() => props.colors.toeHex || props.colors.heelHex || '#d9c8a8')
+function draw() {
+  if (!resources.value.ready || !canvasEl.value) return
+  renderSock(canvasEl.value, resources.value, patternImg.value, props.colors, props.params)
+}
 
-const patternDef = computed(() => PATTERN_LIST.find((p) => p.id === props.printPatternId))
-const patternBg = computed(() => patternDef.value?.bg || '#fff')
-const patternFg = computed(() => patternDef.value?.fg || '#d4376b')
-const patternTile = computed(() => (props.params.singleMode ? 280 : Math.max(20, 280 / props.params.density * 30)))
+// 资源就绪：设置画布尺寸 + 通知外部 + 首绘
+watch(
+  () => resources.value.ready,
+  (ready) => {
+    if (!ready || !canvasEl.value) return
+    canvasEl.value.width = resources.value.meta.width
+    canvasEl.value.height = resources.value.meta.height
+    emit('resourceReady', resources.value)
+    draw()
+  },
+  { immediate: true },
+)
+
+// 印花变化：加载后重绘
+watch(
+  () => props.printImageUrl,
+  async (url) => {
+    patternImg.value = await loadImage(url)
+    draw()
+  },
+  { immediate: true },
+)
+
+// 颜色 / 参数变化：直接重绘
+watch(() => [props.colors, props.params], draw, { deep: true })
 
 function selectSock(id: string) {
   emit('update:sockTypeId', id)
   sockMenuOpen.value = false
 }
-function clickRegion(region: string) {
-  emit('regionClick', region)
+
+function onCanvasClick(e: MouseEvent) {
+  const canvas = canvasEl.value
+  if (!canvas || !resources.value.ready) return
+  const rect = canvas.getBoundingClientRect()
+  const x = ((e.clientX - rect.left) / rect.width) * canvas.width
+  const y = ((e.clientY - rect.top) / rect.height) * canvas.height
+  const region = hitTestRegion(resources.value, x, y)
+  if (region) emit('regionClick', region)
 }
+
+function onDragLeave(e: DragEvent) {
+  if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) return
+  isDragover.value = false
+}
+
 function onDrop(e: DragEvent) {
   isDragover.value = false
-  const patternId = e.dataTransfer?.getData('application/x-aisock-pattern')
+  const file = e.dataTransfer?.files?.[0]
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader()
+    reader.onload = (ev) => emit('dropImage', ev.target?.result as string, file.name.replace(/\.[^.]+$/, ''))
+    reader.readAsDataURL(file)
+    return
+  }
   const imageUrl = e.dataTransfer?.getData('application/x-aisock-image')
+  const patternId = e.dataTransfer?.getData('application/x-aisock-pattern')
   const name = e.dataTransfer?.getData('application/x-aisock-name') || ''
-  if (patternId) emit('dropPattern', patternId, name)
-  else if (imageUrl) emit('dropImage', imageUrl, name)
+  if (imageUrl) emit('dropImage', imageUrl, name)
+  else if (patternId) emit('dropImage', `pattern:${patternId}`, name)
+}
+
+// 暴露给父组件：取快照 / 下载
+function getDataURL(): string {
+  try {
+    return canvasEl.value?.toDataURL('image/png') || ''
+  } catch {
+    return ''
+  }
+}
+function download(filename = `袜版印花_${Date.now()}.png`) {
+  const url = getDataURL()
+  if (!url) return
+  const link = document.createElement('a')
+  link.download = filename
+  link.href = url
+  link.click()
+}
+defineExpose({ getDataURL, download })
+
+function closeMenu() {
+  sockMenuOpen.value = false
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', closeMenu)
+  onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 }
 </script>
 
@@ -179,6 +228,7 @@ function onDrop(e: DragEvent) {
   background: transparent;
   border-radius: 8px;
   text-align: left;
+  cursor: pointer;
 }
 .sock-opt:hover {
   background: var(--bg-hover);
@@ -197,7 +247,7 @@ function onDrop(e: DragEvent) {
   font-size: 11px;
   color: var(--text-3);
 }
-.canvas-hint {
+.canvas-meta {
   font-size: 12px;
   color: var(--text-3);
 }
@@ -210,32 +260,70 @@ function onDrop(e: DragEvent) {
   padding: 20px;
   transition: background 0.15s;
 }
+.canvas-stage.clickable {
+  cursor: pointer;
+}
 .canvas-stage.dragover {
   background: var(--primary-soft);
 }
-.sock-svg {
-  height: 100%;
+.sock-canvas {
   max-height: 540px;
+  max-width: 100%;
+  height: auto;
   width: auto;
+  object-fit: contain;
 }
-.regions rect {
-  cursor: pointer;
-}
+.canvas-loading,
 .drop-hint {
   position: absolute;
   text-align: center;
   color: var(--text-3);
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .drop-icon {
   font-size: 48px;
 }
 .drop-hint p {
   font-size: 14px;
-  margin-top: 8px;
   color: var(--text-2);
 }
 .drop-hint small {
   font-size: 12px;
+}
+.drop-mask {
+  position: absolute;
+  inset: 12px;
+  border: 2px dashed var(--primary);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(148, 109, 96, 0.08);
+  pointer-events: none;
+}
+.drop-pill {
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
 }
 </style>

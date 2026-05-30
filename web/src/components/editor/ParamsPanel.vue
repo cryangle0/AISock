@@ -30,6 +30,14 @@
         <button :class="{ active: params.singleMode }" @click="up('singleMode', true)">单张</button>
         <button :class="{ active: !params.singleMode }" @click="up('singleMode', false)">平铺</button>
       </div>
+      <div v-if="!params.singleMode" class="slider-row" :class="{ disabled: !hasPrint }">
+        <div class="slider-head"><span>平铺密度</span><span class="sv">{{ params.tileDensity }}×</span></div>
+        <input type="range" min="2" max="8" :value="params.tileDensity" :disabled="!hasPrint" @input="up('tileDensity', +($event.target as HTMLInputElement).value)" />
+      </div>
+      <label class="debug-toggle">
+        <input type="checkbox" :checked="params.debugMode" @change="up('debugMode', ($event.target as HTMLInputElement).checked)" />
+        <span>查看可印蒙版（调试）</span>
+      </label>
     </section>
 
     <!-- 颜色 -->
@@ -95,21 +103,22 @@ import { computed, ref } from 'vue'
 import BaseColorPicker from './BaseColorPicker.vue'
 import PatternSwatch from '@/components/PatternSwatch.vue'
 import { COLOR_PALETTES } from '@/data/editor'
+import type { SockColors, SockParams } from '@/engine'
 
 const props = defineProps<{
   printImageUrl: string | null
   printPatternId: string | null
   printName: string
-  params: { density: number; rotation: number; singleMode: boolean }
-  colors: { bodyHex: string | null; weltHex: string | null; heelHex: string | null; toeHex: string | null }
+  params: SockParams
+  colors: SockColors
   paletteId: string | null
   paletteStrength: number
   activeRegion: string | null
 }>()
 
 const emit = defineEmits<{
-  'update:params': [v: typeof props.params]
-  'update:colors': [v: typeof props.colors]
+  'update:params': [v: SockParams]
+  'update:colors': [v: SockColors]
   'update:paletteId': [v: string | null]
   'update:paletteStrength': [v: number]
   uploadFile: [file: File]
@@ -274,6 +283,18 @@ function onFileChange(e: Event) {
   color: var(--primary);
   border-color: var(--primary);
   font-weight: 600;
+}
+.debug-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.debug-toggle input {
+  accent-color: var(--primary);
 }
 .palette-list {
   display: flex;
