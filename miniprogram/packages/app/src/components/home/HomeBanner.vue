@@ -1,7 +1,7 @@
 <template>
   <view class="banner" @tap="$emit('tap')">
     <view class="banner-left">
-      <view class="banner-cn">敦<text class="br" />煌<text class="br" />梦</view>
+      <view class="banner-cn">敦<text class="banner-br" />煌<text class="banner-br" />梦</view>
       <view class="banner-en">DUN HUANG DREAM</view>
     </view>
     <text class="banner-tag">千年壁画艺术之旅</text>
@@ -44,7 +44,7 @@ defineEmits<{ tap: [] }>()
   line-height: 1.08;
   font-family: $mp-font-art;
 }
-.banner-cn .br {
+.banner-br {
   display: block;
   height: 0;
 }

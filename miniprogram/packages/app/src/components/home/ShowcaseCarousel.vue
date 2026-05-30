@@ -15,7 +15,7 @@
           <view class="deer-head" :style="{ background: mainColor(d) }" />
         </view>
         <view class="title-vertical">
-          <text v-for="(ch, k) in titleChars(d)" :key="k">{{ ch }}</text>
+          <text v-for="(ch, k) in titleChars(d)" :key="k" class="tv-char">{{ ch }}</text>
         </view>
       </view>
     </view>
@@ -146,7 +146,7 @@ function onTap(i: number, d: ConfigItem) {
   flex-direction: column;
   gap: 4rpx;
 }
-.title-vertical text {
+.tv-char {
   font-size: 32rpx;
   font-weight: 800;
   color: #c5483c;
