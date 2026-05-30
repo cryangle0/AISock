@@ -51,11 +51,12 @@ const AUTH_WHITELIST = new Set<string>([
   '/api/v1/app/feed',
   '/api/v1/app/feed/news',
   '/api/v1/app/feed/faq',
+  '/api/v1/app/config/home', // 小程序首页运营配置（访客可读）
   '/api/v1/app/pay/notify', // 微信支付回调（验签替代鉴权）
   '/api/v1/admin/auth/login',
 ])
 
-const AUTH_WHITELIST_PREFIX = ['/api/v1/app/socks/', '/api/v1/app/patterns/', '/api/v1/app/feed/']
+const AUTH_WHITELIST_PREFIX = ['/api/v1/app/socks/', '/api/v1/app/patterns/', '/api/v1/app/feed/', '/api/v1/app/config/']
 
 function isWhitelisted(path: string): boolean {
   if (AUTH_WHITELIST.has(path)) return true

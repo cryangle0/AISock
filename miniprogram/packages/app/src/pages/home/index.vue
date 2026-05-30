@@ -19,7 +19,7 @@
         <text class="section-en">Select theme</text>
       </view>
       <view class="theme-grid">
-        <view v-for="t in themes" :key="t.id" class="theme-card" :style="{ background: t.bg }" @tap="goFeed">
+        <view v-for="t in themes" :key="t.id" class="theme-card" :style="{ background: t.bg }" @tap="go(t.link || '/pages/feed/index')">
           <text class="theme-cn">{{ t.title }}</text>
           <text class="theme-en">{{ t.en }}</text>
         </view>
@@ -37,23 +37,17 @@
           :key="d.id"
           class="showcase-card"
           :style="{ background: d.bg }"
-          @tap="goEditor"
+          @tap="go(d.link || '/pages/editor/index')"
         >
           <text class="showcase-title">{{ d.title }}</text>
         </view>
       </scroll-view>
     </view>
 
-    <!-- 快捷入口 -->
+    <!-- 快捷入口（功能区，后台可配） -->
     <view class="section quick">
-      <view class="quick-item" @tap="goEditor">
-        <text class="quick-icon">✏️</text><text>开始设计</text>
-      </view>
-      <view class="quick-item" @tap="goCart">
-        <text class="quick-icon">🛒</text><text>购物车</text>
-      </view>
-      <view class="quick-item" @tap="goDesigns">
-        <text class="quick-icon">📁</text><text>我的设计</text>
+      <view v-for="z in zones" :key="z.id" class="quick-item" @tap="goZone(z)">
+        <text class="quick-icon">{{ z.icon }}</text><text>{{ z.title }}</text>
       </view>
     </view>
 
@@ -65,46 +59,50 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { switchTab, navigateTo } from '@aisock/common/utils'
-import { catalogApi } from '@aisock/service'
+import { configApi, type ConfigItem } from '@aisock/service'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 
-// 默认主题/预设（接口无数据时兜底，保证首屏永不空白）
-const themes = [
+// 默认配置（接口无数据时兜底，保证首屏永不空白）
+const themes = ref<ConfigItem[]>([
   { id: 'jieqi', title: '二十四节气', en: 'JIE QI', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)' },
   { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)' },
   { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', bg: 'linear-gradient(135deg,#DEC38A,#C7A66E)' },
-]
+])
 
-const featured = ref([
+const featured = ref<ConfigItem[]>([
   { id: 'd1', title: '敦煌九色鹿', bg: 'linear-gradient(180deg,#C8B89A,#d4b796)' },
   { id: 'd2', title: '飞天乐舞', bg: 'linear-gradient(180deg,#A8C4B0,#d4b796)' },
   { id: 'd3', title: '千手观音', bg: 'linear-gradient(180deg,#D6A87A,#d4b796)' },
 ])
 
-const GRADIENTS = [
-  'linear-gradient(180deg,#C8B89A,#d4b796)',
-  'linear-gradient(180deg,#A8C4B0,#d4b796)',
-  'linear-gradient(180deg,#D6A87A,#d4b796)',
-  'linear-gradient(180deg,#B9A0C9,#d4b796)',
-]
+const zones = ref<ConfigItem[]>([
+  { id: 'editor', icon: '✏️', title: '开始设计', link: '/pages/editor/index' },
+  { id: 'cart', icon: '🛒', title: '购物车', link: '/pages/cart/index' },
+  { id: 'designs', icon: '📁', title: '我的设计', link: '/pages/designs/index' },
+])
 
-// 拉取推荐流作为"袜版设计预设"展示（有真实数据则覆盖兜底）
+// 拉取后台运营配置（有数据则覆盖兜底，约 1 分钟生效）
 onShow(async () => {
   try {
-    const res = await catalogApi.listFeed()
-    const items = (res.data || []).filter((a) => a.kind === 'theme' || a.kind === 'series').slice(0, 6)
-    if (items.length) {
-      featured.value = items.map((a, i) => ({ id: String(a.id), title: a.title, bg: GRADIENTS[i % GRADIENTS.length] }))
-    }
+    const res = await configApi.getHomeConfig()
+    const { themes: t, zones: z, cases: c } = res.data || {}
+    if (t?.length) themes.value = t
+    if (z?.length) zones.value = z
+    if (c?.length) featured.value = c
   } catch {
     /* 保留兜底 */
   }
 })
 
+const TAB_PATHS = new Set(['/pages/home/index', '/pages/feed/index', '/pages/editor/index', '/pages/cart/index', '/pages/mine/index'])
+function go(link?: string) {
+  if (!link) return
+  if (TAB_PATHS.has(link)) switchTab(link)
+  else navigateTo(link)
+}
 const goFeed = () => switchTab('/pages/feed/index')
 const goEditor = () => switchTab('/pages/editor/index')
-const goCart = () => switchTab('/pages/cart/index')
-const goDesigns = () => navigateTo('/pages/designs/index')
+const goZone = (z: ConfigItem) => go(z.link || '/pages/editor/index')
 </script>
 
 <style scoped lang="scss">

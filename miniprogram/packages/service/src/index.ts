@@ -6,6 +6,7 @@ export * as orderApi from './order.js'
 export * as aiApi from './ai.js'
 export * as userApi from './user.js'
 export * as uploadApi from './upload.js'
+export * as configApi from './config.js'
 
 // 类型导出（供页面/组件复用）
 export type { CreateOrderInput, PrepayResult, Shipment } from './order.js'
@@ -13,3 +14,4 @@ export type { SaveDesignInput } from './design.js'
 export type { StyleVariant } from './ai.js'
 export type { Article } from './catalog.js'
 export type { UploadResult } from './upload.js'
+export type { HomeConfig, ConfigItem } from './config.js'
