@@ -1,7 +1,7 @@
 <template>
   <view class="home">
     <!-- 1. 棕色品牌带：品牌行 + 敦煌梦 banner -->
-    <view class="brand-band">
+    <view class="brand-band" :style="{ paddingTop: statusBarHeight + 'px' }">
       <text class="brand">爱花型 · 袜稿设计</text>
       <HomeBanner @tap="goFeed" />
     </view>
@@ -40,6 +40,14 @@ import CustomTabBar from '@/components/CustomTabBar.vue'
 import HomeBanner from '@/components/home/HomeBanner.vue'
 import ThemeCard from '@/components/home/ThemeCard.vue'
 import ShowcaseCarousel from '@/components/home/ShowcaseCarousel.vue'
+
+// 自定义导航栏：顶部留出状态栏高度，避免品牌带被状态栏/胶囊按钮遮挡
+const statusBarHeight = ref(20)
+try {
+  statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight || 20
+} catch {
+  /* 取不到时用默认 20 */
+}
 
 // 默认配置（接口无数据时兜底，保证首屏永不空白）
 const themes = ref<ConfigItem[]>([
