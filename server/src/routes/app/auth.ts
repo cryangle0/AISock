@@ -23,16 +23,36 @@ authRouter.post('/sms-login', async (c) => {
   return ok(c, { token, user: toPublicUser(user) })
 })
 
-/** 微信登录：前端传 jscode（uni.login 获取），后端 code2session 拿 openid */
+/** 微信登录：前端传 jscode（uni.login 获取）+ 可选 phoneCode（getPhoneNumber 授权）
+ *  后端 code2session 拿 openid，并用 phoneCode 换取真实手机号一并绑定 */
 authRouter.post('/wechat-login', async (c) => {
-  const { code, openid: openidDirect, inviterId } = await c.req.json<{ code?: string; openid?: string; inviterId?: number }>()
+  const { code, openid: openidDirect, phoneCode, inviterId } = await c.req.json<{
+    code?: string; openid?: string; phoneCode?: string; inviterId?: number
+  }>()
+
   let openid = openidDirect
+  let unionid: string | undefined
   if (!openid && code) {
     const { code2session } = await import('../../services/wechat.service.js')
-    openid = (await code2session(code)).openid
+    const sess = await code2session(code)
+    openid = sess.openid
+    unionid = sess.unionid
   }
   if (!openid) return fail(c, 'code 或 openid 不能为空')
-  const { token, user } = await wechatLogin(openid)
+
+  // 用手机号授权 code 换取真实手机号（失败不阻断登录，仅记录）
+  let phone: string | undefined
+  if (phoneCode) {
+    try {
+      const { getPhoneNumber } = await import('../../services/wechat.service.js')
+      const r = await getPhoneNumber(phoneCode)
+      phone = r.phone || undefined
+    } catch (err) {
+      console.error('[wechat-login] 获取手机号失败:', (err as Error).message)
+    }
+  }
+
+  const { token, user } = await wechatLogin(openid, { phone, unionid })
   // 邀请关系：新用户首次登录时，建立邀请关系并给双方加额度
   if (inviterId && inviterId !== user.id) {
     const { ensureInvitation } = await import('../../services/invitation.service.js')

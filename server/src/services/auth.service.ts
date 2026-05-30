@@ -65,17 +65,43 @@ export async function smsLogin(phone: string, code: string): Promise<{ token: st
   return { token, user }
 }
 
-/** 微信登录占位：用 openid 找/建用户（实际 code2session 由调用方先换 openid） */
-export async function wechatLogin(openid: string): Promise<{ token: string; user: UserRow }> {
+/** 微信登录：用 openid 找/建用户；若同时拿到真实手机号则绑定/合并账号 */
+export async function wechatLogin(
+  openid: string,
+  opts?: { phone?: string; unionid?: string },
+): Promise<{ token: string; user: UserRow }> {
+  const phone = opts?.phone || null
+  const unionid = opts?.unionid || null
+
+  // 1) 先按 openid 查
   let user = await queryOne<UserRow>('SELECT * FROM `user` WHERE openid = ?', [openid])
+
+  // 2) openid 没有，但拿到了手机号：尝试用手机号合并已有账号（短信登录过的用户）
+  if (!user && phone) {
+    const byPhone = await queryOne<UserRow>('SELECT * FROM `user` WHERE phone = ?', [phone])
+    if (byPhone) {
+      await execute('UPDATE `user` SET openid = ?, unionid = COALESCE(unionid, ?) WHERE id = ?', [openid, unionid, byPhone.id])
+      user = await queryOne<UserRow>('SELECT * FROM `user` WHERE id = ?', [byPhone.id])
+    }
+  }
+
+  // 3) 仍没有：新建用户（带上手机号/unionid）
   if (!user) {
     const result = await execute(
-      'INSERT INTO `user` (openid, nickname) VALUES (?, ?)',
-      [openid, '微信用户'],
+      'INSERT INTO `user` (openid, unionid, phone, nickname) VALUES (?, ?, ?, ?)',
+      [openid, unionid, phone, '微信用户'],
     )
     user = await queryOne<UserRow>('SELECT * FROM `user` WHERE id = ?', [result.insertId])
+  } else if (phone && !user.phone) {
+    // 4) 已有 openid 用户但还没手机号：补绑真实手机号
+    await execute('UPDATE `user` SET phone = ? WHERE id = ?', [phone, user.id])
+    user = await queryOne<UserRow>('SELECT * FROM `user` WHERE id = ?', [user.id])
   }
+
   if (!user) throw new Error('用户创建失败')
+  if (user.status !== 1) {
+    throw Object.assign(new Error('账号已被禁用'), { status: 403 })
+  }
   const token = await issueToken(user.id, 'user')
   return { token, user }
 }

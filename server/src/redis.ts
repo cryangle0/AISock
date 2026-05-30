@@ -38,4 +38,5 @@ export const CacheKey = {
   USER_INFO: 'as:user:info:',
   AI_QUOTA: 'as:ai:quota:', // 每日免费生图次数
   RATE_LIMIT: 'as:rate:',
+  WX_ACCESS_TOKEN: 'as:wx:access_token', // 小程序全局 access_token
 } as const

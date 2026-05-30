@@ -70,24 +70,27 @@ async function onLogin() {
   goBackOrHome()
 }
 
-async function onWechat() {
-  // 真机：uni.login 拿 code → 后端 code2session 换 openid
-  uni.login({
-    provider: 'weixin',
-    success: async (res) => {
-      try {
-        await userStore.loginByWechatCode(res.code)
-        goBackOrHome()
-      } catch {
-        /* 拦截器已提示 */
-      }
-    },
-    fail: async () => {
-      // 取不到 code（如 H5 调试）时兜底
-      await userStore.loginByWechat(`wx_${Date.now()}`)
-      goBackOrHome()
-    },
+function uniLogin(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    uni.login({
+      provider: 'weixin',
+      success: (res) => (res.code ? resolve(res.code) : reject(new Error('no code'))),
+      fail: () => reject(new Error('login fail')),
+    })
   })
+}
+
+// 微信登录（纯 openid）：uni.login 拿 code → 后端 code2session 换 openid（手机号走短信登录）
+async function onWechat() {
+  try {
+    const loginCode = await uniLogin()
+    await userStore.loginByWechatCode(loginCode)
+    goBackOrHome()
+  } catch {
+    // 取不到 code（如 H5 调试）时兜底
+    await userStore.loginByWechat(`wx_${Date.now()}`)
+    goBackOrHome()
+  }
 }
 
 function goBackOrHome() {
