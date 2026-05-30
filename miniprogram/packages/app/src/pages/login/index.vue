@@ -1,7 +1,7 @@
 <template>
   <view class="login">
     <view class="hero">
-      <view class="logo">爱</view>
+      <image class="logo" src="/static/logo.png" mode="aspectFit" />
       <text class="brand">爱花型</text>
       <text class="slogan">创意由你，花型随心</text>
     </view>
@@ -118,16 +118,13 @@ function goBackOrHome() {
   margin-bottom: 48rpx;
 }
 .logo {
-  width: 110rpx;
-  height: 110rpx;
+  width: 120rpx;
+  height: 120rpx;
   border-radius: 28rpx;
-  background: linear-gradient(135deg, #a06d36, #8c5a3c);
-  color: #fff;
-  font-size: 52rpx;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #fffcf6;
+  padding: 10rpx;
+  box-sizing: border-box;
+  box-shadow: 0 8rpx 24rpx rgba(94, 60, 30, 0.16);
 }
 .brand {
   margin-top: 20rpx;

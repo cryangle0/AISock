@@ -2,7 +2,10 @@
   <view class="home">
     <!-- 1. 棕色品牌带：品牌行 + 敦煌梦 banner -->
     <view class="brand-band" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <text class="brand">爱花型 · 袜稿设计</text>
+      <view class="brand-row">
+        <image class="brand-logo" src="/static/logo.png" mode="aspectFit" />
+        <text class="brand">爱花型 · 袜稿设计</text>
+      </view>
       <HomeBanner @tap="goFeed" />
     </view>
 
@@ -99,16 +102,28 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/in
   background: #946c5f;
   padding: 0 0 28rpx;
 }
-.brand {
-  display: block;
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   padding: 28rpx 36rpx 20rpx;
+}
+.brand-logo {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 252, 246, 0.92);
+  padding: 4rpx;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.brand {
   font-size: 30rpx;
   font-weight: 700;
   color: #fffcf6;
   letter-spacing: 0.04em;
   font-family: $mp-font-art;
 }
-
 .section {
   padding: 28rpx 32rpx 0;
 }
