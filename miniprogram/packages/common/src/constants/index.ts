@@ -1,5 +1,5 @@
-/** API 基础地址（按环境替换） */
-export const API_BASE_URL = 'http://127.0.0.1:8199'
+/** API 基础地址：生产指向线上后端；本地联调可临时改回 http://127.0.0.1:8199 */
+export const API_BASE_URL = 'https://onnsa.cn/aisock-api'
 
 /** 本地存储 key */
 export const STORAGE_KEYS = {
