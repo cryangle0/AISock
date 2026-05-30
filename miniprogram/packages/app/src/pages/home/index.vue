@@ -27,14 +27,6 @@
       <ShowcaseCarousel :items="featured" @select="onFeatured" />
     </view>
 
-    <!-- 4. 快捷功能区（后台可配） -->
-    <view class="section zones">
-      <view v-for="z in zones" :key="z.id" class="zone-item" @tap="goZone(z)">
-        <text class="zone-icon">{{ z.icon }}</text>
-        <text class="zone-label">{{ z.title }}</text>
-      </view>
-    </view>
-
     <custom-tab-bar current="home" />
   </view>
 </template>
@@ -60,18 +52,12 @@ const featured = ref<ConfigItem[]>([
   { id: 'd2', title: '飞天乐舞', mainColor: '#A8C4B0', accent: '#5a8a7d' },
   { id: 'd3', title: '千手观音', mainColor: '#D6A87A', accent: '#A05A3C' },
 ])
-const zones = ref<ConfigItem[]>([
-  { id: 'editor', icon: '✏️', title: '开始设计', link: '/pages/editor/index' },
-  { id: 'cart', icon: '🛒', title: '购物车', link: '/pages/cart/index' },
-  { id: 'designs', icon: '📁', title: '我的设计', link: '/pages/designs/index' },
-])
 
 onShow(async () => {
   try {
     const res = await configApi.getHomeConfig()
-    const { themes: t, zones: z, cases: c } = res.data || {}
+    const { themes: t, cases: c } = res.data || {}
     if (t?.length) themes.value = t
-    if (z?.length) zones.value = z
     if (c?.length) featured.value = c
   } catch {
     /* 保留兜底 */
@@ -89,7 +75,6 @@ function go(link?: string) {
 const goFeed = () => switchTab('/pages/feed/index')
 const onTheme = (t: ConfigItem) => go(t.link || '/pages/feed/index')
 const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/index')
-const goZone = (z: ConfigItem) => go(z.link || '/pages/editor/index')
 </script>
 
 <style scoped lang="scss">
@@ -147,30 +132,5 @@ const goZone = (z: ConfigItem) => go(z.link || '/pages/editor/index')
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
-}
-
-/* 功能区 */
-.zones {
-  display: flex;
-  gap: 16rpx;
-}
-.zone-item {
-  flex: 1;
-  background: $mp-bg-card;
-  border: 1rpx solid $mp-border;
-  border-radius: 24rpx;
-  padding: 28rpx 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
-  box-shadow: $mp-shadow-sm;
-}
-.zone-icon {
-  font-size: 44rpx;
-}
-.zone-label {
-  font-size: 24rpx;
-  color: $mp-text-secondary;
 }
 </style>
