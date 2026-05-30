@@ -1,22 +1,56 @@
-// 敦煌主题变量
+// ─────────────────────────────────────────────
+// 敦煌主题 token —— 与原型 prototype/_palette.css 完整对齐
+// 暖米底 + 棕色 banner + 矿物质感色
+// ─────────────────────────────────────────────
+
+// 主色（深棕 - 敦煌色）
 $mp-primary: #8c5a3c;
 $mp-primary-hover: #6f4528;
-$mp-bg: #f5ede0;
-$mp-bg-card: #fffcf6;
+$mp-primary-active: #5a3a1f;
+$mp-primary-soft: rgba(140, 90, 60, 0.08); // 主色浅底（选中态）
+$mp-primary-soft-strong: rgba(140, 90, 60, 0.16);
+$mp-primary-glow: rgba(140, 90, 60, 0.22);
+
+// 辅助色（敦煌矿物质感）
+$mp-blue: #4b7bff; // 通用蓝（订单状态等）
+$mp-blue-soft: rgba(75, 123, 255, 0.12);
+$mp-purple: #9b8cff;
+$mp-purple-soft: rgba(155, 140, 255, 0.14);
+$mp-mint: #61d6c4; // 薄荷青（与原型 token 一致）
+$mp-mint-soft: rgba(97, 214, 196, 0.16);
+$mp-green: #5a8a7d; // 山水绿（装饰用）
+$mp-pink: #c5483c; // 朱砂
+$mp-pink-soft: rgba(197, 72, 60, 0.12);
+$mp-coral: #dec38a; // 沙金
+$mp-coral-soft: rgba(222, 195, 138, 0.2);
+
+// 文字层级
 $mp-text-primary: #2b1f14;
 $mp-text-secondary: #6b5a48;
 $mp-text-muted: #998975;
+$mp-text-tertiary: #b8a892;
+
+// 背景（米色暖底）
+$mp-bg: #f5ede0;
+$mp-bg-card: #fffcf6;
+$mp-bg-tint: #efe5d4;
+$mp-bg-soft: #f0e4d1;
+
+// 边框 / 分隔
 $mp-border: #e5d8c0;
-$mp-pink: #c5483c; // 朱砂
-$mp-coral: #dec38a; // 沙金
-$mp-mint: #5a8a7d; // 山水绿
+$mp-border-strong: #c9b89a;
+$mp-divider: #ebe0ce;
 
-// 衍生色（供组件统一引用，避免散落硬编码）
-$mp-primary-soft: rgba(140, 90, 60, 0.12); // 主色浅底（选中态）
-$mp-coral-soft: rgba(222, 195, 138, 0.18); // 沙金浅底
-$mp-divider: #efe6d6; // 分隔线
-$mp-text-tertiary: #b3a690; // 三级文字（更浅）
+// 阴影
+$mp-shadow-sm: 0 4rpx 16rpx rgba(94, 60, 30, 0.05);
+$mp-shadow-md: 0 12rpx 36rpx rgba(94, 60, 30, 0.1);
+$mp-shadow-lg: 0 32rpx 72rpx rgba(94, 60, 30, 0.18);
 
-$mp-radius-sm: 8rpx;
-$mp-radius-md: 16rpx;
-$mp-radius-lg: 24rpx;
+// 圆角（rpx，与原型 6/10/14/18px 等比）
+$mp-radius-sm: 12rpx;
+$mp-radius-md: 20rpx;
+$mp-radius-lg: 28rpx;
+$mp-radius-xl: 36rpx;
+
+// 艺术字体（敦煌风格标题/品牌）
+$mp-font-art: 'ZCOOL KuaiLe', -apple-system, 'PingFang SC', sans-serif;

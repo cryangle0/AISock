@@ -24,16 +24,16 @@
 
     <view class="list">
       <view class="list-item" @tap="goDesigns">
-        <text class="list-icon">📁</text><text class="list-label">我的设计</text><text class="arrow">›</text>
+        <view class="list-icon">📁</view><text class="list-label">我的设计</text><text class="list-extra">{{ overview.designs }} 个袜版</text><text class="arrow">›</text>
       </view>
       <view class="list-item" @tap="goOrders">
-        <text class="list-icon">📦</text><text class="list-label">订单管理</text><text class="arrow">›</text>
+        <view class="list-icon">📦</view><text class="list-label">订单管理</text><text class="list-extra">{{ orderTotal }} 个订单</text><text class="arrow">›</text>
       </view>
       <view class="list-item" @tap="goAssets">
-        <text class="list-icon">🎨</text><text class="list-label">素材库</text><text class="arrow">›</text>
+        <view class="list-icon">🎨</view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text><text class="arrow">›</text>
       </view>
       <view class="list-item disabled">
-        <text class="list-icon">⚙️</text><text class="list-label">设置</text><text class="arrow">›</text>
+        <view class="list-icon">⚙️</view><text class="list-label">设置</text><text class="list-extra">账号、通知</text><text class="arrow">›</text>
       </view>
     </view>
 
@@ -100,9 +100,11 @@ async function onLogout() {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  background: $mp-bg-card;
+  background:
+    radial-gradient(240rpx 160rpx at 90% 0%, $mp-coral-soft, transparent 70%),
+    $mp-bg-card;
   border: 1rpx solid $mp-border;
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   padding: 28rpx;
 }
 .avatar {
@@ -187,8 +189,8 @@ async function onLogout() {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 28rpx;
-  border-bottom: 1rpx solid $mp-border;
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid $mp-divider;
 }
 .list-item:last-child {
   border-bottom: none;
@@ -197,15 +199,28 @@ async function onLogout() {
   opacity: 0.5;
 }
 .list-icon {
-  font-size: 32rpx;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 14rpx;
+  background: $mp-coral-soft;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  flex-shrink: 0;
 }
 .list-label {
   flex: 1;
   font-size: 28rpx;
   color: $mp-text-primary;
 }
-.arrow {
+.list-extra {
+  font-size: 22rpx;
   color: $mp-text-muted;
+  margin-right: 8rpx;
+}
+.arrow {
+  color: $mp-text-tertiary;
 }
 .footer {
   display: block;
