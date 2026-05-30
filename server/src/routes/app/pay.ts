@@ -6,6 +6,7 @@ import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import { queryOne } from '../../db.js'
 import { createPrepay, handlePaidNotify } from '../../services/wxpay.service.js'
+import { decryptNotify } from '../../services/wxpay/signer.js'
 
 export const payRouter = new Hono()
 
@@ -40,18 +41,34 @@ payRouter.post('/prepay', async (c) => {
 })
 
 /**
- * 微信回调（生产）：application/json + AEAD-AES-256-GCM 解密
- * 真机集成时验签 → 解密 → 调 handlePaidNotify
+ * 微信回调（生产）：application/json + AEAD-AES-256-GCM 解密。
+ * 微信要求返回 { code: 'SUCCESS' } 才视为接收成功，否则会重试。
  */
 payRouter.post('/notify', async (c) => {
-  // 生产：验证 Wechatpay-Signature + AEAD 解密 c.req.json() 得 resource
-  // 这里仅留 hook，dev 不会被微信回调
-  const body = await c.req.json().catch(() => ({}))
-  const outTradeNo = (body as { out_trade_no?: string }).out_trade_no || ''
-  const transactionId = (body as { transaction_id?: string }).transaction_id || null
-  if (!outTradeNo) return c.json({ code: 'FAIL', message: 'invalid' }, 400)
-  await handlePaidNotify(outTradeNo, transactionId)
-  return c.json({ code: 'SUCCESS', message: 'OK' })
+  try {
+    const body = await c.req.json<{
+      resource?: { ciphertext?: string; nonce?: string; associated_data?: string }
+    }>()
+    const res = body.resource
+    if (res?.ciphertext && res.nonce) {
+      // 真实回调：AEAD 解密
+      const plain = decryptNotify(res.ciphertext, res.nonce, res.associated_data || '')
+      const decoded = JSON.parse(plain) as { out_trade_no?: string; transaction_id?: string; trade_state?: string }
+      if (decoded.out_trade_no && decoded.trade_state === 'SUCCESS') {
+        await handlePaidNotify(decoded.out_trade_no, decoded.transaction_id || null)
+      }
+      return c.json({ code: 'SUCCESS', message: 'OK' })
+    }
+    // 兼容明文（部分调试网关）
+    const outTradeNo = (body as { out_trade_no?: string }).out_trade_no || ''
+    const transactionId = (body as { transaction_id?: string }).transaction_id || null
+    if (!outTradeNo) return c.json({ code: 'FAIL', message: 'invalid' }, 400)
+    await handlePaidNotify(outTradeNo, transactionId)
+    return c.json({ code: 'SUCCESS', message: 'OK' })
+  } catch (err: any) {
+    console.warn(`[wxpay] 回调处理失败: ${err?.message || err}`)
+    return c.json({ code: 'FAIL', message: 'decrypt error' }, 500)
+  }
 })
 
 /** dev 模式：前端调用 mock 完成支付（生产不应可用） */

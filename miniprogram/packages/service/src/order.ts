@@ -42,6 +42,7 @@ export function updateOrder(id: number, patch: { remark?: string; address?: stri
 export interface PrepayResult {
   prepayId: string
   outTradeNo: string
+  real: boolean
   jsApi?: { timeStamp: string; nonceStr: string; package: string; signType: 'RSA'; paySign: string }
 }
 

@@ -54,7 +54,7 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { PATTERN_LIST } from '@aisock/common'
-import { catalogApi } from '@aisock/service'
+import { catalogApi, uploadApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import PatternThumb from '@/components/PatternThumb.vue'
 
@@ -87,13 +87,18 @@ function onUpload() {
     count: 1,
     success: async (res) => {
       const path = res.tempFilePaths[0]
-      // 真机：先 uni.uploadFile 上传到 OSS 拿 URL，再调后端。演示用本地路径兜底。
+      uni.showLoading({ title: '上传中...', mask: true })
       try {
-        await catalogApi.uploadMyPattern({ name: `素材${mine.value.length + 1}`, imageUrl: path })
-        uni.showToast({ title: '已上传', icon: 'none' })
+        // 1) 先上传到后端拿正式 URL（OSS / 本地磁盘）
+        const up = await uploadApi.uploadFile(path)
+        // 2) 再登记为我的花型素材
+        await catalogApi.uploadMyPattern({ name: `素材${mine.value.length + 1}`, imageUrl: up.url, thumbUrl: up.url })
+        uni.hideLoading()
+        uni.showToast({ title: '已上传', icon: 'success' })
         fetchMine()
-      } catch {
-        mine.value.unshift({ id: Date.now(), url: path, name: `素材${mine.value.length + 1}` })
+      } catch (e: any) {
+        uni.hideLoading()
+        uni.showToast({ title: e?.message || '上传失败', icon: 'none' })
       }
     },
   })

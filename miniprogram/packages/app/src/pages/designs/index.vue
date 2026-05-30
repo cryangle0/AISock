@@ -14,7 +14,7 @@
 
       <view class="grid">
         <view v-for="d in filtered" :key="d.id" class="card">
-          <view class="cover" @tap="goEditor">
+          <view class="cover" @tap="editDesign(d.id)">
             <image v-if="d.cover_url" :src="d.cover_url" mode="aspectFill" class="cover-img" />
             <view v-else class="cover-empty">🧦</view>
           </view>
@@ -23,7 +23,7 @@
             <text class="date">{{ (d.created_at || '').slice(0, 10) }}</text>
           </view>
           <view class="actions">
-            <view class="icon-btn" @tap="goEditor">✨</view>
+            <view class="icon-btn" @tap="editDesign(d.id)">✨</view>
             <view class="icon-btn danger" @tap="onDelete(d.id)">🗑</view>
           </view>
         </view>
@@ -61,6 +61,11 @@ async function onDelete(id: number) {
   await designApi.deleteDesign(id)
   uni.showToast({ title: '已删除', icon: 'none' })
   fetchList()
+}
+/** 编辑器是 tabBar 页不能带参，用 storage 传递待编辑 designId */
+function editDesign(id: number) {
+  uni.setStorageSync('aisock_edit_design_id', id)
+  switchTab('/pages/editor/index')
 }
 const goEditor = () => switchTab('/pages/editor/index')
 </script>

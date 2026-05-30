@@ -62,20 +62,44 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { switchTab, navigateTo } from '@aisock/common/utils'
+import { catalogApi } from '@aisock/service'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 
+// 默认主题/预设（接口无数据时兜底，保证首屏永不空白）
 const themes = [
   { id: 'jieqi', title: '二十四节气', en: 'JIE QI', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)' },
   { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)' },
   { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', bg: 'linear-gradient(135deg,#DEC38A,#C7A66E)' },
 ]
 
-const featured = [
+const featured = ref([
   { id: 'd1', title: '敦煌九色鹿', bg: 'linear-gradient(180deg,#C8B89A,#d4b796)' },
   { id: 'd2', title: '飞天乐舞', bg: 'linear-gradient(180deg,#A8C4B0,#d4b796)' },
   { id: 'd3', title: '千手观音', bg: 'linear-gradient(180deg,#D6A87A,#d4b796)' },
+])
+
+const GRADIENTS = [
+  'linear-gradient(180deg,#C8B89A,#d4b796)',
+  'linear-gradient(180deg,#A8C4B0,#d4b796)',
+  'linear-gradient(180deg,#D6A87A,#d4b796)',
+  'linear-gradient(180deg,#B9A0C9,#d4b796)',
 ]
+
+// 拉取推荐流作为"袜版设计预设"展示（有真实数据则覆盖兜底）
+onShow(async () => {
+  try {
+    const res = await catalogApi.listFeed()
+    const items = (res.data || []).filter((a) => a.kind === 'theme' || a.kind === 'series').slice(0, 6)
+    if (items.length) {
+      featured.value = items.map((a, i) => ({ id: String(a.id), title: a.title, bg: GRADIENTS[i % GRADIENTS.length] }))
+    }
+  } catch {
+    /* 保留兜底 */
+  }
+})
 
 const goFeed = () => switchTab('/pages/feed/index')
 const goEditor = () => switchTab('/pages/editor/index')

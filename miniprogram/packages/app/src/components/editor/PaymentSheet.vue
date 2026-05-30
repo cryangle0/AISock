@@ -33,10 +33,9 @@
 
     <!-- 支付中 -->
     <view v-else-if="phase === 'paying'" class="paying">
-      <text class="paying-name">{{ methodLabel }} 扫码支付</text>
-      <view class="qr">⬛</view>
+      <view class="spinner" />
       <text class="paying-amt">¥ {{ total.toFixed(2) }}</text>
-      <text class="paying-tip">正在等待支付确认（演示模式 · 自动完成）</text>
+      <text class="paying-tip">{{ payingTip }}</text>
     </view>
 
     <!-- 支付成功 -->
@@ -57,38 +56,84 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
 import { PAY_METHODS, UNIT_PRICE, CRAFT_FEE } from '@aisock/common'
+import { payOrder, type PayOrderInput } from './usePayment'
 
-const props = defineProps<{
-  order: { designName: string; total: number; material: string; craft?: string; materialValue: string; craftValue: string }
+interface OrderProp {
+  designName: string
+  total: number
+  material: string
+  craft?: string
+  materialValue: string
+  craftValue: string
+  sizes?: Record<string, number>
+  address?: string
+  note?: string
+  designId?: number
+  coverUrl?: string
+}
+
+const props = defineProps<{ order: OrderProp }>()
+const emit = defineEmits<{
+  cancel: []
+  paid: [payment: { method: string; orderId: number; orderNo: string; amount: number; real: boolean }]
 }>()
-const emit = defineEmits<{ cancel: []; paid: [payment: { method: string; paidAt: string; amount: number }] }>()
 
 const payMethods = PAY_METHODS
 const method = ref('wechat')
 const phase = ref<'select' | 'paying' | 'paid'>('select')
+const payingTip = ref('正在创建订单…')
 
 const unit = computed(() => UNIT_PRICE[props.order.materialValue] || 28)
 const fee = computed(() => CRAFT_FEE[props.order.craftValue] || 0)
-const total = computed(() => props.order.total * (unit.value + fee.value))
-const methodLabel = computed(() => payMethods.find((m) => m.value === method.value)?.label || '')
-const subtitle = computed(() => `${props.order.designName} · ${props.order.total} 双 · ${props.order.material}${props.order.craft ? ' · ' + props.order.craft : ''}`)
+const unitPrice = computed(() => +(unit.value + fee.value).toFixed(2))
+const total = computed(() => props.order.total * unitPrice.value)
+const subtitle = computed(
+  () => `${props.order.designName} · ${props.order.total} 双 · ${props.order.material}${props.order.craft ? ' · ' + props.order.craft : ''}`,
+)
 
-function startPay() {
+async function startPay() {
   phase.value = 'paying'
-}
-
-watch(phase, (p) => {
-  if (p === 'paying') {
-    setTimeout(() => (phase.value = 'paid'), 1600)
-  } else if (p === 'paid') {
-    setTimeout(() => {
-      emit('paid', { method: methodLabel.value, paidAt: new Date().toLocaleString('zh-CN'), amount: total.value })
-    }, 900)
+  payingTip.value = '正在创建订单…'
+  const input: PayOrderInput = {
+    designId: props.order.designId,
+    designName: props.order.designName,
+    sizes: props.order.sizes,
+    quantity: props.order.total,
+    unitPrice: unitPrice.value,
+    material: props.order.material,
+    craft: props.order.craft,
+    address: props.order.address,
+    remark: props.order.note,
+    coverUrl: props.order.coverUrl,
   }
-})
+  try {
+    payingTip.value = '正在拉起微信支付…'
+    const outcome = await payOrder(input, unitPrice.value)
+    if (outcome.cancelled) {
+      // 用户取消支付：订单已创建为待支付，回到选择态
+      phase.value = 'select'
+      uni.showToast({ title: '已取消支付，订单保留在待支付', icon: 'none' })
+      emit('cancel')
+      return
+    }
+    phase.value = 'paid'
+    setTimeout(() => {
+      emit('paid', {
+        method: payMethods.find((m) => m.value === method.value)?.label || '微信支付',
+        orderId: outcome.orderId,
+        orderNo: outcome.orderNo,
+        amount: outcome.amount,
+        real: outcome.real,
+      })
+    }, 900)
+  } catch (e: any) {
+    phase.value = 'select'
+    uni.showToast({ title: e?.message || '支付失败，请重试', icon: 'none' })
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -168,22 +213,20 @@ watch(phase, (p) => {
   flex-direction: column;
   align-items: center;
   gap: 20rpx;
-  padding: 40rpx 0;
+  padding: 60rpx 0;
 }
-.paying-name {
-  font-size: 28rpx;
-  font-weight: 600;
+.spinner {
+  width: 72rpx;
+  height: 72rpx;
+  border: 8rpx solid $mp-bg;
+  border-top-color: $mp-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
-.qr {
-  width: 240rpx;
-  height: 240rpx;
-  background: $mp-bg;
-  border-radius: 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 120rpx;
-  color: $mp-text-primary;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .paying-amt {
   font-size: 40rpx;

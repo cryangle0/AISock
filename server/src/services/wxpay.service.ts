@@ -1,38 +1,50 @@
 /**
- * 微信支付 V3 骨架
+ * 微信支付 V3 服务编排层。
  *
- * 真机：依赖 wechatpay-node-v3 + WXPAY_MCHID/WXPAY_PRIVATE_KEY_PATH/WXPAY_SERIAL/WXPAY_APIV3_KEY
- *   - jsapi 下单：POST /v3/pay/transactions/jsapi → 返回 prepay_id
- *   - 回调：解密 application/json AEAD-AES-256-GCM 得到 transaction_id / out_trade_no
- * 开发环境（缺凭证）：返回模拟 prepay_id，回调走 /pay/mock 直接打成功
+ * - 凭证齐全（含商户私钥）：真实 JSAPI 下单 + 返回 wx.requestPayment 签名参数；回调 AEAD 解密落库。
+ * - 凭证缺失（开发/未配私钥）：返回 mock prepay_id，前端走 /pay/mock-paid 演示闭环。
+ *
+ * 真实启用只需在服务器配置：
+ *   WXPAY_PRIVATE_KEY_PATH=/root/work/aisock/server/certs/apiclient_key.pem
+ *   WX_SECRET=<小程序密钥>
  */
 import { execute, queryOne } from '../db.js'
-import { markPaid } from './order.service.js'
+import { canRealPay, buildJsapiPayParams } from './wxpay/signer.js'
+import { jsapiPrepay } from './wxpay/client.js'
+
+export interface JsApiParams {
+  timeStamp: string
+  nonceStr: string
+  package: string
+  signType: 'RSA'
+  paySign: string
+}
 
 export interface PrepayResult {
   prepayId: string
   outTradeNo: string
-  // 小程序 wx.requestPayment 所需字段（mock 模式留空）
-  jsApi?: {
-    timeStamp: string
-    nonceStr: string
-    package: string
-    signType: 'RSA'
-    paySign: string
-  }
+  /** 真实模式下返回，小程序 wx.requestPayment 直接使用 */
+  jsApi?: JsApiParams
+  /** true=真实微信下单；false=演示 mock */
+  real: boolean
 }
 
 function genOutTradeNo(orderId: number): string {
   return `AS${Date.now()}${orderId}`
 }
 
+/** 是否具备真实支付能力（供路由/前端判断展示） */
 export function isProduction(): boolean {
-  return !!(process.env.WXPAY_MCHID && process.env.WXPAY_APIV3_KEY && process.env.WXPAY_SERIAL)
+  return canRealPay()
+}
+
+function notifyUrl(): string {
+  const base = process.env.UPLOAD_BASE_URL?.replace(/\/aisock-api\/uploads.*$/, '/aisock-api') || ''
+  return process.env.WXPAY_NOTIFY_URL || `${base}/api/v1/app/pay/notify`
 }
 
 /**
  * 创建预支付单 + 落库 payment 表。
- * 真机调微信 V3，dev 模式直接构造 mock prepay_id。
  */
 export async function createPrepay(
   orderId: number,
@@ -41,17 +53,26 @@ export async function createPrepay(
   description: string,
 ): Promise<PrepayResult> {
   const outTradeNo = genOutTradeNo(orderId)
+  const appid = process.env.WX_APPID || ''
   let prepayId = `mock_${outTradeNo}`
-  let jsApi: PrepayResult['jsApi']
+  let jsApi: JsApiParams | undefined
+  let real = false
 
-  if (isProduction()) {
-    // 真机集成时安装 wechatpay-node-v3 后启用：
-    // const Pay = (await import('wechatpay-node-v3')).default
-    // const cli = new Pay({ appid, mchid, publicKey, privateKey, key: API_V3_KEY })
-    // const r = await cli.transactions_jsapi({ description, out_trade_no: outTradeNo, notify_url, amount: { total: amountFen }, payer: { openid } })
-    // prepayId = r.prepay_id
-    // jsApi = signJsapi(prepayId)
-    console.warn(`[wxpay] 生产凭证缺失或未启用 wechatpay-node-v3，使用 mock（openid=${openid}, desc=${description}）`)
+  if (canRealPay() && appid && !openid.startsWith('dev_')) {
+    try {
+      prepayId = await jsapiPrepay({
+        appid,
+        description,
+        outTradeNo,
+        amountFen,
+        openid,
+        notifyUrl: notifyUrl(),
+      })
+      jsApi = buildJsapiPayParams(appid, prepayId)
+      real = true
+    } catch (err: any) {
+      console.warn(`[wxpay] 真实下单失败，回退 mock: ${err?.message || err}`)
+    }
   }
 
   await execute(
@@ -60,11 +81,11 @@ export async function createPrepay(
     [orderId, outTradeNo, 'wechat', amountFen, prepayId],
   )
 
-  return { prepayId, outTradeNo, jsApi }
+  return { prepayId, outTradeNo, jsApi, real }
 }
 
 /**
- * 处理回调（生产环境验签后调用，dev 直接调）：标支付成功 + 更新订单
+ * 处理支付成功（回调验签解密后 / dev mock 调用）：幂等标记 payment + order 已支付。
  */
 export async function handlePaidNotify(outTradeNo: string, transactionId: string | null): Promise<{ ok: boolean }> {
   const row = await queryOne<{ id: number; order_id: number; status: string }>(
@@ -78,7 +99,6 @@ export async function handlePaidNotify(outTradeNo: string, transactionId: string
     'UPDATE payment SET status = ?, transaction_id = ?, paid_at = NOW() WHERE id = ?',
     ['success', transactionId, row.id],
   )
-  // 拉取订单的 user_id 才能 markPaid。这里直接更新订单
   await execute(
     `UPDATE \`order\` SET status = 'paid', pay_method = '微信支付', paid_at = NOW()
      WHERE id = ? AND status = 'pending'`,
@@ -86,6 +106,3 @@ export async function handlePaidNotify(outTradeNo: string, transactionId: string
   )
   return { ok: true }
 }
-
-// 引用占位以避免 unused 警告
-void markPaid

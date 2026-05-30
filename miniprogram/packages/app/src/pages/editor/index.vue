@@ -161,7 +161,7 @@ import {
 } from '@aisock/common'
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
-import { aiApi, designApi, orderApi } from '@aisock/service'
+import { aiApi, designApi } from '@aisock/service'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
@@ -169,6 +169,7 @@ import PaymentSheet from '@/components/editor/PaymentSheet.vue'
 import VariantSheet from '@/components/editor/VariantSheet.vue'
 import ShareSheet from '@/components/editor/ShareSheet.vue'
 import type { MiniVariant } from '../../components/editor/variantGen'
+import { toRegions, fromRegions } from '../../components/editor/designSnapshot'
 
 const userStore = useUserStore()
 const sockTypes = SOCK_TYPES
@@ -201,9 +202,11 @@ const paletteId = ref<string | null>(null)
 const quota = reactive({ limit: 5, remaining: 5 })
 const canvasRef = ref<{ exportImage?: () => Promise<string> } | null>(null)
 const orderOpen = ref(false)
-const pendingOrder = ref<OrderSubmit | null>(null)
+const pendingOrder = ref<PendingOrder | null>(null)
 const variantMode = ref<'derive' | 'family' | null>(null)
 const shareOpen = ref(false)
+/** 当前正在编辑的已存设计 id（从"我的设计"打开时有值，保存走更新而非新建） */
+const currentDesignId = ref<number | null>(null)
 
 interface OrderSubmit {
   designName: string
@@ -219,9 +222,47 @@ interface OrderSubmit {
   note: string
 }
 
+/** 传给 PaymentSheet 的订单数据（含尺码/地址/封面/设计 id） */
+interface PendingOrder {
+  designName: string
+  total: number
+  material: string
+  materialValue: string
+  craft: string
+  craftValue: string
+  sizes: Record<string, number>
+  address: string
+  note: string
+  designId?: number
+  coverUrl?: string
+}
+
 const hasPrint = computed(() => !!printImage.value || !!patternId.value)
 
+/** 从"我的设计"打开（storage 传 id）→ 拉取并回填整套设计 */
+async function loadDesignIfRequested() {
+  const id = Number(uni.getStorageSync('aisock_edit_design_id'))
+  if (!id) return
+  uni.removeStorageSync('aisock_edit_design_id')
+  try {
+    const res = await designApi.getDesign(id)
+    const snap = fromRegions(res.data.regions)
+    currentDesignId.value = id
+    if (snap.sockTypeId) sockTypeId.value = snap.sockTypeId
+    if (snap.patternId !== undefined) patternId.value = snap.patternId
+    if (snap.printImage !== undefined) printImage.value = snap.printImage
+    if (snap.printName !== undefined) printName.value = snap.printName
+    if (snap.params) Object.assign(params, snap.params)
+    if (snap.colors) Object.assign(colors, snap.colors)
+    if (snap.paletteId !== undefined) paletteId.value = snap.paletteId
+    uni.showToast({ title: `继续编辑：${res.data.name}`, icon: 'none' })
+  } catch {
+    /* 忽略，按空白新建 */
+  }
+}
+
 onShow(async () => {
+  await loadDesignIfRequested()
   if (userStore.isLogin) {
     try {
       const res = await aiApi.getQuota()
@@ -322,15 +363,40 @@ function onShared(target: string) {
   shareOpen.value = false
   uni.showToast({ title: `已分享到${target}`, icon: 'none' })
 }
-async function onSave() {
-  if (!ensureLogin()) return
+/** 当前编辑器状态打包成保存输入 */
+async function buildSavePayload() {
   const cover = (await canvasRef.value?.exportImage?.()) || printImage.value || undefined
-  await designApi.createDesign({
+  return {
     name: printName.value ? `${printName.value} 袜款` : '未命名袜版',
     sockModelId: undefined,
     coverUrl: cover,
-  })
-  uni.showToast({ title: '已保存', icon: 'success' })
+    regions: toRegions({
+      sockTypeId: sockTypeId.value,
+      patternId: patternId.value,
+      printImage: printImage.value,
+      printName: printName.value,
+      params: { ...params },
+      colors: { ...colors },
+      paletteId: paletteId.value,
+    }),
+  }
+}
+
+async function onSave() {
+  if (!ensureLogin()) return
+  const payload = await buildSavePayload()
+  try {
+    if (currentDesignId.value) {
+      await designApi.updateDesign(currentDesignId.value, payload)
+      uni.showToast({ title: '已更新设计', icon: 'success' })
+    } else {
+      const res = await designApi.createDesign(payload)
+      currentDesignId.value = res.data.id
+      uni.showToast({ title: '已保存', icon: 'success' })
+    }
+  } catch {
+    /* 拦截器已提示 */
+  }
 }
 function onOrder() {
   if (!ensureLogin()) return
@@ -341,33 +407,40 @@ function onOrder() {
   orderOpen.value = true
 }
 
-function onOrderSubmit(data: OrderSubmit) {
+async function onOrderSubmit(data: OrderSubmit) {
   orderOpen.value = false
-  pendingOrder.value = data
+  // 下单前先确保设计已保存，拿到 designId 和封面 URL 关联订单
+  let coverUrl: string | undefined
+  try {
+    const payload = await buildSavePayload()
+    coverUrl = payload.coverUrl
+    if (currentDesignId.value) {
+      await designApi.updateDesign(currentDesignId.value, payload)
+    } else {
+      const res = await designApi.createDesign(payload)
+      currentDesignId.value = res.data.id
+    }
+  } catch {
+    /* 保存失败不阻断下单 */
+  }
+  pendingOrder.value = {
+    designName: data.designName,
+    total: data.total,
+    material: data.material,
+    materialValue: data.materialValue,
+    craft: data.craft,
+    craftValue: data.craftValue,
+    sizes: data.sizes,
+    address: `${data.contact} ${data.phone} ${data.address}`.trim(),
+    note: data.note,
+    designId: currentDesignId.value ?? undefined,
+    coverUrl,
+  }
 }
 
-async function onPaid(payment: { method: string; paidAt: string; amount: number }) {
-  const data = pendingOrder.value
-  if (!data) return
-  try {
-    const created = await orderApi.createOrder({
-      designName: data.designName,
-      sizes: data.sizes,
-      quantity: data.total,
-      unitPrice: data.total ? +(payment.amount / data.total).toFixed(2) : 0,
-      material: data.material,
-      craft: data.craft,
-      address: data.address,
-      remark: data.note,
-    })
-    // 走真实预下单 + 回调（dev 用 mock-paid 落库支付成功）
-    const pre = await orderApi.prepay(created.data.id)
-    await orderApi.mockPaid(pre.data.outTradeNo)
-  } catch {
-    /* 拦截器已提示 */
-  }
+function onPaid(payment: { orderNo: string; real: boolean }) {
   pendingOrder.value = null
-  uni.showToast({ title: '支付成功，订单已提交', icon: 'success' })
+  uni.showToast({ title: payment.real ? '支付成功' : '支付成功（演示）', icon: 'success' })
   setTimeout(() => navigateTo('/pages/orders/index'), 800)
 }
 function goDesigns() {
