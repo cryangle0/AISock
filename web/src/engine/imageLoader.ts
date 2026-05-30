@@ -23,7 +23,7 @@ export function loadImage(src: string | null | undefined): Promise<HTMLImageElem
 }
 
 /** 把 dataURL 压缩到指定最大宽度，避免存储体积过大 */
-export async function compressDataURL(dataURL: string, maxW = 280): Promise<string> {
+export async function compressDataURL(dataURL: string, maxW = 280, mime: 'image/png' | 'image/jpeg' = 'image/png', quality = 0.85): Promise<string> {
   if (!dataURL) return ''
   const img = await loadImage(dataURL)
   if (!img) return ''
@@ -35,9 +35,13 @@ export async function compressDataURL(dataURL: string, maxW = 280): Promise<stri
   c.height = h
   const ctx = c.getContext('2d')
   if (!ctx) return ''
+  if (mime === 'image/jpeg') {
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, w, h)
+  }
   ctx.drawImage(img, 0, 0, w, h)
   try {
-    return c.toDataURL('image/png')
+    return c.toDataURL(mime, quality)
   } catch {
     return ''
   }

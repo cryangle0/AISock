@@ -2,6 +2,7 @@
  * 设计稿领域服务
  */
 import { query, queryOne, execute } from '../db.js'
+import { persistDataUrl } from './oss.service.js'
 
 export interface Design {
   id: number
@@ -31,27 +32,43 @@ export interface SaveDesignInput {
   fromPreset?: boolean
 }
 
+/**
+ * 规范化封面：dataURL（base64 快照）转存 OSS 取短 URL；
+ * 普通 URL 原样保留；超长（>500）且非 dataURL 的脏值丢弃，避免撑爆 varchar(512)。
+ */
+async function normalizeCover(coverUrl?: string): Promise<string | null> {
+  if (!coverUrl) return null
+  if (coverUrl.startsWith('data:')) {
+    const url = await persistDataUrl(coverUrl, 'cover')
+    return url || null
+  }
+  if (coverUrl.length > 500) return null
+  return coverUrl
+}
+
 export async function createDesign(userId: number, input: SaveDesignInput): Promise<number> {
+  const coverUrl = await normalizeCover(input.coverUrl)
   const r = await execute(
     `INSERT INTO design (user_id, sock_model_id, name, regions, cover_url, from_preset)
      VALUES (?,?,?,?,?,?)`,
     [
       userId, input.sockModelId ?? null, input.name,
       input.regions ? JSON.stringify(input.regions) : null,
-      input.coverUrl ?? null, input.fromPreset ? 1 : 0,
+      coverUrl, input.fromPreset ? 1 : 0,
     ],
   )
   return r.insertId
 }
 
 export async function updateDesign(id: number, userId: number, input: SaveDesignInput): Promise<void> {
+  const coverUrl = await normalizeCover(input.coverUrl)
   await execute(
     `UPDATE design SET name = ?, sock_model_id = ?, regions = ?, cover_url = ?
      WHERE id = ? AND user_id = ?`,
     [
       input.name, input.sockModelId ?? null,
       input.regions ? JSON.stringify(input.regions) : null,
-      input.coverUrl ?? null, id, userId,
+      coverUrl, id, userId,
     ],
   )
 }

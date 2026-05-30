@@ -153,7 +153,7 @@ function onRegionClick(region: string) {
 async function snapshotCover(): Promise<string | undefined> {
   const raw = canvasRef.value?.getDataURL?.() || ''
   if (!raw) return undefined
-  return (await compressDataURL(raw, 360)) || undefined
+  return (await compressDataURL(raw, 360, 'image/jpeg', 0.82)) || undefined
 }
 
 async function onSave() {
@@ -206,7 +206,7 @@ async function onFamilySaveAll(vs: DesignVariant[]) {
   variantMode.value = null
   for (const v of vs) {
     try {
-      const cover = v.cover ? await compressDataURL(v.cover, 360) : undefined
+      const cover = v.cover ? await compressDataURL(v.cover, 360, 'image/jpeg', 0.82) : undefined
       await designApi.create({ name: v.printName, coverUrl: cover })
     } catch {
       /* 忽略单个失败 */

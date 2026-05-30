@@ -105,3 +105,28 @@ export async function persistRemoteImage(remoteUrl: string, prefix = 'ai'): Prom
     return remoteUrl
   }
 }
+
+/**
+ * 把 base64 dataURL（如设计封面快照）转存到 OSS，返回短 URL。
+ * - 非 dataURL 原样返回（已是普通 URL）
+ * - 未配置 OSS 或失败时返回空串（调用方应避免把超长 base64 落库）
+ */
+export async function persistDataUrl(dataUrl: string, prefix = 'cover'): Promise<string> {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl
+  if (!ossEnabled()) return ''
+  try {
+    const match = dataUrl.match(/^data:([^;,]+)?(?:;base64)?,(.*)$/s)
+    if (!match) return ''
+    const mime = match[1] || 'image/png'
+    const isBase64 = /;base64,/.test(dataUrl)
+    const buf = isBase64
+      ? Buffer.from(match[2], 'base64')
+      : Buffer.from(decodeURIComponent(match[2]), 'utf-8')
+    const ext = mime.includes('jpeg') ? 'jpg' : mime.includes('webp') ? 'webp' : mime.includes('svg') ? 'svg' : 'png'
+    const key = genObjectKey(prefix, ext)
+    return await putObject(key, buf, mime)
+  } catch (err: any) {
+    console.warn(`[OSS] dataURL 转存失败: ${err?.message || err}`)
+    return ''
+  }
+}
