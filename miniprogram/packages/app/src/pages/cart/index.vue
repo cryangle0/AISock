@@ -1,30 +1,32 @@
 <template>
   <view class="cart">
-    <view v-if="!userStore.isLogin" class="empty">
-      <text class="empty-icon">🛒</text>
-      <text class="empty-text">登录后查看购物车与订单</text>
-      <button class="empty-btn" @tap="goLogin">去登录</button>
-    </view>
-    <template v-else>
-      <view v-if="orders.length === 0" class="empty">
+    <scroll-view class="cart-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
+      <view v-if="!userStore.isLogin" class="empty">
         <text class="empty-icon">🛒</text>
-        <text class="empty-text">还没有订单，去设计一双吧</text>
-        <button class="empty-btn" @tap="goEditor">开始设计</button>
+        <text class="empty-text">登录后查看购物车与订单</text>
+        <button class="empty-btn" @tap="goLogin">去登录</button>
       </view>
-      <view v-else class="list">
-        <view v-for="o in orders" :key="o.id" class="order-card" @tap="goOrders">
-          <view class="order-top">
-            <text class="order-no">{{ o.order_no }}</text>
-            <text class="order-status">{{ statusText(o.status) }}</text>
-          </view>
-          <view class="order-mid">
-            <text class="order-name">{{ o.design_name || '袜款设计' }}</text>
-            <text class="order-amount">¥{{ o.total_amount }}</text>
-          </view>
-          <text class="order-qty">数量 {{ o.quantity }} · {{ o.created_at }}</text>
+      <template v-else>
+        <view v-if="orders.length === 0" class="empty">
+          <text class="empty-icon">🛒</text>
+          <text class="empty-text">还没有订单，去设计一双吧</text>
+          <button class="empty-btn" @tap="goEditor">开始设计</button>
         </view>
-      </view>
-    </template>
+        <view v-else class="list">
+          <view v-for="o in orders" :key="o.id" class="order-card" @tap="goOrders">
+            <view class="order-top">
+              <text class="order-no">{{ o.order_no }}</text>
+              <text class="order-status">{{ statusText(o.status) }}</text>
+            </view>
+            <view class="order-mid">
+              <text class="order-name">{{ o.design_name || '袜款设计' }}</text>
+              <text class="order-amount">¥{{ o.total_amount }}</text>
+            </view>
+            <text class="order-qty">数量 {{ o.quantity }} · {{ o.created_at }}</text>
+          </view>
+        </view>
+      </template>
+    </scroll-view>
     <custom-tab-bar current="cart" />
   </view>
 </template>
@@ -62,7 +64,11 @@ const goOrders = () => navigateTo('/pages/orders/index')
 @import '@aisock/common/styles/variables.scss';
 
 .cart {
-  min-height: 100vh;
+  height: 100vh;
+}
+.cart-scroll {
+  height: 100vh;
+  box-sizing: border-box;
   padding: 32rpx 32rpx 140rpx;
 }
 .empty {

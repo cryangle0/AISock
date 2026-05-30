@@ -1,43 +1,45 @@
 <template>
   <view class="mine">
-    <view class="user-card">
-      <view class="avatar">{{ avatarText }}</view>
-      <view class="user-info">
-        <text class="user-name">{{ userStore.userInfo?.nickname || '未登录' }}</text>
-        <text class="user-phone">{{ phoneText }}</text>
+    <scroll-view class="mine-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
+      <view class="user-card">
+        <view class="avatar">{{ avatarText }}</view>
+        <view class="user-info">
+          <text class="user-name">{{ userStore.userInfo?.nickname || '未登录' }}</text>
+          <text class="user-phone">{{ phoneText }}</text>
+        </view>
+        <button v-if="userStore.isLogin" class="logout" @tap="onLogout">退出</button>
+        <button v-else class="logout login" @tap="goLogin">登录</button>
       </view>
-      <button v-if="userStore.isLogin" class="logout" @tap="onLogout">退出</button>
-      <button v-else class="logout login" @tap="goLogin">登录</button>
-    </view>
 
-    <view class="stats">
-      <view class="stat" @tap="goDesigns">
-        <text class="stat-num">{{ overview.designs }}</text>
-        <text class="stat-label">我的设计</text>
+      <view class="stats">
+        <view class="stat" @tap="goDesigns">
+          <text class="stat-num">{{ overview.designs }}</text>
+          <text class="stat-label">我的设计</text>
+        </view>
+        <view class="stat-sep" />
+        <view class="stat" @tap="goOrders">
+          <text class="stat-num">{{ orderTotal }}</text>
+          <text class="stat-label">我的订单</text>
+        </view>
       </view>
-      <view class="stat-sep" />
-      <view class="stat" @tap="goOrders">
-        <text class="stat-num">{{ orderTotal }}</text>
-        <text class="stat-label">我的订单</text>
-      </view>
-    </view>
 
-    <view class="list">
-      <view class="list-item" @tap="goDesigns">
-        <view class="list-icon">📁</view><text class="list-label">我的设计</text><text class="list-extra">{{ overview.designs }} 个袜版</text><text class="arrow">›</text>
+      <view class="list">
+        <view class="list-item" @tap="goDesigns">
+          <view class="list-icon">📁</view><text class="list-label">我的设计</text><text class="list-extra">{{ overview.designs }} 个袜版</text><text class="arrow">›</text>
+        </view>
+        <view class="list-item" @tap="goOrders">
+          <view class="list-icon">📦</view><text class="list-label">订单管理</text><text class="list-extra">{{ orderTotal }} 个订单</text><text class="arrow">›</text>
+        </view>
+        <view class="list-item" @tap="goAssets">
+          <view class="list-icon">🎨</view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text><text class="arrow">›</text>
+        </view>
+        <view class="list-item disabled">
+          <view class="list-icon">⚙️</view><text class="list-label">设置</text><text class="list-extra">账号、通知</text><text class="arrow">›</text>
+        </view>
       </view>
-      <view class="list-item" @tap="goOrders">
-        <view class="list-icon">📦</view><text class="list-label">订单管理</text><text class="list-extra">{{ orderTotal }} 个订单</text><text class="arrow">›</text>
-      </view>
-      <view class="list-item" @tap="goAssets">
-        <view class="list-icon">🎨</view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text><text class="arrow">›</text>
-      </view>
-      <view class="list-item disabled">
-        <view class="list-icon">⚙️</view><text class="list-label">设置</text><text class="list-extra">账号、通知</text><text class="arrow">›</text>
-      </view>
-    </view>
 
-    <text class="footer">爱花型袜业 · 2026</text>
+      <text class="footer">爱花型袜业 · 2026</text>
+    </scroll-view>
     <custom-tab-bar current="mine" />
   </view>
 </template>
@@ -93,7 +95,11 @@ async function onLogout() {
 @import '@aisock/common/styles/variables.scss';
 
 .mine {
-  min-height: 100vh;
+  height: 100vh;
+}
+.mine-scroll {
+  height: 100vh;
+  box-sizing: border-box;
   padding: 32rpx 32rpx 140rpx;
 }
 .user-card {

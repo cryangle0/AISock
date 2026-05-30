@@ -24,6 +24,8 @@
     <!-- 袜版预览（真实 canvas 矢量渲染） -->
     <SockCanvas ref="canvasRef" :print-image="printImage" :pattern-id="patternId" :params="params" :colors="colors" @region-click="onRegionClick" />
 
+    <!-- 滚动区：快捷操作 + 调节面板（袜版预览固定在上方，此区独立滚动、隐藏滚动条） -->
+    <scroll-view class="editor-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <!-- 快捷操作 -->
     <view class="quick-row">
       <button class="quick-btn" :disabled="!hasPrint" @tap="onAiExtend">✨ 款式衍生</button>
@@ -111,6 +113,7 @@
         </view>
       </template>
     </view>
+    </scroll-view>
 
     <!-- 右侧固定 保存/下单 dock -->
     <view class="side-dock">
@@ -453,8 +456,18 @@ function goDesigns() {
 @import '@aisock/common/styles/variables.scss';
 
 .editor {
-  min-height: 100vh;
-  padding: 20rpx 24rpx 160rpx;
+  height: 100vh;
+  padding: 20rpx 24rpx 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.editor-scroll {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding-bottom: 160rpx;
 }
 .sock-bar {
   display: flex;

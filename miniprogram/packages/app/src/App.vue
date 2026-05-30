@@ -37,6 +37,20 @@ page {
   font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
+/* 隐藏竖向滚动条（页面级 / scroll-view），保留滚动能力 */
+::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  display: none !important;
+  -webkit-appearance: none !important;
+}
+page::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
 /* 敦煌风格艺术字工具类（品牌/标题/banner 用） */
 .mp-art-font {
   font-family: $mp-font-art;

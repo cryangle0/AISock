@@ -46,7 +46,7 @@ function cardStyle(i: number, d: ConfigItem) {
   const abs = Math.abs(offset)
   const scale = 1 - 0.12 * abs
   return {
-    transform: `translateX(${offset * 75}%) scale(${scale})`,
+    transform: `translateX(${offset * 100}%) scale(${scale})`,
     zIndex: String(10 - abs),
     background: (d.bg as string) || `linear-gradient(180deg, ${mainColor(d)} 0%, #d4b796 100%)`,
   }
@@ -79,14 +79,14 @@ function onTap(i: number, d: ConfigItem) {
 .track {
   position: relative;
   width: 100%;
-  height: 440rpx;
+  height: 680rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .card {
   position: absolute;
-  width: 72%;
+  width: 80%;
   height: 100%;
   border-radius: 36rpx;
   padding: 20rpx;

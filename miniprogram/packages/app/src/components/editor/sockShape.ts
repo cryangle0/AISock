@@ -33,6 +33,9 @@ const DEFAULTS = {
   toe: '#d9c8a8',
 }
 
+/** 页面米色底（与 $mp-bg 一致），用于填充袜形之外的画布空白，消除原生 canvas 白底 */
+const PAGE_BG = '#f5ede0'
+
 /** 在给定矩形区域内描出袜子轮廓路径（不 fill/stroke，调用方决定） */
 function traceSockPath(ctx: any, x: number, y: number, w: number, h: number): void {
   // 以 480×640 比例为基准，等比映射到 w×h
@@ -81,6 +84,11 @@ export function drawSock(
   printImg: any | null,
 ): void {
   ctx.clearRect(0, 0, w, h)
+
+  // 0) 用页面底色铺满整块画布，避免原生 canvas 默认白底在袜形之外露出白边/白带
+  ctx.fillStyle = PAGE_BG
+  ctx.fillRect(0, 0, w, h)
+
   ctx.save()
 
   // 1) 整体裁剪到袜形

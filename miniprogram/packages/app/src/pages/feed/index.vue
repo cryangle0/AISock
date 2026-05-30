@@ -1,15 +1,17 @@
 <template>
   <view class="feed">
-    <view class="head">
-      <text class="title">推荐</text>
-      <text class="sub">精选主题 · 设计师作品 · 灵感库</text>
-    </view>
-    <view class="grid">
-      <view v-for="f in featured" :key="f.id" class="card" :style="{ background: f.bg }" @tap="goEditor">
-        <text class="tag">{{ f.tag }}</text>
-        <text class="name">{{ f.title }}</text>
+    <scroll-view class="feed-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
+      <view class="head">
+        <text class="title">推荐</text>
+        <text class="sub">精选主题 · 设计师作品 · 灵感库</text>
       </view>
-    </view>
+      <view class="grid">
+        <view v-for="f in featured" :key="f.id" class="card" :style="{ background: f.bg }" @tap="goEditor">
+          <text class="tag">{{ f.tag }}</text>
+          <text class="name">{{ f.title }}</text>
+        </view>
+      </view>
+    </scroll-view>
     <custom-tab-bar current="feed" />
   </view>
 </template>
@@ -64,7 +66,11 @@ const goEditor = () => switchTab('/pages/editor/index')
 @import '@aisock/common/styles/variables.scss';
 
 .feed {
-  min-height: 100vh;
+  height: 100vh;
+}
+.feed-scroll {
+  height: 100vh;
+  box-sizing: border-box;
   padding: 32rpx 32rpx 140rpx;
 }
 .head {

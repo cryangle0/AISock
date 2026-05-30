@@ -37,9 +37,9 @@ const deco = computed(() => (props.theme.decoColor as string) || '#5a8a7d')
 
 .theme-card {
   position: relative;
-  border-radius: 20rpx;
-  padding: 20rpx;
-  height: 150rpx;
+  border-radius: 24rpx;
+  padding: 26rpx;
+  height: 200rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 12rpx rgba(94, 60, 30, 0.08);
   box-sizing: border-box;
@@ -50,7 +50,7 @@ const deco = computed(() => (props.theme.decoColor as string) || '#5a8a7d')
 }
 .theme-cn {
   display: block;
-  font-size: 26rpx;
+  font-size: 32rpx;
   font-weight: 800;
   color: #2b1f14;
   line-height: 1.12;
@@ -59,8 +59,8 @@ const deco = computed(() => (props.theme.decoColor as string) || '#5a8a7d')
 }
 .theme-en {
   display: block;
-  margin-top: 6rpx;
-  font-size: 14rpx;
+  margin-top: 8rpx;
+  font-size: 16rpx;
   font-weight: 600;
   color: rgba(43, 31, 20, 0.5);
   letter-spacing: 0.16em;
@@ -74,19 +74,19 @@ const deco = computed(() => (props.theme.decoColor as string) || '#5a8a7d')
 }
 .deco-circle {
   position: absolute;
-  right: 24rpx;
-  top: 18rpx;
-  width: 44rpx;
-  height: 44rpx;
+  right: 28rpx;
+  top: 22rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
   opacity: 0.45;
 }
 .deco-petal {
   position: absolute;
-  right: 8rpx;
-  bottom: 8rpx;
-  width: 56rpx;
-  height: 56rpx;
+  right: 10rpx;
+  bottom: 10rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 0 70% 0 70%;
   opacity: 0.55;
 }

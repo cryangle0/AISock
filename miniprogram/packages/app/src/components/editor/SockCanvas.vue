@@ -3,7 +3,6 @@
     <canvas
       type="2d"
       :id="canvasId"
-      :canvas-id="canvasId"
       class="sock-cvs"
       :style="{ width: cssSize + 'px', height: cssSizeH + 'px' }"
       @tap="onTap"
@@ -29,8 +28,8 @@ const props = defineProps<{
 const emit = defineEmits<{ regionClick: [region: string]; ready: [] }>()
 
 const canvasId = 'sockCvs'
-const cssSize = 300
-const cssSizeH = 400
+const cssSize = 240
+const cssSizeH = 320
 const ready = ref(false)
 const instance = getCurrentInstance()
 
@@ -159,7 +158,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16rpx 0;
+  padding: 8rpx 0;
 }
 .sock-cvs {
   display: block;

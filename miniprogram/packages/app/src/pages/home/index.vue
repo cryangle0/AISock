@@ -1,34 +1,41 @@
 <template>
   <view class="home">
-    <!-- 1. 棕色品牌带：品牌行 + 敦煌梦 banner -->
-    <view class="brand-band" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <view class="brand-row">
-        <image class="brand-logo" src="/static/logo.png" mode="aspectFit" />
-        <text class="brand">爱花型 · 袜稿设计</text>
+    <scroll-view
+      class="home-scroll"
+      scroll-y
+      :enhanced="true"
+      :show-scrollbar="false"
+    >
+      <!-- 1. 棕色品牌带：品牌行 + 敦煌梦 banner -->
+      <view class="brand-band" :style="{ paddingTop: statusBarHeight + 'px' }">
+        <view class="brand-row">
+          <image class="brand-logo" src="/static/logo.png" mode="aspectFit" />
+          <text class="brand">爱花型 · 袜稿设计</text>
+        </view>
+        <HomeBanner @tap="goFeed" />
       </view>
-      <HomeBanner @tap="goFeed" />
-    </view>
 
-    <!-- 2. 主题随心订 -->
-    <view class="section">
-      <view class="section-head">
-        <text class="section-title">主题随心订</text>
-        <text class="section-en">Select theme</text>
-        <text class="section-music">♪♪♪</text>
+      <!-- 2. 主题随心订 -->
+      <view class="section">
+        <view class="section-head">
+          <text class="section-title">主题随心订</text>
+          <text class="section-en">Select theme</text>
+          <text class="section-music">♪♪♪</text>
+        </view>
+        <view class="themes-grid">
+          <ThemeCard v-for="t in themes" :key="t.id" :theme="t" @tap="onTheme" />
+        </view>
       </view>
-      <view class="themes-grid">
-        <ThemeCard v-for="t in themes" :key="t.id" :theme="t" @tap="onTheme" />
-      </view>
-    </view>
 
-    <!-- 3. 大画展示（3D 横滑 carousel） -->
-    <view class="section">
-      <view class="section-head">
-        <text class="section-title">袜版设计预设</text>
-        <text class="section-en">Featured</text>
+      <!-- 3. 大画展示（3D 横滑 carousel） -->
+      <view class="section">
+        <view class="section-head">
+          <text class="section-title">袜版设计预设</text>
+          <text class="section-en">Featured</text>
+        </view>
+        <ShowcaseCarousel :items="featured" @select="onFeatured" />
       </view>
-      <ShowcaseCarousel :items="featured" @select="onFeatured" />
-    </view>
+    </scroll-view>
 
     <custom-tab-bar current="home" />
   </view>
@@ -92,9 +99,13 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/in
 @import '@aisock/common/styles/variables.scss';
 
 .home {
-  min-height: 100vh;
-  padding-bottom: 160rpx;
+  height: 100vh;
   background: $mp-bg;
+}
+.home-scroll {
+  height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 160rpx;
 }
 
 /* 棕色品牌带 */

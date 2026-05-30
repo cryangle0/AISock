@@ -75,11 +75,10 @@ function onTap(item: { path: string }) {
 }
 .fab {
   justify-content: flex-end;
-  padding-bottom: 14rpx;
 }
 .fab-circle {
   position: absolute;
-  top: -28rpx;
+  top: -16rpx;
   left: 50%;
   transform: translateX(-50%);
   width: 88rpx;
@@ -100,7 +99,11 @@ function onTap(item: { path: string }) {
   background: $mp-primary;
   padding: 1rpx 10rpx;
   border-radius: 999rpx;
-  position: relative;
+  position: absolute;
+  top: 58rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
   z-index: 2;
 }
 </style>
