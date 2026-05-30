@@ -5,6 +5,7 @@
  */
 import { query, queryOne, execute } from '../db.js'
 import { getRedis, CacheKey } from '../redis.js'
+import { persistRemoteImage } from './oss.service.js'
 
 export type AiTaskType = 'text2img' | 'img2img' | 'remix' | 'style'
 
@@ -95,7 +96,9 @@ export async function createTask(userId: number, dailyLimit: number, input: Crea
   const taskId = r.insertId
 
   try {
-    const urls = await invokeProvider(input)
+    const rawUrls = await invokeProvider(input)
+    // AI 出图多为临时 URL（~24h 过期），转存到 OSS 长期保存；未配置 OSS 时原样返回
+    const urls = await Promise.all(rawUrls.map((u) => persistRemoteImage(u, 'ai')))
     await execute(
       `UPDATE ai_task SET status = 'success', result_urls = ?, finished_at = NOW() WHERE id = ?`,
       [JSON.stringify(urls), taskId],

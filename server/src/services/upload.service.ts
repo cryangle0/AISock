@@ -5,6 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { randomBytes } from 'node:crypto'
 import { execute } from '../db.js'
+import { ossEnabled, putObject, genObjectKey } from './oss.service.js'
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads')
 const PUBLIC_BASE = process.env.UPLOAD_BASE_URL || `http://localhost:${process.env.PORT || 8199}/uploads`
@@ -27,7 +28,7 @@ function genName(orig: string): string {
 }
 
 /**
- * 落本地磁盘 + 写库。生产可替换为 OSS putObject。
+ * 落 OSS（已配置）或本地磁盘 + 写库。
  */
 export async function saveBuffer(
   userId: number | null,
@@ -35,6 +36,23 @@ export async function saveBuffer(
   mime: string,
   data: Buffer,
 ): Promise<UploadResult> {
+  // 优先 OSS
+  if (ossEnabled()) {
+    const ext = path.extname(origName).slice(1) || 'bin'
+    const key = genObjectKey('upload', ext)
+    try {
+      const url = await putObject(key, data, mime)
+      const r = await execute(
+        'INSERT INTO `upload` (user_id, name, mime, size, path, url) VALUES (?,?,?,?,?,?)',
+        [userId, origName, mime, data.byteLength, key, url],
+      )
+      return { id: r.insertId, name: origName, url, path: key, size: data.byteLength, mime }
+    } catch (err: any) {
+      console.warn(`[OSS] 上传失败，回退本地磁盘: ${err?.message || err}`)
+      // 落到下方本地逻辑
+    }
+  }
+
   const relPath = genName(origName)
   const abs = path.join(UPLOAD_DIR, relPath)
   await mkdir(path.dirname(abs), { recursive: true })
@@ -48,6 +66,4 @@ export async function saveBuffer(
 }
 
 /** OSS hook：未配置 OSS_ACCESS_KEY 时返回 null，调用方走本地。 */
-export function ossEnabled(): boolean {
-  return !!(process.env.OSS_ACCESS_KEY && process.env.OSS_SECRET_KEY && process.env.OSS_BUCKET)
-}
+export { ossEnabled }
