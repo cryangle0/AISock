@@ -91,7 +91,7 @@ const MIME_BY_EXT: Record<string, string> = {
 export async function persistRemoteImage(remoteUrl: string, prefix = 'ai'): Promise<string> {
   if (!ossEnabled()) return remoteUrl
   try {
-    const resp = await fetch(remoteUrl, { signal: AbortSignal.timeout(20_000) })
+    const resp = await fetch(remoteUrl, { signal: AbortSignal.timeout(45_000) })
     if (!resp.ok) throw new Error(`下载源图 ${resp.status}`)
     const buf = Buffer.from(await resp.arrayBuffer())
     const ctype = resp.headers.get('content-type') || ''
