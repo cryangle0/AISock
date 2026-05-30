@@ -33,9 +33,10 @@
 
     <!-- 支付中 -->
     <view v-else-if="phase === 'paying'" class="paying">
-      <view class="spinner" />
+      <text class="paying-name">正在创建订单并发起支付…</text>
+      <view class="loader" />
       <text class="paying-amt">¥ {{ total.toFixed(2) }}</text>
-      <text class="paying-tip">{{ payingTip }}</text>
+      <text class="paying-tip">请在微信支付界面完成付款</text>
     </view>
 
     <!-- 支付成功 -->
@@ -43,7 +44,7 @@
       <view class="paid-icon">✓</view>
       <text class="paid-title">支付成功</text>
       <text class="paid-amt">¥ {{ total.toFixed(2) }}</text>
-      <text class="paid-tip">订单已提交工厂排产</text>
+      <text class="paid-tip">订单 {{ orderNo }} 已提交工厂排产</text>
     </view>
 
     <template v-if="phase === 'select'" #footer>
@@ -59,79 +60,67 @@
 import { computed, ref } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
 import { PAY_METHODS, UNIT_PRICE, CRAFT_FEE } from '@aisock/common'
-import { payOrder, type PayOrderInput } from './usePayment'
+import { createOrderAndPay } from './usePayment'
 
-interface OrderProp {
+interface OrderForm {
   designName: string
   total: number
+  sizes: Record<string, number>
   material: string
-  craft?: string
   materialValue: string
+  craft: string
   craftValue: string
-  sizes?: Record<string, number>
-  address?: string
-  note?: string
+  address: string
+  note: string
   designId?: number
-  coverUrl?: string
 }
 
-const props = defineProps<{ order: OrderProp }>()
+const props = defineProps<{ order: OrderForm }>()
 const emit = defineEmits<{
   cancel: []
-  paid: [payment: { method: string; orderId: number; orderNo: string; amount: number; real: boolean }]
+  paid: [result: { orderId: number; orderNo: string; amount: number; real: boolean }]
 }>()
 
 const payMethods = PAY_METHODS
 const method = ref('wechat')
 const phase = ref<'select' | 'paying' | 'paid'>('select')
-const payingTip = ref('正在创建订单…')
+const orderNo = ref('')
 
 const unit = computed(() => UNIT_PRICE[props.order.materialValue] || 28)
 const fee = computed(() => CRAFT_FEE[props.order.craftValue] || 0)
-const unitPrice = computed(() => +(unit.value + fee.value).toFixed(2))
-const total = computed(() => props.order.total * unitPrice.value)
+const total = computed(() => props.order.total * (unit.value + fee.value))
 const subtitle = computed(
   () => `${props.order.designName} · ${props.order.total} 双 · ${props.order.material}${props.order.craft ? ' · ' + props.order.craft : ''}`,
 )
 
 async function startPay() {
   phase.value = 'paying'
-  payingTip.value = '正在创建订单…'
-  const input: PayOrderInput = {
-    designId: props.order.designId,
-    designName: props.order.designName,
-    sizes: props.order.sizes,
-    quantity: props.order.total,
-    unitPrice: unitPrice.value,
-    material: props.order.material,
-    craft: props.order.craft,
-    address: props.order.address,
-    remark: props.order.note,
-    coverUrl: props.order.coverUrl,
-  }
   try {
-    payingTip.value = '正在拉起微信支付…'
-    const outcome = await payOrder(input, unitPrice.value)
-    if (outcome.cancelled) {
-      // 用户取消支付：订单已创建为待支付，回到选择态
+    const result = await createOrderAndPay({
+      designId: props.order.designId,
+      designName: props.order.designName,
+      sizes: props.order.sizes,
+      quantity: props.order.total,
+      unitPrice: +(unit.value + fee.value).toFixed(2),
+      material: props.order.material,
+      craft: props.order.craft,
+      address: props.order.address,
+      remark: props.order.note,
+    })
+    if (!result.paid) {
+      // 用户取消或支付失败：退回选择态
       phase.value = 'select'
-      uni.showToast({ title: '已取消支付，订单保留在待支付', icon: 'none' })
-      emit('cancel')
+      uni.showToast({ title: '支付未完成', icon: 'none' })
       return
     }
+    orderNo.value = result.orderNo
     phase.value = 'paid'
     setTimeout(() => {
-      emit('paid', {
-        method: payMethods.find((m) => m.value === method.value)?.label || '微信支付',
-        orderId: outcome.orderId,
-        orderNo: outcome.orderNo,
-        amount: outcome.amount,
-        real: outcome.real,
-      })
+      emit('paid', { orderId: result.orderId, orderNo: result.orderNo, amount: total.value, real: result.real })
     }, 900)
   } catch (e: any) {
     phase.value = 'select'
-    uni.showToast({ title: e?.message || '支付失败，请重试', icon: 'none' })
+    uni.showToast({ title: e?.message || '下单失败，请重试', icon: 'none' })
   }
 }
 </script>
@@ -213,9 +202,13 @@ async function startPay() {
   flex-direction: column;
   align-items: center;
   gap: 20rpx;
-  padding: 60rpx 0;
+  padding: 50rpx 0;
 }
-.spinner {
+.paying-name {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.loader {
   width: 72rpx;
   height: 72rpx;
   border: 8rpx solid $mp-bg;
