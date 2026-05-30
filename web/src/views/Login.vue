@@ -1,31 +1,86 @@
 <template>
-  <div class="login">
-    <div class="login-card card">
-      <div class="brand">
-        <span class="logo">爱</span>
-        <div>
-          <h1 class="title">爱花型</h1>
-          <p class="sub">创意由你，花型随心</p>
+  <div class="lp-root">
+    <!-- 左面板：品牌 + 视觉 -->
+    <aside class="lp-left">
+      <header class="lp-left-header">
+        <img class="lp-left-logo" src="/logo.png" alt="爱花型" />
+        <span class="lp-left-brand">爱花型</span>
+      </header>
+
+      <div class="lp-left-stage">
+        <div class="lp-hero-logo">
+          <img src="/logo.png" alt="爱花型" />
         </div>
+        <h2 class="lp-hero-title">AI 袜版设计系统</h2>
+        <p class="lp-hero-sub">从一根花线到成品，3 分钟出袜款<br />自由编辑模板，AI 同款一键延展</p>
       </div>
 
-      <div class="field">
-        <input v-model="phone" type="tel" placeholder="请输入手机号" maxlength="11" />
-      </div>
-      <div class="field code">
-        <input v-model="code" type="text" placeholder="请输入验证码" maxlength="6" />
-        <button class="code-btn" :disabled="counting > 0" @click="onSendCode">
-          {{ counting > 0 ? `${counting}s` : '获取验证码' }}
-        </button>
+      <div class="lp-left-grid" />
+      <div class="lp-left-glow lp-left-glow-1" />
+      <div class="lp-left-glow lp-left-glow-2" />
+    </aside>
+
+    <!-- 右面板：登录卡片 -->
+    <main class="lp-right">
+      <div class="lp-card">
+        <div class="lp-mobile-brand">
+          <img src="/logo.png" alt="爱花型" />
+          <span>爱花型</span>
+        </div>
+
+        <div class="lp-heading">
+          <h1>欢迎回来</h1>
+          <p>输入手机号和验证码，开始你的袜款设计</p>
+        </div>
+
+        <form class="lp-form" @submit.prevent="onLogin">
+          <label class="lp-field">
+            <span class="lp-label">手机号</span>
+            <div class="lp-input" :class="{ focus: focused === 'phone' }">
+              <input
+                v-model="phone"
+                type="tel"
+                inputmode="numeric"
+                maxlength="11"
+                placeholder="请输入手机号"
+                autocomplete="off"
+                @focus="focused = 'phone'"
+                @blur="focused = null"
+              />
+            </div>
+          </label>
+
+          <label class="lp-field">
+            <span class="lp-label">验证码</span>
+            <div class="lp-input" :class="{ focus: focused === 'code' }">
+              <input
+                v-model="code"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="请输入验证码"
+                autocomplete="one-time-code"
+                @focus="focused = 'code'"
+                @blur="focused = null"
+              />
+              <button type="button" class="lp-code-btn" :disabled="counting > 0" @click="onSendCode">
+                {{ counting > 0 ? `${counting}s` : '获取验证码' }}
+              </button>
+            </div>
+          </label>
+
+          <p class="lp-agreement">登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span></p>
+
+          <button type="submit" class="lp-submit" :class="{ enabled: canSubmit && !loading }" :disabled="!canSubmit || loading">
+            {{ loading ? '登录中…' : '登录' }}
+          </button>
+        </form>
+
+        <p class="lp-tip">开发环境验证码固定为 1234</p>
       </div>
 
-      <p class="agreement">登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span></p>
-
-      <button class="btn-primary full" :disabled="!canSubmit || loading" @click="onLogin">
-        {{ loading ? '登录中...' : '登录' }}
-      </button>
-      <p class="tip">开发环境验证码固定为 1234</p>
-    </div>
+      <div class="lp-copy">爱花型袜业 · 2026</div>
+    </main>
   </div>
 </template>
 
@@ -43,6 +98,7 @@ const phone = ref('')
 const code = ref('')
 const counting = ref(0)
 const loading = ref(false)
+const focused = ref<'phone' | 'code' | null>(null)
 
 const canSubmit = computed(() => /^1\d{10}$/.test(phone.value) && code.value.length >= 4)
 
@@ -76,83 +132,246 @@ async function onLogin() {
 </script>
 
 <style scoped>
-.login {
+.lp-root {
+  display: flex;
   min-height: 100vh;
+  background: var(--bg, #f5ede0);
+}
+
+/* ── 左面板 ── */
+.lp-left {
+  position: relative;
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 56px;
+  background: linear-gradient(150deg, #946d60 0%, #7a5347 55%, #5e3c2e 100%);
+  color: #fff;
+  overflow: hidden;
+}
+.lp-left-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+.lp-left-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  padding: 4px;
+  box-sizing: border-box;
+}
+.lp-left-brand {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.lp-left-stage {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 22px;
+}
+.lp-hero-logo {
+  width: 132px;
+  height: 132px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5ede0, #e5d4b5);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
 }
-.login-card {
-  width: 400px;
-  padding: 40px 36px;
+.lp-hero-logo img {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
 }
-.brand {
+.lp-hero-title {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.lp-hero-sub {
+  font-size: 14px;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.82);
+}
+.lp-left-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 36px 36px;
+  z-index: 1;
+}
+.lp-left-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+}
+.lp-left-glow-1 {
+  width: 320px;
+  height: 320px;
+  background: rgba(222, 195, 138, 0.35);
+  top: -80px;
+  right: -60px;
+}
+.lp-left-glow-2 {
+  width: 260px;
+  height: 260px;
+  background: rgba(197, 72, 60, 0.25);
+  bottom: -60px;
+  left: -40px;
+}
+
+/* ── 右面板 ── */
+.lp-right {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 28px;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
 }
-.logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #a06d36, #8c5a3c);
-  color: #fff;
+.lp-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-card, #fff);
+  border-radius: 20px;
+  padding: 40px 36px;
+  box-shadow: 0 12px 40px rgba(94, 60, 30, 0.1);
+}
+.lp-mobile-brand {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.lp-mobile-brand img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.lp-mobile-brand span {
+  font-size: 18px;
+  font-weight: 800;
+}
+.lp-heading h1 {
   font-size: 26px;
   font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  margin-bottom: 8px;
 }
-.title {
-  font-size: 22px;
-  font-weight: 800;
-}
-.sub {
+.lp-heading p {
   font-size: 13px;
-  color: var(--text-3);
+  color: var(--text-3, #998975);
+  margin-bottom: 28px;
 }
-.field {
-  margin-bottom: 16px;
+.lp-field {
+  display: block;
+  margin-bottom: 18px;
 }
-.field input {
-  width: 100%;
-  height: 46px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 14px;
-  font-size: 14px;
+.lp-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-2, #6b5a48);
 }
-.field.code {
+.lp-input {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  border: 1px solid var(--border, #e5d8c0);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--bg, #faf6ee);
+  transition: border-color 0.18s, box-shadow 0.18s;
 }
-.code-btn {
+.lp-input.focus {
+  border-color: var(--primary, #8c5a3c);
+  box-shadow: 0 0 0 3px rgba(140, 90, 60, 0.12);
+  background: #fff;
+}
+.lp-input input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+.lp-code-btn {
   white-space: nowrap;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  border-radius: 10px;
-  padding: 0 16px;
-  color: var(--primary);
+  border: none;
+  background: none;
+  color: var(--primary, #8c5a3c);
   font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.agreement {
-  text-align: center;
+.lp-code-btn:disabled {
+  color: var(--text-3, #b3a690);
+  cursor: default;
+}
+.lp-agreement {
   font-size: 12px;
-  color: var(--text-3);
-  margin-bottom: 16px;
+  color: var(--text-3, #998975);
+  margin: 6px 0 20px;
 }
-.agreement span {
-  color: var(--primary);
+.lp-agreement span {
+  color: var(--primary, #8c5a3c);
 }
-.full {
+.lp-submit {
   width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: var(--bg-hover, #ece2d2);
+  color: var(--text-3, #998975);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: not-allowed;
+  transition: all 0.18s;
 }
-.tip {
-  margin-top: 14px;
+.lp-submit.enabled {
+  background: linear-gradient(135deg, #946d60, #b99d92);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(148, 109, 96, 0.35);
+}
+.lp-tip {
+  margin-top: 16px;
   text-align: center;
   font-size: 12px;
-  color: var(--text-3);
+  color: var(--text-3, #b3a690);
+}
+.lp-copy {
+  position: absolute;
+  bottom: 24px;
+  font-size: 12px;
+  color: var(--text-3, #b3a690);
+}
+
+/* 窄屏：隐藏左面板，仅卡片 */
+@media (max-width: 860px) {
+  .lp-left {
+    display: none;
+  }
+  .lp-mobile-brand {
+    display: flex;
+  }
 }
 </style>

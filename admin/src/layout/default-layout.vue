@@ -9,7 +9,7 @@
       class="layout-sider"
     >
       <div class="brand">
-        <span class="brand-logo">爱</span>
+        <img class="brand-logo" src="/logo.png" alt="爱花型" />
         <span v-show="!appStore.collapsed" class="brand-text">爱花型 · 后台</span>
       </div>
       <a-menu
@@ -110,11 +110,10 @@ async function onLogout() {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #a06d36, #8c5a3c);
-  font-weight: 800;
+  object-fit: contain;
+  background: #fff;
+  padding: 3px;
+  box-sizing: border-box;
   flex-shrink: 0;
 }
 .brand-text {

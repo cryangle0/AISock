@@ -2,7 +2,7 @@
   <div class="layout" :class="{ 'is-home': isHome }">
     <header class="topnav">
       <div class="brand">
-        <span class="brand-logo">爱</span>
+        <img class="brand-logo" src="/logo.png" alt="爱花型" />
         <div class="brand-text">
           <span class="brand-cn">爱花型 · 设计</span>
           <span class="brand-en">SOCK DESIGN</span>
@@ -152,13 +152,8 @@ async function onLogout() {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #a06d36, #8c5a3c);
-  color: #fff;
-  font-weight: 800;
-  font-size: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .brand-text {
   display: flex;
