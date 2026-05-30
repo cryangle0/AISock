@@ -113,25 +113,99 @@ export async function createTask(userId: number, dailyLimit: number, input: Crea
 
 /**
  * 调用外部文/图生图接口。
- * 未配置 AI_IMAGE_API_URL 时返回占位结果，方便前端联调。
+ * 优先用 KIE（api.kie.ai）nano-banana 异步任务流：createTask → 轮询 recordInfo。
+ * 未配置 AI_IMAGE_API_URL 时返回占位图，方便前端联调。
  */
 async function invokeProvider(input: CreateTaskInput): Promise<string[]> {
   const apiUrl = process.env.AI_IMAGE_API_URL
-  if (!apiUrl) {
-    // 占位：回显一张示意图（生产环境必须配置真实接口）
-    return [`https://placehold.co/1024x1024?text=${encodeURIComponent(input.prompt || 'AI')}`]
+  const apiKey = process.env.AI_IMAGE_API_KEY
+  if (!apiUrl || !apiKey) {
+    return [placeholder(input.prompt)]
   }
+
+  // KIE nano-banana 协议
+  if (apiUrl.includes('kie.ai')) {
+    return invokeKie(apiUrl, apiKey, input)
+  }
+
+  // 通用接口：POST {url} { prompt, image, type } → { urls: [] }
   const resp = await fetch(apiUrl, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.AI_IMAGE_API_KEY || ''}`,
-    },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({ prompt: input.prompt, image: input.refImage, type: input.type }),
   })
   if (!resp.ok) throw new Error(`AI 接口返回 ${resp.status}`)
   const data = (await resp.json()) as { urls?: string[] }
   return data.urls ?? []
+}
+
+/** 占位图（接口未配置 / 余额不足 / 失败时回退，保证前端可联调） */
+function placeholder(prompt?: string): string {
+  return `https://placehold.co/1024x1024/946D60/FFF?text=${encodeURIComponent(prompt?.slice(0, 20) || 'AI')}`
+}
+
+/** KIE nano-banana：提交任务 + 轮询取图。失败/超时回退占位图，不阻断业务。 */
+async function invokeKie(base: string, key: string, input: CreateTaskInput): Promise<string[]> {
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }
+  // 有参考图走 nano-banana-edit（图生图），否则 google/nano-banana（文生图）
+  const model = input.refImage ? 'google/nano-banana-edit' : 'google/nano-banana'
+  const promptText = `袜款印花图案，${input.prompt || '装饰纹样'}，平铺无缝，高清细节，flat lay`
+  const payload: Record<string, unknown> = {
+    model,
+    input: {
+      prompt: promptText,
+      aspect_ratio: '1:1',
+      output_format: 'png',
+      ...(input.refImage ? { image_urls: [input.refImage] } : {}),
+    },
+  }
+
+  try {
+    const createResp = await fetch(`${base}/api/v1/jobs/createTask`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    })
+    const created = (await createResp.json()) as {
+      code?: number
+      msg?: string
+      data?: { taskId?: string } | null
+    }
+    const taskId = created.data?.taskId
+    if (!taskId) {
+      // 余额不足(402)等情况：记录原因并回退占位图，保证不阻断
+      console.warn(`[KIE] createTask 无 taskId: code=${created.code} msg=${created.msg}`)
+      return [placeholder(input.prompt)]
+    }
+
+    // 轮询（最多 ~90s）
+    const deadline = Date.now() + 90_000
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 4000))
+      const infoResp = await fetch(`${base}/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`, { headers })
+      if (!infoResp.ok) continue
+      const info = (await infoResp.json()) as {
+        data?: { state?: string; resultJson?: string; failMsg?: string }
+      }
+      const state = info.data?.state
+      if (state === 'success') {
+        const rj = info.data?.resultJson
+        const parsed = typeof rj === 'string' ? JSON.parse(rj || '{}') : rj || {}
+        const urls: string[] = parsed.resultUrls || []
+        if (urls.length) return urls
+        return [placeholder(input.prompt)]
+      }
+      if (state === 'fail') {
+        console.warn(`[KIE] 生成失败: ${info.data?.failMsg || ''}`)
+        return [placeholder(input.prompt)]
+      }
+    }
+    console.warn('[KIE] 生成超时，回退占位图')
+    return [placeholder(input.prompt)]
+  } catch (err: any) {
+    console.warn(`[KIE] 异常回退占位图: ${err?.message || err}`)
+    return [placeholder(input.prompt)]
+  }
 }
 
 export async function listTasks(userId: number, limit = 20): Promise<AiTask[]> {

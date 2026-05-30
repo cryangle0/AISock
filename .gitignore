@@ -45,3 +45,6 @@ unpackage/
 ~$*.xlsx
 ~$*.pptx
 .superpowers/
+
+# Deploy artifacts (contain real secrets — never commit to public repo)
+.deploy-*
