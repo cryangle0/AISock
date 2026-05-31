@@ -5,8 +5,8 @@ export function getQuota() {
   return http.get<{ limit: number; remaining: number }>('/api/v1/app/ai/quota', undefined, { showLoading: false })
 }
 
-export function generate(data: { type?: string; prompt?: string; refImage?: string }) {
-  return http.post<AiTask>('/api/v1/app/ai/generate', data, { loadingText: 'AI 生成中...' })
+export function generate(data: { type?: string; prompt?: string; refImage?: string; platform?: string }) {
+  return http.post<AiTask>('/api/v1/app/ai/generate', { platform: 'miniprogram', ...data }, { loadingText: 'AI 生成中...' })
 }
 
 export function listTasks() {

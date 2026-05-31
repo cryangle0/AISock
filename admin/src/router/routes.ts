@@ -62,6 +62,12 @@ export const appRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/ai-monitor/index.vue'),
     meta: { title: 'AI 监控', icon: 'icon-thunderbolt' },
   },
+  {
+    path: 'ai-config',
+    name: 'AiConfig',
+    component: () => import('@/views/ai-config/index.vue'),
+    meta: { title: 'AI 模型配置', icon: 'icon-robot' },
+  },
 ]
 
 export const routes: RouteRecordRaw[] = [

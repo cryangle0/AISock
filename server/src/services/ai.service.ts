@@ -6,6 +6,7 @@
 import { query, queryOne, execute } from '../db.js'
 import { getRedis, CacheKey } from '../redis.js'
 import { persistRemoteImage } from './oss.service.js'
+import { resolvePlatformConfig, renderPrompt, type AiPlatform, type AiPlatformConfig } from './aiConfig.service.js'
 
 export type AiTaskType = 'text2img' | 'img2img' | 'remix' | 'style'
 
@@ -83,6 +84,8 @@ export interface CreateTaskInput {
   type: AiTaskType
   prompt?: string
   refImage?: string
+  /** 生成平台：决定使用哪套模型/提示词配置（默认 default） */
+  platform?: AiPlatform
 }
 
 /** 创建并执行 AI 任务 */
@@ -118,6 +121,7 @@ export async function createTask(userId: number, dailyLimit: number, input: Crea
  * 调用外部文/图生图接口。
  * 优先用 KIE（api.kie.ai）nano-banana 异步任务流：createTask → 轮询 recordInfo。
  * 未配置 AI_IMAGE_API_URL 时返回占位图，方便前端联调。
+ * 模型/提示词模板按平台从 app_config(ai_generation) 解析（可后台配置）。
  */
 async function invokeProvider(input: CreateTaskInput): Promise<string[]> {
   const apiUrl = process.env.AI_IMAGE_API_URL
@@ -126,16 +130,20 @@ async function invokeProvider(input: CreateTaskInput): Promise<string[]> {
     return [placeholder(input.prompt)]
   }
 
+  // 解析该平台生效的模型 / 提示词模板 / 出图比例
+  const aiCfg = await resolvePlatformConfig(input.platform ?? 'default')
+
   // KIE nano-banana 协议
   if (apiUrl.includes('kie.ai')) {
-    return invokeKie(apiUrl, apiKey, input)
+    return invokeKie(apiUrl, apiKey, input, aiCfg)
   }
 
-  // 通用接口：POST {url} { prompt, image, type } → { urls: [] }
+  // 通用接口：POST {url} { prompt, image, type, model } → { urls: [] }
+  const model = input.refImage ? aiCfg.img2imgModel : aiCfg.text2imgModel
   const resp = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ prompt: input.prompt, image: input.refImage, type: input.type }),
+    body: JSON.stringify({ prompt: renderPrompt(aiCfg.promptTemplate, input.prompt || ''), image: input.refImage, type: input.type, model }),
   })
   if (!resp.ok) throw new Error(`AI 接口返回 ${resp.status}`)
   const data = (await resp.json()) as { urls?: string[] }
@@ -148,16 +156,16 @@ function placeholder(prompt?: string): string {
 }
 
 /** KIE nano-banana：提交任务 + 轮询取图。失败/超时回退占位图，不阻断业务。 */
-async function invokeKie(base: string, key: string, input: CreateTaskInput): Promise<string[]> {
+async function invokeKie(base: string, key: string, input: CreateTaskInput, aiCfg: AiPlatformConfig): Promise<string[]> {
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }
-  // 有参考图走 nano-banana-edit（图生图），否则 google/nano-banana（文生图）
-  const model = input.refImage ? 'google/nano-banana-edit' : 'google/nano-banana'
-  const promptText = `袜款印花图案，${input.prompt || '装饰纹样'}，平铺无缝，高清细节，flat lay`
+  // 有参考图走图生图模型，否则文生图模型（均可后台配置）
+  const model = input.refImage ? aiCfg.img2imgModel : aiCfg.text2imgModel
+  const promptText = renderPrompt(aiCfg.promptTemplate, input.prompt || '')
   const payload: Record<string, unknown> = {
     model,
     input: {
       prompt: promptText,
-      aspect_ratio: '1:1',
+      aspect_ratio: aiCfg.aspectRatio || '1:1',
       output_format: 'png',
       ...(input.refImage ? { image_urls: [input.refImage] } : {}),
     },

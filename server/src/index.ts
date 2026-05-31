@@ -39,6 +39,7 @@ import { adminArticlesRouter } from './routes/admin/articles.js'
 import { adminShipmentsRouter } from './routes/admin/shipments.js'
 import { adminAiTasksRouter } from './routes/admin/ai-tasks.js'
 import { adminConfigRouter } from './routes/admin/config.js'
+import { adminAiConfigRouter } from './routes/admin/ai-config.js'
 
 const app = new Hono()
 
@@ -95,6 +96,7 @@ app.route('/api/v1/admin/dashboard', adminDashboardRouter)
 app.route('/api/v1/admin/articles', adminArticlesRouter)
 app.route('/api/v1/admin/shipments', adminShipmentsRouter)
 app.route('/api/v1/admin/ai-tasks', adminAiTasksRouter)
+app.route('/api/v1/admin/ai-config', adminAiConfigRouter)
 app.route('/api/v1/admin/config', adminConfigRouter)
 
 // 健康检查

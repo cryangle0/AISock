@@ -32,14 +32,16 @@ aiRouter.get('/quota', async (c) => {
 
 /** 创建生图任务 */
 aiRouter.post('/generate', async (c) => {
-  const body = await c.req.json<{ type?: string; prompt?: string; refImage?: string }>()
+  const body = await c.req.json<{ type?: string; prompt?: string; refImage?: string; platform?: string }>()
   const type = (body.type || 'text2img') as 'text2img' | 'img2img' | 'remix' | 'style'
   if (type === 'text2img' && !body.prompt) return fail(c, '提示词不能为空')
+  const platform = (body.platform === 'miniprogram' || body.platform === 'web') ? body.platform : 'default'
   const userId = getUserId(c)
   const task = await createTask(userId, await dailyLimit(userId), {
     type,
     prompt: body.prompt,
     refImage: body.refImage,
+    platform,
   })
   return ok(c, task)
 })

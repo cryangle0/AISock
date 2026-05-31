@@ -120,8 +120,11 @@ export interface StyleVariant {
 }
 export const aiApi = {
   quota: () => http.get<unknown, { data: { limit: number; remaining: number } }>('/api/v1/app/ai/quota'),
-  generate: (data: { type?: string; prompt?: string }) =>
-    http.post<unknown, { data: { id: number; result_urls: string[] | null; status: string } }>('/api/v1/app/ai/generate', data),
+  generate: (data: { type?: string; prompt?: string; platform?: string }) =>
+    http.post<unknown, { data: { id: number; result_urls: string[] | null; status: string } }>(
+      '/api/v1/app/ai/generate',
+      { platform: 'web', ...data },
+    ),
   derive: (prompt: string, count: number) =>
     http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/derive', { prompt, count }),
   family: (prompt: string) =>
