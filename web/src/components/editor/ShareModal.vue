@@ -37,7 +37,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { aiApi } from '@/api'
 
 const props = defineProps<{ design: { name?: string; printName?: string }; cover?: string | null }>()
 const emit = defineEmits<{ close: []; shared: [target: string] }>()
@@ -55,12 +54,8 @@ function onCopy() {
   copied.value = true
   setTimeout(() => (copied.value = false), 1500)
 }
-async function onShareTo(target: string) {
-  try {
-    await aiApi.inviteBonus(3)
-  } catch {
-    /* 忽略 */
-  }
+function onShareTo(target: string) {
+  // 邀请奖励改由真实邀请关系（被邀请人注册）发放，分享本身不再自助加额度
   emit('shared', target)
 }
 </script>

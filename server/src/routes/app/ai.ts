@@ -7,7 +7,6 @@ import { getUserId } from '../../utils/context.js'
 import { queryOne } from '../../db.js'
 import {
   createTask, listTasks, getRemainingQuota, computeDailyLimit,
-  grantBonusQuota,
 } from '../../services/ai.service.js'
 import { deriveStyleVariants, deriveFamilyPair } from '../../services/variant.service.js'
 
@@ -60,13 +59,4 @@ aiRouter.post('/derive', async (c) => {
 /** 亲子袜（成人 + 儿童配方） */
 aiRouter.post('/family', async (c) => {
   return ok(c, deriveFamilyPair())
-})
-
-/** 邀请奖励：被邀请人注册后，给邀请人 + 自己各加生图次数 */
-aiRouter.post('/invite-bonus', async (c) => {
-  const { bonus } = await c.req.json<{ bonus?: number }>()
-  await grantBonusQuota(getUserId(c), Math.max(1, Math.min(10, bonus || 3)))
-  const limit = await dailyLimit(getUserId(c))
-  const remaining = await getRemainingQuota(getUserId(c), limit)
-  return ok(c, { remaining })
 })

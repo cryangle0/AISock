@@ -151,8 +151,6 @@ export const aiApi = {
     http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/derive', { prompt, count }),
   family: (prompt: string) =>
     http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/family', { prompt }),
-  inviteBonus: (bonus = 3) =>
-    http.post<unknown, { data: { remaining: number } }>('/api/v1/app/ai/invite-bonus', { bonus }),
 }
 
 // ── 站点品牌配置 ──

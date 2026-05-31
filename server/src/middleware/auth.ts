@@ -61,9 +61,14 @@ const AUTH_WHITELIST = new Set<string>([
 
 const AUTH_WHITELIST_PREFIX = ['/api/v1/app/socks/', '/api/v1/app/patterns/', '/api/v1/app/feed/', '/api/v1/app/config/']
 
-function isWhitelisted(path: string): boolean {
+function isWhitelisted(c: Context, path: string): boolean {
   if (AUTH_WHITELIST.has(path)) return true
-  return AUTH_WHITELIST_PREFIX.some((p) => path.startsWith(p))
+  // 前缀白名单仅对只读 GET 放行；写操作（POST/PUT/DELETE）一律要求登录，
+  // 避免 /patterns/mine、/config/* 等写接口被未登录访问（getUserId=0 越权落库/删除）
+  if (c.req.method === 'GET') {
+    return AUTH_WHITELIST_PREFIX.some((p) => path.startsWith(p))
+  }
+  return false
 }
 
 async function attachUserIfPresent(c: Context): Promise<void> {
@@ -90,7 +95,7 @@ async function attachUserIfPresent(c: Context): Promise<void> {
 export async function requireAuth(c: Context, next: Next) {
   const path = new URL(c.req.url).pathname
 
-  if (isWhitelisted(path)) {
+  if (isWhitelisted(c, path)) {
     await attachUserIfPresent(c)
     return next()
   }

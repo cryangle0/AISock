@@ -44,7 +44,3 @@ export function derive(count: number) {
 export function family() {
   return http.post<VariantRecipe[]>('/api/v1/app/ai/family', {}, { loadingText: 'AI 创作中...' })
 }
-
-export function inviteBonus(bonus = 3) {
-  return http.post<{ remaining: number }>('/api/v1/app/ai/invite-bonus', { bonus }, { silent: true })
-}

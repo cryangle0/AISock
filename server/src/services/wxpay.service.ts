@@ -86,14 +86,25 @@ export async function createPrepay(
 
 /**
  * 处理支付成功（回调验签解密后 / dev mock 调用）：幂等标记 payment + order 已支付。
+ * @param paidAmountFen 微信回调带回的实付金额（分）；提供时与下单金额比对，不符则拒绝（防篡改/串单）。
  */
-export async function handlePaidNotify(outTradeNo: string, transactionId: string | null): Promise<{ ok: boolean }> {
-  const row = await queryOne<{ id: number; order_id: number; status: string }>(
-    'SELECT id, order_id, status FROM payment WHERE out_trade_no = ?',
+export async function handlePaidNotify(
+  outTradeNo: string,
+  transactionId: string | null,
+  paidAmountFen?: number,
+): Promise<{ ok: boolean }> {
+  const row = await queryOne<{ id: number; order_id: number; status: string; amount_fen: number }>(
+    'SELECT id, order_id, status, amount_fen FROM payment WHERE out_trade_no = ?',
     [outTradeNo],
   )
   if (!row) return { ok: false }
   if (row.status === 'success') return { ok: true } // 幂等
+
+  // 金额校验：回调带回金额时必须与下单金额一致，防止伪造小额支付完成大额订单
+  if (typeof paidAmountFen === 'number' && paidAmountFen !== row.amount_fen) {
+    console.warn(`[wxpay] 金额不符，拒绝落库: out_trade_no=${outTradeNo} 期望=${row.amount_fen} 实收=${paidAmountFen}`)
+    return { ok: false }
+  }
 
   await execute(
     'UPDATE payment SET status = ?, transaction_id = ?, paid_at = NOW() WHERE id = ?',

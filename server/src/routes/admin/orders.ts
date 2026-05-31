@@ -10,6 +10,16 @@ export const adminOrdersRouter = new Hono()
 
 const VALID_STATUS = new Set(['pending', 'paid', 'producing', 'shipped', 'done', 'cancelled'])
 
+// 允许的状态流转：约束管理员不能跳过支付直接发货等非法流转
+const STATUS_FLOW: Record<string, string[]> = {
+  pending: ['paid', 'cancelled'],
+  paid: ['producing', 'cancelled'],
+  producing: ['shipped', 'cancelled'],
+  shipped: ['done'],
+  done: [],
+  cancelled: [],
+}
+
 adminOrdersRouter.get('/', async (c) => {
   const { pageNum, pageSize, offset } = getPageQuery(c, 10)
   const status = c.req.query('status')
@@ -38,6 +48,13 @@ adminOrdersRouter.get('/:id', async (c) => {
 adminOrdersRouter.put('/:id/status', async (c) => {
   const { status } = await c.req.json<{ status?: string }>()
   if (!status || !VALID_STATUS.has(status)) return fail(c, '状态值不合法')
-  await execute('UPDATE `order` SET status = ? WHERE id = ?', [status, Number(c.req.param('id'))])
+  const id = Number(c.req.param('id'))
+  const order = await queryOne<{ status: string }>('SELECT status FROM `order` WHERE id = ?', [id])
+  if (!order) return fail(c, '订单不存在', 404)
+  // 校验流转合法性：同状态幂等放行；否则必须在允许的下一步集合内
+  if (order.status !== status && !(STATUS_FLOW[order.status] || []).includes(status)) {
+    return fail(c, `不允许从「${order.status}」流转到「${status}」`)
+  }
+  await execute('UPDATE `order` SET status = ? WHERE id = ?', [status, id])
   return ok(c, { updated: true })
 })

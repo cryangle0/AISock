@@ -90,6 +90,15 @@ async function maybeMergeOpenidAccount(fromUserId: number, toUserId: number): Pr
     await conn.query('UPDATE `order` SET user_id = ? WHERE user_id = ?', [toUserId, fromUserId])
     await conn.query('UPDATE `ai_task` SET user_id = ? WHERE user_id = ?', [toUserId, fromUserId])
     await conn.query('UPDATE `pattern` SET owner_id = ? WHERE owner_id = ?', [toUserId, fromUserId])
+    await conn.query('UPDATE `upload` SET user_id = ? WHERE user_id = ?', [toUserId, fromUserId])
+    // 邀请关系：邀请人侧直接迁移；被邀请人侧受 uk_invitee 唯一约束，仅在目标无记录时迁移，否则删除来源
+    await conn.query('UPDATE `invitation` SET inviter_id = ? WHERE inviter_id = ?', [toUserId, fromUserId])
+    const [toInvitee] = (await conn.query('SELECT id FROM `invitation` WHERE invitee_id = ? LIMIT 1', [toUserId])) as any[]
+    if (Array.isArray(toInvitee) && toInvitee.length > 0) {
+      await conn.query('DELETE FROM `invitation` WHERE invitee_id = ?', [fromUserId])
+    } else {
+      await conn.query('UPDATE `invitation` SET invitee_id = ? WHERE invitee_id = ?', [toUserId, fromUserId])
+    }
     // 目标账号若还没绑 openid，则把来源的 openid/unionid 补绑过来
     await conn.query(
       'UPDATE `user` SET openid = COALESCE(openid, ?), unionid = COALESCE(unionid, ?) WHERE id = ?',

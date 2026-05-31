@@ -42,7 +42,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
-import { aiApi } from '@aisock/service'
 import { SHARE_BASE_URL } from '@aisock/common/constants'
 
 const props = defineProps<{ design: { name?: string; printName?: string }; cover?: string | null }>()
@@ -61,13 +60,8 @@ function onCopy() {
   })
 }
 
-async function onShareTo(target: string) {
-  // 分享成功后给当前用户加邀请奖励（演示：直接调用）
-  try {
-    await aiApi.inviteBonus(3)
-  } catch {
-    /* 忽略 */
-  }
+function onShareTo(target: string) {
+  // 邀请奖励改由真实邀请关系（被邀请人注册）发放，分享本身不再自助加额度
   emit('shared', target)
 }
 </script>

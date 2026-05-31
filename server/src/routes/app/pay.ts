@@ -53,13 +53,23 @@ payRouter.post('/notify', async (c) => {
     if (res?.ciphertext && res.nonce) {
       // 真实回调：AEAD 解密
       const plain = decryptNotify(res.ciphertext, res.nonce, res.associated_data || '')
-      const decoded = JSON.parse(plain) as { out_trade_no?: string; transaction_id?: string; trade_state?: string }
+      const decoded = JSON.parse(plain) as {
+        out_trade_no?: string
+        transaction_id?: string
+        trade_state?: string
+        amount?: { total?: number }
+      }
       if (decoded.out_trade_no && decoded.trade_state === 'SUCCESS') {
-        await handlePaidNotify(decoded.out_trade_no, decoded.transaction_id || null)
+        await handlePaidNotify(decoded.out_trade_no, decoded.transaction_id || null, decoded.amount?.total)
       }
       return c.json({ code: 'SUCCESS', message: 'OK' })
     }
-    // 兼容明文（部分调试网关）
+    // 明文分支仅在「非生产」或「未配真实支付凭证」时可用（调试网关）；
+    // 生产 + 具备真实支付能力时拒绝，杜绝伪造未签名回调把订单刷成已支付（0 元单）。
+    const { canRealPay } = await import('../../services/wxpay/signer.js')
+    if (process.env.NODE_ENV === 'production' && canRealPay()) {
+      return c.json({ code: 'FAIL', message: 'unsigned notify rejected' }, 400)
+    }
     const outTradeNo = (body as { out_trade_no?: string }).out_trade_no || ''
     const transactionId = (body as { transaction_id?: string }).transaction_id || null
     if (!outTradeNo) return c.json({ code: 'FAIL', message: 'invalid' }, 400)

@@ -92,6 +92,14 @@ async function consumeQuota(userId: number, dailyLimit: number): Promise<void> {
   }
 }
 
+/** 退还一次配额（生成失败时调用，避免白扣次数） */
+async function refundQuota(userId: number): Promise<void> {
+  const redis = getRedis()
+  const key = quotaKey(userId)
+  const used = Number((await redis.get(key)) || 0)
+  if (used > 0) await redis.set(key, String(used - 1), 'EX', secondsUntilMidnight())
+}
+
 export interface CreateTaskInput {
   type: AiTaskType
   prompt?: string
@@ -119,6 +127,8 @@ export async function createTask(userId: number, dailyLimit: number, input: Crea
       [JSON.stringify(urls), taskId],
     )
   } catch (err: any) {
+    // 生成失败：退还本次配额，避免用户白扣次数
+    await refundQuota(userId).catch(() => {})
     await execute(
       `UPDATE ai_task SET status = 'failed', error = ?, finished_at = NOW() WHERE id = ?`,
       [String(err?.message || 'AI 生成失败').slice(0, 200), taskId],
