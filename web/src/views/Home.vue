@@ -69,7 +69,7 @@
     <!-- 右侧信息栏 -->
     <aside class="home-rail">
       <div class="rp-card">
-        <div class="rp-head"><h3 class="rp-title">资讯中心</h3><button class="rp-more">查看更多 ›</button></div>
+        <div class="rp-head"><h3 class="rp-title">资讯中心</h3><button class="rp-more" @click="$router.push({ name: 'Feed' })">查看更多 ›</button></div>
         <div class="rp-news">
           <div v-for="n in news" :key="n.title" class="rp-news-item">
             <span class="rp-news-icon" :style="{ background: n.bg }">{{ n.emoji }}</span>
@@ -98,7 +98,7 @@
           <h3 class="rp-title">常见问题</h3>
           <p class="rp-faq-desc">快速查看使用说明</p>
         </div>
-        <button class="rp-faq-btn">查看详情</button>
+        <button class="rp-faq-btn" @click="$router.push({ name: 'Feed' })">查看详情</button>
       </div>
 
       <div class="rp-card">
@@ -111,13 +111,13 @@
         </div>
       </div>
 
-      <div class="rp-card">
-        <div class="rp-head"><h3 class="rp-title">最近活动</h3></div>
+      <div v-if="recentDesigns.length" class="rp-card">
+        <div class="rp-head"><h3 class="rp-title">最近设计</h3><button class="rp-more" @click="goAuthed('Mine')">查看更多 ›</button></div>
         <div class="rp-activity">
-          <div v-for="(a, i) in activities" :key="i" class="rp-act-item">
+          <div v-for="d in recentDesigns" :key="d.id" class="rp-act-item" @click="editDesign(d.id)">
             <span class="rp-act-dot" />
-            <span class="rp-act-text">{{ a.text }}</span>
-            <span class="rp-act-time">{{ a.time }}</span>
+            <span class="rp-act-text">{{ d.name }}</span>
+            <span class="rp-act-time">{{ d.created_at?.slice(5, 10) }}</span>
           </div>
         </div>
       </div>
@@ -128,7 +128,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { userApi, feedApi } from '@/api'
+import { userApi, feedApi, designApi, type Design } from '@/api'
 import { useUserStore, useSiteConfigStore } from '@/store'
 import SockMiniSvg from '@/components/SockMiniSvg.vue'
 import { PRESETS } from '@/data/presets'
@@ -151,14 +151,13 @@ const FALLBACK_NEWS: NewsItem[] = [
 ]
 const news = ref<NewsItem[]>(FALLBACK_NEWS)
 const tips = ['尝试用 AI 延展生成同款变体', '搭配色卡映射快速换季配色', '亲子袜一键生成成人 + 儿童款']
-const activities = [
-  { text: '保存了「经典条纹袜」设计', time: '2 小时前' },
-  { text: '提交了订单 AS20260524', time: '昨天' },
-  { text: '上传了 3 张新素材', time: '3 天前' },
-]
+const recentDesigns = ref<Design[]>([])
 
 function goEditor() {
   router.push({ name: 'Editor' })
+}
+function editDesign(id: number) {
+  router.push({ name: 'Editor', query: { design: id } })
 }
 function goAuthed(name: string) {
   if (!userStore.isLogin) {
@@ -190,6 +189,12 @@ onMounted(async () => {
       const ov = await userApi.overview()
       overview.designs = ov.data.designs
       overview.orders = ov.data.orders
+    } catch {
+      /* 忽略 */
+    }
+    try {
+      const ds = await designApi.list()
+      recentDesigns.value = ds.data.slice(0, 5)
     } catch {
       /* 忽略 */
     }

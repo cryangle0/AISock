@@ -17,6 +17,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'feed', name: 'Feed', component: () => import('@/views/Feed.vue') },
       { path: 'editor', name: 'Editor', component: () => import('@/views/Editor.vue'), meta: { requiresAuth: true } },
       { path: 'cart', name: 'Cart', component: () => import('@/views/Cart.vue'), meta: { requiresAuth: true } },
+      { path: 'order/:id', name: 'OrderDetail', component: () => import('@/views/OrderDetail.vue'), meta: { requiresAuth: true } },
       { path: 'mine', name: 'Mine', component: () => import('@/views/Mine.vue'), meta: { requiresAuth: true } },
     ],
   },

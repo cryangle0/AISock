@@ -53,6 +53,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { authApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import { STORAGE_KEYS } from '@aisock/common/constants'
+import { getInviter, clearInviter } from '@/composables/useInvite'
 
 const userStore = useUserStore()
 const phone = ref('')
@@ -132,7 +133,8 @@ function uniLogin(): Promise<string> {
 async function onWechat() {
   try {
     const loginCode = await uniLogin()
-    await userStore.loginByWechatCode(loginCode)
+    await userStore.loginByWechatCode(loginCode, getInviter())
+    clearInviter()
     goBackOrHome()
   } catch {
     // 真机理论上不会取不到 code；仅 H5/非微信环境兜底，提示改用手机号登录

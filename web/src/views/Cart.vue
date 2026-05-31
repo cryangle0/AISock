@@ -6,7 +6,7 @@
       <button class="btn-primary" @click="$router.push({ name: 'Editor' })">开始设计</button>
     </div>
     <div v-else class="list">
-      <div v-for="o in orders" :key="o.id" class="order card">
+      <div v-for="o in orders" :key="o.id" class="order card" @click="goDetail(o.id)">
         <div class="order-top">
           <span class="order-no">{{ o.order_no }}</span>
           <span class="order-status">{{ statusText(o.status) }}</span>
@@ -15,7 +15,12 @@
           <span class="order-name">{{ o.design_name || '袜款设计' }}</span>
           <span class="order-amount">¥{{ o.total_amount }}</span>
         </div>
-        <span class="order-qty">数量 {{ o.quantity }} · {{ o.created_at }}</span>
+        <div class="order-foot">
+          <span class="order-qty">数量 {{ o.quantity }} · {{ o.created_at }}</span>
+          <button v-if="o.status === 'pending'" class="pay-btn" :disabled="payingId === o.id" @click.stop="onPay(o)">
+            {{ payingId === o.id ? '支付中…' : '去支付' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -23,21 +28,47 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { orderApi, type Order } from '@/api'
+import { payExistingOrder } from '@/composables/useOrderPay'
 
+const router = useRouter()
 const STATUS: Record<string, string> = {
   pending: '待支付', paid: '已支付', producing: '生产中', shipped: '已发货', done: '已完成', cancelled: '已取消',
 }
 const orders = ref<Order[]>([])
+const payingId = ref<number | null>(null)
 
-onMounted(async () => {
+async function fetchList() {
   try {
     const res = await orderApi.list()
     orders.value = res.data
   } catch {
     /* 忽略 */
   }
-})
+}
+onMounted(fetchList)
+
+function goDetail(id: number) {
+  router.push({ name: 'OrderDetail', params: { id } })
+}
+
+async function onPay(o: Order) {
+  if (payingId.value) return
+  payingId.value = o.id
+  try {
+    const r = await payExistingOrder(o.id, o.order_no)
+    if (r.paid) {
+      await fetchList()
+    } else {
+      alert('请在微信内完成支付')
+    }
+  } catch (e) {
+    alert((e as Error).message || '支付失败，请重试')
+  } finally {
+    payingId.value = null
+  }
+}
 
 const statusText = (s: string) => STATUS[s] || s
 </script>
@@ -59,6 +90,28 @@ const statusText = (s: string) => STATUS[s] || s
 .order {
   padding: 18px;
   margin-bottom: 14px;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.order:hover {
+  box-shadow: 0 6px 18px rgba(94, 60, 30, 0.1);
+}
+.order-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pay-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  padding: 6px 18px;
+  cursor: pointer;
+}
+.pay-btn:disabled {
+  opacity: 0.6;
 }
 .order-top {
   display: flex;

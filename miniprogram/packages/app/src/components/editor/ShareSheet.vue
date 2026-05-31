@@ -25,17 +25,17 @@
         <view class="target-icon" style="background: rgba(7,193,96,0.12); color: #07c160">💬</view>
         <text class="target-label">微信好友</text>
       </button>
-      <view class="target" @tap="onShareTo('朋友圈')">
+      <view class="target" @tap="onTimelineHint">
         <view class="target-icon" style="background: rgba(26,173,25,0.12); color: #1aad19">🌄</view>
         <text class="target-label">朋友圈</text>
       </view>
-      <view class="target" @tap="onShareTo('群聊')">
-        <view class="target-icon" style="background: rgba(58,111,176,0.12); color: #3a6fb0">👥</view>
-        <text class="target-label">群聊</text>
+      <view class="target" @tap="onCopy">
+        <view class="target-icon" style="background: rgba(58,111,176,0.12); color: #3a6fb0">🔗</view>
+        <text class="target-label">复制链接</text>
       </view>
     </view>
 
-    <view class="share-tip">分享后好友可一键同款再创作，邀请新用户注册可获得额外 AI 生图次数</view>
+    <view class="share-tip">点「微信好友」直接发送卡片；分享朋友圈请点右上角「···」→ 分享到朋友圈。好友通过你的卡片注册，双方各得 AI 生图次数</view>
   </BottomSheet>
 </template>
 
@@ -63,6 +63,10 @@ function onCopy() {
 function onShareTo(target: string) {
   // 邀请奖励改由真实邀请关系（被邀请人注册）发放，分享本身不再自助加额度
   emit('shared', target)
+}
+
+function onTimelineHint() {
+  uni.showToast({ title: '点右上角 ··· 分享到朋友圈', icon: 'none', duration: 2200 })
 }
 </script>
 

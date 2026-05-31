@@ -49,3 +49,6 @@ export const PAY_METHODS: PayMethod[] = [
 ]
 
 export const DEFAULT_SIZES: Record<string, number> = { S: 0, M: 50, L: 30, XL: 0 }
+
+/** 客服电话（占位，上线前替换为真实号码） */
+export const SUPPORT_PHONE = '400-000-0000'

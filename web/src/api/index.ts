@@ -44,6 +44,21 @@ export interface Order {
   total_amount: number
   status: string
   created_at: string
+  material?: string | null
+  craft?: string | null
+  address?: string | null
+  remark?: string | null
+  sizes?: Record<string, number> | null
+  pay_method?: string | null
+  paid_at?: string | null
+}
+
+export interface Shipment {
+  order_id: number
+  carrier: string | null
+  tracking_no: string | null
+  status: string
+  traces: Array<{ time: string; desc: string }> | null
 }
 
 export interface PageResult<T> {
@@ -117,7 +132,7 @@ export const orderApi = {
     http.post<unknown, { data: { prepayId: string; outTradeNo: string; real?: boolean; jsApi?: unknown } }>('/api/v1/app/pay/prepay', { orderId }),
   mockPaid: (outTradeNo: string) => http.post('/api/v1/app/pay/mock-paid', { outTradeNo }),
   shipment: (orderId: number) =>
-    http.get<unknown, { data: { carrier: string | null; tracking_no: string | null; status: string; traces: Array<{ time: string; desc: string }> | null } | null }>(`/api/v1/app/shipment/${orderId}`),
+    http.get<unknown, { data: Shipment | null }>(`/api/v1/app/shipment/${orderId}`),
 }
 
 // ── 推荐流 ──
@@ -134,12 +149,6 @@ export const feedApi = {
 }
 
 // ── AI ──
-export interface StyleVariant {
-  id: string
-  pattern: string
-  scheme: string
-  prompt: string
-}
 export const aiApi = {
   quota: () => http.get<unknown, { data: { limit: number; remaining: number } }>('/api/v1/app/ai/quota'),
   generate: (data: { type?: string; prompt?: string; platform?: string }) =>
@@ -147,10 +156,7 @@ export const aiApi = {
       '/api/v1/app/ai/generate',
       { platform: 'web', ...data },
     ),
-  derive: (prompt: string, count: number) =>
-    http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/derive', { prompt, count }),
-  family: (prompt: string) =>
-    http.post<unknown, { data: StyleVariant[] }>('/api/v1/app/ai/family', { prompt }),
+  // 注：款式衍生/亲子袜在 web 端走本地引擎 @/engine/styleVariants（含离屏渲染），不调后端
 }
 
 // ── 站点品牌配置 ──

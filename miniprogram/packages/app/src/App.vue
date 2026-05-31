@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onLaunch } from '@dcloudio/uni-app'
+import { onLaunch, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@aisock/composition'
+import { captureInviter } from '@/composables/useInvite'
 
-onLaunch(() => {
+onLaunch((options?: { query?: Record<string, string> }) => {
+  // 冷启动捕获邀请人（来自分享链接 ?inviterId=xxx）
+  captureInviter(options?.query)
+
   // 启动时若已有 token，静默刷新用户信息（失败不阻断）
   const userStore = useUserStore()
   if (userStore.isLogin) {
@@ -25,6 +29,11 @@ onLaunch(() => {
       /* 忽略：回退系统字体 */
     }
   }, 0)
+})
+
+// 热启动（从分享卡片再次进入）也捕获邀请人
+onShow((options?: { query?: Record<string, string> }) => {
+  captureInviter(options?.query)
 })
 </script>
 

@@ -168,6 +168,7 @@ import { useUserStore } from '@aisock/composition'
 import { aiApi, designApi, uploadApi } from '@aisock/service'
 import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
 import { paletteToColors } from '@/composables/usePalette'
+import { useShare } from '@/composables/useShare'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
@@ -243,6 +244,13 @@ interface PendingOrder {
 }
 
 const hasPrint = computed(() => !!printImage.value || !!patternId.value)
+
+// 注册微信分享（好友 / 朋友圈）：带当前设计名 + 封面，分享路径自动带 inviterId 打通邀励
+useShare(() => ({
+  title: printName.value ? `我用爱花型设计了「${printName.value}」袜款，快来同款创作` : '爱花型 · AI 袜版定制，一键设计你的专属袜款',
+  path: '/pages/editor/index',
+  imageUrl: printImage.value || undefined,
+}))
 
 /** 从"我的设计"打开（storage 传 id）→ 拉取并回填整套设计 */
 async function loadDesignIfRequested() {
