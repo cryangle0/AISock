@@ -3,6 +3,7 @@
  */
 import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
+import { getUserId } from '../../utils/context.js'
 import { sendSmsCode, smsLogin, wechatLogin, logout } from '../../services/auth.service.js'
 
 export const authRouter = new Hono()
@@ -19,7 +20,9 @@ authRouter.post('/sms-send', async (c) => {
 authRouter.post('/sms-login', async (c) => {
   const { phone, code } = await c.req.json<{ phone?: string; code?: string }>()
   if (!phone || !code) return fail(c, '手机号和验证码不能为空')
-  const { token, user } = await smsLogin(phone, code)
+  // 携带登录态时传入当前 userId，用于合并「微信 openid 临时账号」到手机号账号
+  const currentUserId = getUserId(c) || undefined
+  const { token, user } = await smsLogin(phone, code, currentUserId)
   return ok(c, { token, user: toPublicUser(user) })
 })
 
