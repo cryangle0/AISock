@@ -86,6 +86,12 @@
         <button class="btn ghost" @click="$emit('share')">↗ 分享</button>
       </div>
       <button class="btn ghost" :disabled="!hasPrint" style="width:100%" @click="$emit('clear')">⌫ 清除印花</button>
+
+      <div class="export-row">
+        <span class="export-label">导出袜版</span>
+        <button class="btn ghost" :disabled="!hasPrint" @click="$emit('export', 'png')">PNG</button>
+        <button class="btn ghost" :disabled="!hasPrint" @click="$emit('export', 'jpg')">JPG</button>
+      </div>
     </section>
 
     <!-- 保存 / 下单 -->
@@ -129,6 +135,7 @@ const emit = defineEmits<{
   aiExtend: []
   familyPair: []
   share: []
+  export: [format: 'png' | 'jpg']
 }>()
 
 const palettes = COLOR_PALETTES
@@ -352,5 +359,21 @@ function onFileChange(e: Event) {
 .actions {
   border-top: 1px solid var(--border);
   padding-top: 14px;
+}
+.export-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.export-label {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-right: auto;
+}
+.export-row .btn {
+  flex: 0 0 auto;
+  padding: 0 18px;
+  width: auto;
 }
 </style>

@@ -15,6 +15,14 @@ export const useUserStore = defineStore('user', () => {
     setToken(res.data.token)
   }
 
+  /** 手机号 + 密码登录 */
+  async function loginByPassword(phone: string, password: string) {
+    const res = await authApi.passwordLogin(phone, password)
+    token.value = res.data.token
+    userInfo.value = res.data.user
+    setToken(res.data.token)
+  }
+
   /** 用已获取的 token 完成登录（PC 扫码登录确认后） */
   async function loginByToken(newToken: string) {
     token.value = newToken
@@ -39,5 +47,5 @@ export const useUserStore = defineStore('user', () => {
     clearToken()
   }
 
-  return { token, userInfo, isLogin, loginBySms, loginByToken, refreshProfile, logout }
+  return { token, userInfo, isLogin, loginBySms, loginByPassword, loginByToken, refreshProfile, logout }
 })

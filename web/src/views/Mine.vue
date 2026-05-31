@@ -21,6 +21,17 @@
       </div>
     </div>
 
+    <div class="account card">
+      <h3 class="title">账号安全</h3>
+      <div class="acc-row">
+        <div class="acc-text">
+          <span class="acc-name">登录密码</span>
+          <span class="acc-desc">{{ userStore.userInfo?.hasPassword ? '已设置，可用手机号 + 密码登录' : '未设置，设置后可用密码快捷登录' }}</span>
+        </div>
+        <button class="btn-ghost" @click="openPassword">{{ userStore.userInfo?.hasPassword ? '修改密码' : '设置密码' }}</button>
+      </div>
+    </div>
+
     <div class="designs card">
       <h3 class="title">我的设计</h3>
       <div v-if="designs.length === 0" class="empty">还没有保存的设计</div>
@@ -35,6 +46,13 @@
         </div>
       </div>
     </div>
+
+    <PasswordModal
+      v-if="passwordOpen"
+      :has-password="userStore.userInfo?.hasPassword"
+      @close="passwordOpen = false"
+      @success="onPasswordSuccess"
+    />
   </div>
 </template>
 
@@ -43,11 +61,13 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
 import { userApi, designApi, type Design } from '@/api'
+import PasswordModal from '@/components/user/PasswordModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const overview = reactive<{ designs: number; orders: Record<string, number> }>({ designs: 0, orders: {} })
 const designs = ref<Design[]>([])
+const passwordOpen = ref(false)
 
 const avatarText = computed(() => (userStore.userInfo?.nickname || '客').charAt(0))
 const orderTotal = computed(() => overview.orders.total ?? 0)
@@ -67,6 +87,19 @@ onMounted(async () => {
 async function onLogout() {
   await userStore.logout()
   router.push({ name: 'Home' })
+}
+
+function openPassword() {
+  passwordOpen.value = true
+}
+async function onPasswordSuccess() {
+  passwordOpen.value = false
+  // 刷新资料以更新「已设置」状态
+  try {
+    await userStore.refreshProfile()
+  } catch {
+    /* 忽略 */
+  }
 }
 
 /** 继续编辑：带 design id 进入编辑器还原 */
@@ -136,6 +169,29 @@ function editDesign(id: number) {
   width: 1px;
   height: 30px;
   background: var(--border);
+}
+.account {
+  margin-top: 16px;
+  padding: 20px;
+}
+.acc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.acc-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.acc-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.acc-desc {
+  font-size: 12px;
+  color: var(--text-3);
 }
 .designs {
   margin-top: 16px;

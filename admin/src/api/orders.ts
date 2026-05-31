@@ -1,6 +1,15 @@
 import axios from 'axios'
 import type { PageResult } from './patterns'
 
+export interface OrderAttachment {
+  id: number
+  name: string
+  url: string
+  mime: string | null
+  size: number
+  created_at: string
+}
+
 export interface AdminOrder {
   id: number
   order_no: string
@@ -19,6 +28,7 @@ export interface AdminOrder {
   created_at: string
   remark?: string | null
   sizes?: Record<string, number> | null
+  attachments?: OrderAttachment[]
 }
 
 export function listOrders(params: { pageNum?: number; pageSize?: number; status?: string; keyword?: string }) {

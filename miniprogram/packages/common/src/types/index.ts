@@ -20,6 +20,8 @@ export interface UserInfo {
   nickname: string | null
   avatar: string | null
   aiQuotaDaily: number
+  /** 是否已设置登录密码（profile 接口返回，登录响应可能无此字段） */
+  hasPassword?: boolean
 }
 
 export interface SockModel {

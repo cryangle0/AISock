@@ -40,9 +40,15 @@ adminOrdersRouter.get('/', async (c) => {
 })
 
 adminOrdersRouter.get('/:id', async (c) => {
-  const o = await queryOne('SELECT * FROM `order` WHERE id = ?', [Number(c.req.param('id'))])
+  const id = Number(c.req.param('id'))
+  const o = await queryOne('SELECT * FROM `order` WHERE id = ?', [id])
   if (!o) return fail(c, '订单不存在', 404)
-  return ok(c, o)
+  // 附带用户补传的附件（设计稿 / 图片 / 文件）
+  const attachments = await query(
+    'SELECT id, name, url, mime, size, created_at FROM `order_attachment` WHERE order_id = ? ORDER BY id DESC',
+    [id],
+  )
+  return ok(c, { ...(o as Record<string, unknown>), attachments })
 })
 
 adminOrdersRouter.put('/:id/status', async (c) => {

@@ -39,6 +39,10 @@
     {
       "path": "pages/assets/index",
       "style": { "navigationBarTitleText": "素材库" }
+    },
+    {
+      "path": "pages/set-password/index",
+      "style": { "navigationBarTitleText": "登录密码" }
     }
   ],
   "globalStyle": {

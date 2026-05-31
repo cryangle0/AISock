@@ -30,11 +30,12 @@
 
         <div class="lp-heading">
           <h1>欢迎回来</h1>
-          <p>{{ mode === 'sms' ? '输入手机号和验证码，开始你的袜款设计' : '微信扫码，快速登录' }}</p>
+          <p>{{ headingTip }}</p>
         </div>
 
         <div class="lp-mode-tabs">
-          <button :class="['lp-mode-tab', { active: mode === 'sms' }]" @click="mode = 'sms'">手机号登录</button>
+          <button :class="['lp-mode-tab', { active: mode === 'sms' }]" @click="mode = 'sms'">验证码</button>
+          <button :class="['lp-mode-tab', { active: mode === 'password' }]" @click="mode = 'password'">密码</button>
           <button :class="['lp-mode-tab', { active: mode === 'qr' }]" @click="switchToQr">微信扫码</button>
         </div>
 
@@ -81,6 +82,46 @@
           </button>
         </form>
 
+        <!-- 密码登录 -->
+        <form v-else-if="mode === 'password'" class="lp-form" @submit.prevent="onLogin">
+          <label class="lp-field">
+            <span class="lp-label">手机号</span>
+            <div class="lp-input" :class="{ focus: focused === 'phone' }">
+              <input
+                v-model="phone"
+                type="tel"
+                inputmode="numeric"
+                maxlength="11"
+                placeholder="请输入手机号"
+                autocomplete="username"
+                @focus="focused = 'phone'"
+                @blur="focused = null"
+              />
+            </div>
+          </label>
+
+          <label class="lp-field">
+            <span class="lp-label">密码</span>
+            <div class="lp-input" :class="{ focus: focused === 'password' }">
+              <input
+                v-model="password"
+                type="password"
+                maxlength="32"
+                placeholder="请输入登录密码"
+                autocomplete="current-password"
+                @focus="focused = 'password'"
+                @blur="focused = null"
+              />
+            </div>
+          </label>
+
+          <p class="lp-agreement">登录即代表同意 <span>《用户协议》</span> 和 <span>《隐私政策》</span></p>
+
+          <button type="submit" class="lp-submit" :class="{ enabled: canSubmit && !loading }" :disabled="!canSubmit || loading">
+            {{ loading ? '登录中…' : '登录' }}
+          </button>
+        </form>
+
         <!-- 微信扫码登录 -->
         <div v-else class="lp-qr">
           <div class="lp-qr-box">
@@ -92,7 +133,7 @@
           <p class="lp-qr-tip">打开微信扫一扫，在手机上确认登录</p>
         </div>
 
-        <p class="lp-tip">{{ mode === 'sms' ? '开发环境验证码固定为 1234' : '需在微信中扫码并确认' }}</p>
+        <p class="lp-tip">{{ tipText }}</p>
       </div>
 
       <div class="lp-copy">{{ site.config.copyright }}</div>
@@ -111,12 +152,24 @@ const route = useRoute()
 const userStore = useUserStore()
 const site = useSiteConfigStore()
 
-const mode = ref<'sms' | 'qr'>('sms')
+const mode = ref<'sms' | 'password' | 'qr'>('sms')
 const phone = ref('')
 const code = ref('')
+const password = ref('')
 const counting = ref(0)
 const loading = ref(false)
-const focused = ref<'phone' | 'code' | null>(null)
+const focused = ref<'phone' | 'code' | 'password' | null>(null)
+
+const headingTip = computed(() => {
+  if (mode.value === 'sms') return '输入手机号和验证码，开始你的袜款设计'
+  if (mode.value === 'password') return '使用手机号和密码快捷登录'
+  return '微信扫码，快速登录'
+})
+const tipText = computed(() => {
+  if (mode.value === 'sms') return '开发环境验证码固定为 1234'
+  if (mode.value === 'password') return '可在「我的」页设置登录密码'
+  return '需在微信中扫码并确认'
+})
 
 // ── 微信扫码登录 ──
 const qrImage = ref('')
@@ -174,7 +227,10 @@ async function pollQr(sceneId: string) {
 
 onUnmounted(stopPoll)
 
-const canSubmit = computed(() => /^1\d{10}$/.test(phone.value) && code.value.length >= 4)
+const canSubmit = computed(() => {
+  if (!/^1\d{10}$/.test(phone.value)) return false
+  return mode.value === 'password' ? password.value.length >= 6 : code.value.length >= 4
+})
 
 async function onSendCode() {
   if (counting.value > 0) return
@@ -194,7 +250,11 @@ async function onLogin() {
   if (!canSubmit.value) return
   loading.value = true
   try {
-    await userStore.loginBySms(phone.value, code.value)
+    if (mode.value === 'password') {
+      await userStore.loginByPassword(phone.value, password.value)
+    } else {
+      await userStore.loginBySms(phone.value, code.value)
+    }
     const redirect = (route.query.redirect as string) || '/home'
     router.push(redirect)
   } catch (e) {

@@ -6,6 +6,8 @@ export interface UserInfo {
   nickname: string | null
   avatar: string | null
   aiQuotaDaily: number
+  /** 是否已设置登录密码（profile 返回） */
+  hasPassword?: boolean
 }
 
 export interface SockModel {
@@ -61,6 +63,16 @@ export interface Shipment {
   traces: Array<{ time: string; desc: string }> | null
 }
 
+export interface OrderAttachment {
+  id: number
+  order_id: number
+  name: string
+  url: string
+  mime: string | null
+  size: number
+  created_at: string
+}
+
 export interface PageResult<T> {
   list: T[]
   total: number
@@ -73,6 +85,8 @@ export const authApi = {
   smsSend: (phone: string) => http.post('/api/v1/app/auth/sms-send', { phone }),
   smsLogin: (phone: string, code: string) =>
     http.post<unknown, { data: { token: string; user: UserInfo } }>('/api/v1/app/auth/sms-login', { phone, code }),
+  passwordLogin: (phone: string, password: string) =>
+    http.post<unknown, { data: { token: string; user: UserInfo } }>('/api/v1/app/auth/password-login', { phone, password }),
   logout: () => http.post('/api/v1/app/auth/logout'),
   // PC 扫码登录
   qrCreate: () =>
@@ -96,6 +110,9 @@ export const catalogApi = {
 export const userApi = {
   profile: () => http.get<unknown, { data: UserInfo }>('/api/v1/app/user/profile'),
   overview: () => http.get<unknown, { data: { designs: number; orders: Record<string, number> } }>('/api/v1/app/user/overview'),
+  /** 设置 / 修改登录密码 */
+  setPassword: (newPassword: string, oldPassword?: string) =>
+    http.put('/api/v1/app/user/password', { newPassword, oldPassword }),
 }
 
 // ── 设计 ──
@@ -128,6 +145,15 @@ export const orderApi = {
     http.post<unknown, { data: PriceBreakdown }>('/api/v1/app/orders/quote', input),
   create: (data: { designId?: number; designName?: string; sizes?: Record<string, number>; quantity: number; material?: string; craft?: string; address?: string; remark?: string }) =>
     http.post<unknown, { data: { id: number; orderNo: string } }>('/api/v1/app/orders', data),
+  /** 编辑订单备注/地址（仅待付款/已付款可改） */
+  update: (id: number, patch: { remark?: string; address?: string }) =>
+    http.put(`/api/v1/app/orders/${id}`, patch),
+  // ── 订单附件 ──
+  attachments: (id: number) => http.get<unknown, { data: OrderAttachment[] }>(`/api/v1/app/orders/${id}/attachments`),
+  addAttachment: (id: number, file: { name: string; url: string; mime?: string; size?: number }) =>
+    http.post<unknown, { data: { id: number } }>(`/api/v1/app/orders/${id}/attachments`, file),
+  removeAttachment: (id: number, attId: number) =>
+    http.delete(`/api/v1/app/orders/${id}/attachments/${attId}`),
   prepay: (orderId: number) =>
     http.post<unknown, { data: { prepayId: string; outTradeNo: string; real?: boolean; jsApi?: unknown } }>('/api/v1/app/pay/prepay', { orderId }),
   mockPaid: (outTradeNo: string) => http.post('/api/v1/app/pay/mock-paid', { outTradeNo }),
@@ -149,14 +175,50 @@ export const feedApi = {
 }
 
 // ── AI ──
+export interface AiTaskResult {
+  id: number
+  result_urls: string[] | null
+  status: string
+}
 export const aiApi = {
   quota: () => http.get<unknown, { data: { limit: number; remaining: number } }>('/api/v1/app/ai/quota'),
-  generate: (data: { type?: string; prompt?: string; platform?: string }) =>
-    http.post<unknown, { data: { id: number; result_urls: string[] | null; status: string } }>(
+  generate: (data: { type?: string; prompt?: string; refImage?: string; platform?: string }) =>
+    http.post<unknown, { data: AiTaskResult }>(
       '/api/v1/app/ai/generate',
       { platform: 'web', ...data },
     ),
+  /** 意图分析：把模糊指令优化成高质量提示词（失败回退原文） */
+  optimizePrompt: (prompt: string) =>
+    http.post<unknown, { data: { original: string; optimized: string } }>(
+      '/api/v1/app/ai/optimize-prompt',
+      { prompt },
+    ),
+  /** 图生图 / 指令改色：基于参考图 + 指令生成（如改背景、换配色风格） */
+  remix: (refImage: string, prompt: string) =>
+    http.post<unknown, { data: AiTaskResult }>(
+      '/api/v1/app/ai/generate',
+      { platform: 'web', type: 'img2img', refImage, prompt },
+    ),
   // 注：款式衍生/亲子袜在 web 端走本地引擎 @/engine/styleVariants（含离屏渲染），不调后端
+}
+
+// ── 文件上传 ──
+export interface UploadResult {
+  id: number
+  name: string
+  url: string
+  path: string
+  size: number
+  mime: string
+}
+export const uploadApi = {
+  /** 上传单个文件（multipart/form-data），返回可访问 URL。
+   *  不手动设置 Content-Type，交给浏览器/axios 自动带 boundary。 */
+  upload: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return http.post<unknown, { data: UploadResult }>('/api/v1/app/upload', form)
+  },
 }
 
 // ── 站点品牌配置 ──

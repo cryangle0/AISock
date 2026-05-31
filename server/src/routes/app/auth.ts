@@ -4,7 +4,7 @@
 import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
-import { sendSmsCode, smsLogin, wechatLogin, logout } from '../../services/auth.service.js'
+import { sendSmsCode, smsLogin, wechatLogin, logout, passwordLogin } from '../../services/auth.service.js'
 
 export const authRouter = new Hono()
 
@@ -14,6 +14,15 @@ authRouter.post('/sms-send', async (c) => {
   if (!phone || !/^1\d{10}$/.test(phone)) return fail(c, '手机号格式不正确')
   await sendSmsCode(phone)
   return ok(c, { sent: true })
+})
+
+/** 手机号 + 密码登录 */
+authRouter.post('/password-login', async (c) => {
+  const { phone, password } = await c.req.json<{ phone?: string; password?: string }>()
+  if (!phone || !/^1\d{10}$/.test(phone)) return fail(c, '手机号格式不正确')
+  if (!password) return fail(c, '密码不能为空')
+  const { token, user } = await passwordLogin(phone, password)
+  return ok(c, { token, user: toPublicUser(user) })
 })
 
 /** 短信验证码登录 */

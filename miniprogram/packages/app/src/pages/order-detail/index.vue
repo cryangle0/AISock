@@ -56,14 +56,28 @@
       </view>
     </view>
 
-    <!-- 备注（可编辑） -->
+    <!-- 备注 + 地址（待付款/已付款可编辑） -->
     <view class="card">
       <view class="card-title">
-        备注
-        <text class="edit-btn" @tap="toggleEdit">{{ editing ? '保存' : '编辑' }}</text>
+        订单信息编辑
+        <text v-if="canEdit" class="edit-btn" @tap="toggleEdit">{{ editing ? '保存' : '编辑' }}</text>
+        <text v-else class="edit-locked">已进入生产，不可修改</text>
       </view>
-      <textarea v-if="editing" v-model="draftNote" class="note-edit" placeholder="包装要求、加急说明、修改建议等" />
-      <view v-else class="row"><text>备注</text><text :class="{ muted: !order.remark }">{{ order.remark || '暂无' }}</text></view>
+      <template v-if="editing">
+        <text class="field-label">收货地址</text>
+        <textarea v-model="draftAddress" class="note-edit" placeholder="收货人 电话 详细地址" />
+        <text class="field-label">备注</text>
+        <textarea v-model="draftNote" class="note-edit" placeholder="包装要求、加急说明、修改建议等" />
+      </template>
+      <template v-else>
+        <view class="row"><text>收货地址</text><text class="addr" :class="{ muted: !order.address }">{{ order.address || '暂无' }}</text></view>
+        <view class="row"><text>备注</text><text :class="{ muted: !order.remark }">{{ order.remark || '暂无' }}</text></view>
+      </template>
+    </view>
+
+    <!-- 订单附件（补传设计稿 / 图片 / 文件） -->
+    <view class="card">
+      <OrderAttachments :order-id="order.id" :editable="canEdit" />
     </view>
 
     <!-- 操作 -->
@@ -86,6 +100,7 @@ import { orderApi } from '@aisock/service'
 import { navigateBack } from '@aisock/common/utils'
 import { SUPPORT_PHONE } from '@aisock/common/constants'
 import type { Order } from '@aisock/common/types'
+import OrderAttachments from '@/components/order/OrderAttachments.vue'
 
 const statusFlow = ['paid', 'producing', 'shipped', 'done']
 const statusText: Record<string, string> = { paid: '待生产', producing: '生产中', shipped: '已发货', done: '已完成' }
@@ -95,9 +110,12 @@ const order = ref<(Order & { material?: string; craft?: string; address?: string
 const shipment = ref<{ carrier: string | null; tracking_no: string | null; traces: Array<{ time: string; desc: string }> | null } | null>(null)
 const editing = ref(false)
 const draftNote = ref('')
+const draftAddress = ref('')
 
 const currentIdx = computed(() => Math.max(0, statusFlow.indexOf(order.value?.status || 'paid')))
 const sizeEntries = computed(() => Object.entries(order.value?.sizes || {}))
+// 仅待付款 / 已付款（未进入生产）可编辑备注、地址与附件
+const canEdit = computed(() => ['pending', 'paid'].includes(order.value?.status || ''))
 
 onLoad(async (q) => {
   const id = Number((q as { id?: string }).id)
@@ -119,16 +137,21 @@ function percent(qty: number) {
   const total = order.value?.quantity || 0
   return total ? Math.round((qty / total) * 100) : 0
 }
-function toggleEdit() {
+async function toggleEdit() {
+  if (!order.value) return
   if (editing.value) {
-    if (order.value) {
-      orderApi.updateOrder(order.value.id, { remark: draftNote.value })
+    try {
+      await orderApi.updateOrder(order.value.id, { remark: draftNote.value, address: draftAddress.value })
       order.value.remark = draftNote.value
+      order.value.address = draftAddress.value
+      editing.value = false
+      uni.showToast({ title: '已保存', icon: 'none' })
+    } catch {
+      /* 拦截器已提示（如已进入生产） */
     }
-    editing.value = false
-    uni.showToast({ title: '已保存', icon: 'none' })
   } else {
-    draftNote.value = order.value?.remark || ''
+    draftNote.value = order.value.remark || ''
+    draftAddress.value = order.value.address || ''
     editing.value = true
   }
 }
@@ -175,6 +198,17 @@ function onContactSupport() {
   margin-left: auto;
   font-size: 22rpx;
   color: $mp-primary;
+}
+.edit-locked {
+  margin-left: auto;
+  font-size: 20rpx;
+  color: $mp-text-muted;
+}
+.field-label {
+  display: block;
+  font-size: 22rpx;
+  color: $mp-text-muted;
+  margin: 12rpx 0 8rpx;
 }
 .steps {
   display: flex;

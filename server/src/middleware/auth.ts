@@ -57,6 +57,7 @@ const AUTH_WHITELIST = new Set<string>([
   '/api/v1/app/auth/wechat-login',
   '/api/v1/app/auth/sms-login',
   '/api/v1/app/auth/sms-send',
+  '/api/v1/app/auth/password-login',
   '/api/v1/app/auth/refresh',
   '/api/v1/app/home',
   '/api/v1/app/socks', // 袜型列表（访客可浏览）

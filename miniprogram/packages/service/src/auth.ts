@@ -9,6 +9,11 @@ export function smsLogin(phone: string, code: string) {
   return http.post<{ token: string; user: UserInfo }>('/api/v1/app/auth/sms-login', { phone, code })
 }
 
+/** 手机号 + 密码登录 */
+export function passwordLogin(phone: string, password: string) {
+  return http.post<{ token: string; user: UserInfo }>('/api/v1/app/auth/password-login', { phone, password })
+}
+
 export function wechatLoginByCode(code: string, inviterId?: number) {
   return http.post<{ token: string; user: UserInfo }>('/api/v1/app/auth/wechat-login', { code, inviterId })
 }

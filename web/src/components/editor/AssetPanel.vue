@@ -51,16 +51,9 @@
       </div>
     </template>
 
-    <!-- AI 生成 -->
+    <!-- AI 生成（意图分析 + 文生图 + 指令改色）-->
     <template v-else-if="tab === 'ai'">
-      <div class="ai-hint">描述想要的花型，一键生成同款</div>
-      <textarea v-model="prompt" class="ai-textarea" placeholder="如：春日樱花飘落，粉色为主，少量金色点缀" />
-      <button class="ai-submit" :disabled="!prompt.trim() || generating" @click="onGenerate">
-        {{ generating ? '生成中…' : '生成花型' }}
-      </button>
-      <div class="ai-presets">
-        <button v-for="p in aiPresets" :key="p" class="ai-preset" @click="prompt = p">{{ p }}</button>
-      </div>
+      <AiAssetTab :current-image="currentImage" @generated="onAiGenerated" @toast="onToast" />
     </template>
 
     <!-- 历史 -->
@@ -83,12 +76,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PatternSwatch from '@/components/PatternSwatch.vue'
-import { PATTERN_LIST, AI_PRESETS } from '@/data/editor'
-import { aiApi } from '@/api'
+import AiAssetTab from '@/components/editor/AiAssetTab.vue'
+import { PATTERN_LIST } from '@/data/editor'
+
+const props = defineProps<{
+  /** 当前画布印花图，透传给 AI tab 作为「指令改色」参考图 */
+  currentImage?: string | null
+}>()
 
 const emit = defineEmits<{
   apply: [patternId: string, name: string]
   applyImage: [url: string, name: string]
+  toast: [msg: string]
 }>()
 
 const tabs = [
@@ -99,9 +98,8 @@ const tabs = [
 ]
 const tab = ref('library')
 const query = ref('')
-const prompt = ref('')
-const generating = ref(false)
-const aiPresets = AI_PRESETS
+
+const currentImage = computed(() => props.currentImage ?? null)
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const mine = ref<{ id: number; url: string; name: string }[]>([])
@@ -134,22 +132,14 @@ function onFileChange(e: Event) {
   ;(e.target as HTMLInputElement).value = ''
 }
 
-async function onGenerate() {
-  if (!prompt.value.trim() || generating.value) return
-  generating.value = true
-  try {
-    const res = await aiApi.generate({ type: 'text2img', prompt: prompt.value })
-    const url = res.data.result_urls?.[0]
-    if (url) {
-      history.value.unshift({ id: Date.now(), url, prompt: prompt.value })
-      emit('applyImage', url, prompt.value)
-      tab.value = 'history'
-    }
-  } catch (e) {
-    alert((e as Error).message)
-  } finally {
-    generating.value = false
-  }
+/** AI 生成 / 改色成功：记入历史并应用到画布 */
+function onAiGenerated(url: string, prompt: string) {
+  history.value.unshift({ id: Date.now(), url, prompt })
+  emit('applyImage', url, prompt)
+  tab.value = 'history'
+}
+function onToast(msg: string) {
+  emit('toast', msg)
 }
 </script>
 
@@ -249,49 +239,6 @@ async function onGenerate() {
   display: block;
   margin-top: 4px;
   font-size: 11px;
-}
-.ai-hint {
-  font-size: 12px;
-  color: var(--text-2);
-  margin-bottom: 10px;
-}
-.ai-textarea {
-  width: 100%;
-  height: 90px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 12px;
-  resize: vertical;
-  font-family: inherit;
-}
-.ai-submit {
-  width: 100%;
-  height: 36px;
-  margin-top: 10px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.ai-submit:disabled {
-  opacity: 0.5;
-}
-.ai-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-.ai-preset {
-  font-size: 11px;
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg-card);
-  color: var(--text-2);
 }
 .asset-history {
   display: flex;

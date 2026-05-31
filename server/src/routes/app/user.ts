@@ -7,17 +7,27 @@ import { getUserId } from '../../utils/context.js'
 import { queryOne, execute } from '../../db.js'
 import { countDesigns } from '../../services/design.service.js'
 import { orderStats } from '../../services/order.service.js'
+import { setPassword, hasPassword } from '../../services/auth.service.js'
 
 export const userRouter = new Hono()
 
-/** 当前用户信息 */
+/** 当前用户信息（含是否已设密码，供前端展示「设置/修改密码」） */
 userRouter.get('/profile', async (c) => {
-  const user = await queryOne(
+  const userId = getUserId(c)
+  const user = await queryOne<Record<string, unknown>>(
     'SELECT id, phone, nickname, avatar, ai_quota_daily FROM `user` WHERE id = ?',
-    [getUserId(c)],
+    [userId],
   )
   if (!user) return fail(c, '用户不存在', 404)
-  return ok(c, user)
+  return ok(c, { ...user, hasPassword: await hasPassword(userId) })
+})
+
+/** 设置 / 修改登录密码 */
+userRouter.put('/password', async (c) => {
+  const { newPassword, oldPassword } = await c.req.json<{ newPassword?: string; oldPassword?: string }>()
+  if (!newPassword) return fail(c, '新密码不能为空')
+  await setPassword(getUserId(c), newPassword, oldPassword)
+  return ok(c, { updated: true })
 })
 
 /** 更新昵称 / 头像 */

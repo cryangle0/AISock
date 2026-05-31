@@ -6,6 +6,7 @@ import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import {
   listOrders, getOrder, createOrder, updateOrder, orderStats,
+  listAttachments, addAttachment, removeAttachment,
   type OrderStatus,
 } from '../../services/order.service.js'
 import { computePrice, MATERIAL_UNIT_PRICE, CRAFT_SURCHARGE } from '../../services/pricing.service.js'
@@ -51,4 +52,24 @@ ordersRouter.put('/:id', async (c) => {
   const body = await c.req.json()
   await updateOrder(Number(c.req.param('id')), getUserId(c), body)
   return ok(c, { updated: true })
+})
+
+// ── 订单附件：列表 / 补传 / 删除（仅待付款/已付款且属本人可改）──
+ordersRouter.get('/:id/attachments', async (c) => {
+  const list = await listAttachments(Number(c.req.param('id')), getUserId(c))
+  return ok(c, list)
+})
+
+ordersRouter.post('/:id/attachments', async (c) => {
+  const body = await c.req.json<{ name?: string; url?: string; mime?: string; size?: number }>()
+  if (!body?.url || !body?.name) return fail(c, '缺少文件信息')
+  const result = await addAttachment(Number(c.req.param('id')), getUserId(c), {
+    name: body.name, url: body.url, mime: body.mime, size: body.size,
+  })
+  return ok(c, result)
+})
+
+ordersRouter.delete('/:id/attachments/:attId', async (c) => {
+  await removeAttachment(Number(c.req.param('id')), getUserId(c), Number(c.req.param('attId')))
+  return ok(c, { removed: true })
 })

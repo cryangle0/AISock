@@ -1,7 +1,7 @@
 <template>
   <div class="sock-editor">
     <!-- 左：素材库 / AI 生成 -->
-    <AssetPanel @apply="onApplyPattern" @apply-image="onApplyImage" />
+    <AssetPanel :current-image="finalPrintImage" @apply="onApplyPattern" @apply-image="onApplyImage" @toast="showToast" />
 
     <!-- 中：真实 canvas 袜版预览 -->
     <SockCanvas
@@ -34,6 +34,7 @@
       @reset="resetParams"
       @save="onSave"
       @order="onOrder"
+      @export="onExport"
       @ai-extend="onAiExtend"
       @family-pair="onFamilyPair"
       @share="shareOpen = true"
@@ -210,6 +211,14 @@ function onOrder() {
     return
   }
   orderOpen.value = true
+}
+function onExport(format: 'png' | 'jpg') {
+  if (!hasPrint.value) {
+    showToast('请先选择或生成印花')
+    return
+  }
+  canvasRef.value?.download?.(format)
+  showToast(`已导出 ${format.toUpperCase()}`)
 }
 async function onOrderSubmit(data: OrderFormData) {
   orderOpen.value = false

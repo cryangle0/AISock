@@ -127,13 +127,16 @@ function onTap(e: any) {
   emit('regionClick', region)
 }
 
-/** 导出当前画布为临时文件路径（用于保存/下单封面） */
-function exportImage(): Promise<string> {
+/** 导出当前画布为临时文件路径（用于保存/下单封面、导出到相册）
+ *  @param fileType png | jpg（默认 png） */
+function exportImage(fileType: 'png' | 'jpg' = 'png'): Promise<string> {
   return new Promise((resolve) => {
     if (!canvasNode) return resolve('')
     ;(uni.canvasToTempFilePath as any)(
       {
         canvas: canvasNode,
+        fileType,
+        quality: fileType === 'jpg' ? 0.92 : 1,
         success: (r: any) => resolve(r.tempFilePath || ''),
         fail: () => resolve(''),
       },

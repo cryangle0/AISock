@@ -9,6 +9,16 @@ export function generate(data: { type?: string; prompt?: string; refImage?: stri
   return http.post<AiTask>('/api/v1/app/ai/generate', { platform: 'miniprogram', ...data }, { loadingText: 'AI 生成中...' })
 }
 
+/** 意图分析：把模糊指令优化成高质量提示词 */
+export function optimizePrompt(prompt: string) {
+  return http.post<{ original: string; optimized: string }>('/api/v1/app/ai/optimize-prompt', { prompt }, { loadingText: 'AI 优化中...' })
+}
+
+/** 图生图 / 指令改色：基于参考图 + 指令生成（如改背景、换配色风格） */
+export function remixImage(refImage: string, prompt: string) {
+  return http.post<AiTask>('/api/v1/app/ai/generate', { platform: 'miniprogram', type: 'img2img', refImage, prompt }, { loadingText: 'AI 改色中...' })
+}
+
 export function listTasks() {
   return http.get<AiTask[]>('/api/v1/app/ai/tasks')
 }

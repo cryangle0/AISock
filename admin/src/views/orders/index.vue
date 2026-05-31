@@ -65,6 +65,27 @@
           <a-descriptions-item label="支付时间">{{ detail.paid_at || '-' }}</a-descriptions-item>
           <a-descriptions-item label="创建时间">{{ detail.created_at }}</a-descriptions-item>
         </a-descriptions>
+
+        <!-- 用户补传的附件（设计稿 / 图片 / 文件） -->
+        <div v-if="detail" class="att-block">
+          <div class="att-title">订单附件（{{ detail.attachments?.length || 0 }}）</div>
+          <div v-if="detail.attachments && detail.attachments.length" class="att-grid">
+            <a
+              v-for="f in detail.attachments"
+              :key="f.id"
+              :href="f.url"
+              target="_blank"
+              rel="noopener"
+              class="att-item"
+              :title="f.name"
+            >
+              <img v-if="isImage(f)" :src="f.url" :alt="f.name" class="att-thumb" />
+              <span v-else class="att-file">📄</span>
+              <span class="att-name">{{ f.name }}</span>
+            </a>
+          </div>
+          <a-empty v-else description="用户暂未上传附件" />
+        </div>
       </a-spin>
     </a-drawer>
   </div>
@@ -73,7 +94,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { listOrders, getOrder, updateOrderStatus, type AdminOrder } from '@/api/orders'
+import { listOrders, getOrder, updateOrderStatus, type AdminOrder, type OrderAttachment } from '@/api/orders'
 
 const STATUS_MAP: Record<string, string> = {
   pending: '待支付',
@@ -119,6 +140,10 @@ function statusColor(s: string): string {
   return { pending: 'orange', paid: 'blue', producing: 'cyan', shipped: 'purple', done: 'green', cancelled: 'gray' }[s] || 'gray'
 }
 
+function isImage(f: OrderAttachment): boolean {
+  return (f.mime || '').startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(f.name)
+}
+
 async function fetchList() {
   loading.value = true
   try {
@@ -157,5 +182,46 @@ onMounted(fetchList)
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+.att-block {
+  margin-top: 20px;
+}
+.att-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.att-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 12px;
+}
+.att-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.att-thumb,
+.att-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 88px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--color-border-2);
+  background: var(--color-fill-2);
+  font-size: 32px;
+}
+.att-name {
+  font-size: 11px;
+  color: var(--color-text-3);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

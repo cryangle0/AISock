@@ -80,16 +80,6 @@ export async function createOrder(userId: number, input: CreateOrderInput): Prom
   return { id: r.insertId, orderNo }
 }
 
-export async function updateOrder(id: number, userId: number, patch: { remark?: string; address?: string }): Promise<void> {
-  const fields: string[] = []
-  const values: any[] = []
-  if (patch.remark !== undefined) { fields.push('remark = ?'); values.push(patch.remark) }
-  if (patch.address !== undefined) { fields.push('address = ?'); values.push(patch.address) }
-  if (!fields.length) return
-  values.push(id, userId)
-  await execute(`UPDATE \`order\` SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`, values)
-}
-
 export async function orderStats(userId: number): Promise<Record<string, number>> {
   const rows = await query<{ status: OrderStatus; n: number }>(
     'SELECT status, COUNT(*) n FROM `order` WHERE user_id = ? GROUP BY status',
@@ -101,4 +91,74 @@ export async function orderStats(userId: number): Promise<Record<string, number>
     stats.total += r.n
   }
   return stats
+}
+
+/** 订单是否仍可编辑（备注/地址/补传附件）：仅待付款 / 已付款（未进入生产）可改 */
+const EDITABLE_STATUS = new Set<OrderStatus>(['pending', 'paid'])
+
+export async function updateOrder(
+  id: number,
+  userId: number,
+  patch: { remark?: string; address?: string },
+): Promise<void> {
+  const order = await getOrder(id, userId)
+  if (!order) throw Object.assign(new Error('订单不存在'), { status: 404 })
+  if (!EDITABLE_STATUS.has(order.status)) {
+    throw Object.assign(new Error('订单已进入生产，无法修改'), { status: 400 })
+  }
+  const fields: string[] = []
+  const values: any[] = []
+  if (patch.remark !== undefined) { fields.push('remark = ?'); values.push(patch.remark) }
+  if (patch.address !== undefined) { fields.push('address = ?'); values.push(patch.address) }
+  if (!fields.length) return
+  values.push(id, userId)
+  await execute(`UPDATE \`order\` SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`, values)
+}
+
+// ── 订单附件（设计稿 / 图片 / 文件，下单后可补传）──
+export interface OrderAttachment {
+  id: number
+  order_id: number
+  user_id: number
+  name: string
+  url: string
+  mime: string | null
+  size: number
+  created_at: string
+}
+
+export async function listAttachments(orderId: number, userId: number): Promise<OrderAttachment[]> {
+  // 校验订单归属，避免越权查看他人订单附件
+  const order = await getOrder(orderId, userId)
+  if (!order) throw Object.assign(new Error('订单不存在'), { status: 404 })
+  return query<OrderAttachment>(
+    'SELECT * FROM `order_attachment` WHERE order_id = ? ORDER BY id DESC',
+    [orderId],
+  )
+}
+
+export async function addAttachment(
+  orderId: number,
+  userId: number,
+  file: { name: string; url: string; mime?: string; size?: number },
+): Promise<{ id: number }> {
+  const order = await getOrder(orderId, userId)
+  if (!order) throw Object.assign(new Error('订单不存在'), { status: 404 })
+  if (!EDITABLE_STATUS.has(order.status)) {
+    throw Object.assign(new Error('订单已进入生产，无法补传文件'), { status: 400 })
+  }
+  const r = await execute(
+    'INSERT INTO `order_attachment` (order_id, user_id, name, url, mime, size) VALUES (?,?,?,?,?,?)',
+    [orderId, userId, file.name, file.url, file.mime ?? null, file.size ?? 0],
+  )
+  return { id: r.insertId }
+}
+
+export async function removeAttachment(orderId: number, userId: number, attachmentId: number): Promise<void> {
+  const order = await getOrder(orderId, userId)
+  if (!order) throw Object.assign(new Error('订单不存在'), { status: 404 })
+  if (!EDITABLE_STATUS.has(order.status)) {
+    throw Object.assign(new Error('订单已进入生产，无法删除文件'), { status: 400 })
+  }
+  await execute('DELETE FROM `order_attachment` WHERE id = ? AND order_id = ? AND user_id = ?', [attachmentId, orderId, userId])
 }

@@ -30,6 +30,7 @@
     <view class="quick-row">
       <button class="quick-btn" :disabled="!hasPrint" @tap="onAiExtend">✨ 款式衍生</button>
       <button class="quick-btn" :disabled="!hasPrint" @tap="onFamily">♥ 亲子袜</button>
+      <button class="quick-btn" @tap="onExport">⬇ 导出</button>
       <button class="quick-btn" @tap="onShare">↗ 分享</button>
     </view>
 
@@ -55,6 +56,7 @@
           </view>
         </view>
         <button class="ai-gen-entry" @tap="onAiGen">⚡ AI 生成花型（今日剩 {{ quota.remaining }} 次）</button>
+        <button v-if="printImage" class="ai-recolor-entry" @tap="onAiRecolor">🎨 指令改色 / 改背景</button>
       </template>
 
       <!-- 调节 -->
@@ -169,6 +171,7 @@ import { aiApi, designApi, uploadApi } from '@aisock/service'
 import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
 import { paletteToColors } from '@/composables/usePalette'
 import { useShare } from '@/composables/useShare'
+import { exportDesignToAlbum } from '@/composables/useExport'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
@@ -206,7 +209,7 @@ const colors = reactive<{ bodyHex: string | null; weltHex: string | null; heelHe
 })
 const paletteId = ref<string | null>(null)
 const quota = reactive({ limit: 5, remaining: 5 })
-const canvasRef = ref<{ exportImage?: () => Promise<string> } | null>(null)
+const canvasRef = ref<{ exportImage?: (t?: 'png' | 'jpg') => Promise<string> } | null>(null)
 const orderOpen = ref(false)
 const pendingOrder = ref<PendingOrder | null>(null)
 const variantMode = ref<'derive' | 'family' | null>(null)
@@ -343,15 +346,57 @@ function onPalette(p: { id: string; name: string; colors: string[] }) {
 
 async function onAiGen() {
   if (!ensureLogin()) return
-  const res = await uni.showModal({ title: 'AI 生成花型', editable: true, placeholderText: '描述想要的花型' })
+  const res = await uni.showModal({ title: 'AI 生成花型', editable: true, placeholderText: '描述想要的花型，如：春日樱花 粉色' })
   if (!res.confirm || !res.content) return
+  let prompt = res.content.trim()
+  if (!prompt) return
+
+  // 意图分析：把模糊指令优化成高质量提示词，让用户确认后再生成
   try {
-    const r = await aiApi.generate({ type: 'text2img', prompt: res.content })
+    const opt = await aiApi.optimizePrompt(prompt)
+    if (opt.data.optimized && opt.data.optimized !== prompt) {
+      const pick = await uni.showModal({
+        title: 'AI 已优化你的描述',
+        content: opt.data.optimized,
+        confirmText: '用优化版',
+        cancelText: '用原文',
+      })
+      if (pick.confirm) prompt = opt.data.optimized
+    }
+  } catch {
+    /* 优化失败用原文 */
+  }
+
+  try {
+    const r = await aiApi.generate({ type: 'text2img', prompt })
     const url = r.data.result_urls?.[0]
     if (url) {
       printImage.value = url
       patternId.value = null
-      printName.value = res.content
+      printName.value = res.content.trim()
+    }
+    const q = await aiApi.getQuota()
+    quota.remaining = q.data.remaining
+  } catch {
+    /* 拦截器已提示 */
+  }
+}
+
+/** 指令改色 / 改背景：基于当前印花图（AI 图或上传图）+ 指令做图生图 */
+async function onAiRecolor() {
+  if (!ensureLogin()) return
+  if (!printImage.value) {
+    uni.showToast({ title: '请先生成或上传印花图', icon: 'none' })
+    return
+  }
+  const res = await uni.showModal({ title: '指令改色 / 改背景', editable: true, placeholderText: '如：背景换成米白色 / 整体偏冷色调' })
+  if (!res.confirm || !res.content?.trim()) return
+  try {
+    const r = await aiApi.remixImage(printImage.value, res.content.trim())
+    const url = r.data.result_urls?.[0]
+    if (url) {
+      printImage.value = url
+      patternId.value = null
     }
     const q = await aiApi.getQuota()
     quota.remaining = q.data.remaining
@@ -377,6 +422,18 @@ function onFamily() {
 }
 function onShare() {
   shareOpen.value = true
+}
+/** 导出袜版到相册：选 PNG / JPG */
+function onExport() {
+  uni.showActionSheet({
+    itemList: ['导出 PNG（高清透明）', '导出 JPG（体积更小）'],
+    success: async (r) => {
+      const fileType = r.tapIndex === 1 ? 'jpg' : 'png'
+      const exporter = canvasRef.value?.exportImage
+      if (!exporter) return
+      await exportDesignToAlbum(exporter, fileType)
+    },
+  })
 }
 function onVariantApply(v: DesignVariant) {
   // 应用衍生款：一次性回填 印花(花型或AI图) + 四区颜色 + 调节参数
@@ -676,6 +733,14 @@ function goDesigns() {
   margin-top: 20rpx;
   background: $mp-primary;
   color: #fff;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+}
+.ai-recolor-entry {
+  margin-top: 12rpx;
+  background: $mp-bg-card;
+  color: $mp-primary;
+  border: 1rpx solid $mp-primary;
   border-radius: 12rpx;
   font-size: 24rpx;
 }

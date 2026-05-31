@@ -6,15 +6,18 @@ import { queryOne, execute, transaction } from '../db.js'
 import { getRedis, CacheKey } from '../redis.js'
 import { signToken } from '../utils/jwt.js'
 import { sendSms } from './sms.service.js'
+import bcrypt from 'bcryptjs'
 
 const SMS_CODE_TTL = 300 // 验证码 5 分钟
 const TOKEN_TTL = 7 * 24 * 3600
+const PASSWORD_SALT_ROUNDS = 10
 
 export interface UserRow {
   id: number
   phone: string | null
   openid: string | null
   unionid: string | null
+  password: string | null
   nickname: string | null
   avatar: string | null
   status: number
@@ -145,6 +148,60 @@ export async function wechatLogin(
   if (!user) throw new Error('用户创建失败')
   if (user.status !== 1) {
     throw Object.assign(new Error('账号已被禁用'), { status: 403 })
+  }
+  const token = await issueToken(user.id, 'user')
+  return { token, user }
+}
+
+/** 密码强度校验：6-32 位，至少含字母和数字 */
+function assertPasswordStrength(pwd: string): void {
+  if (!pwd || pwd.length < 6 || pwd.length > 32) {
+    throw Object.assign(new Error('密码需为 6-32 位'), { status: 400 })
+  }
+  if (!/[a-zA-Z]/.test(pwd) || !/\d/.test(pwd)) {
+    throw Object.assign(new Error('密码需同时包含字母和数字'), { status: 400 })
+  }
+}
+
+/**
+ * 设置 / 修改登录密码。
+ * - 已设过密码：必须校验 oldPassword（防越权改密）。
+ * - 首次设置：oldPassword 可省略。
+ * 仅限已绑定手机号的账号设置密码（密码登录以手机号为账号名）。
+ */
+export async function setPassword(userId: number, newPassword: string, oldPassword?: string): Promise<void> {
+  assertPasswordStrength(newPassword)
+  const user = await queryOne<UserRow>('SELECT * FROM `user` WHERE id = ?', [userId])
+  if (!user) throw Object.assign(new Error('用户不存在'), { status: 404 })
+  if (!user.phone) throw Object.assign(new Error('请先绑定手机号再设置密码'), { status: 400 })
+  if (user.password) {
+    if (!oldPassword) throw Object.assign(new Error('请输入原密码'), { status: 400 })
+    const matched = await bcrypt.compare(oldPassword, user.password)
+    if (!matched) throw Object.assign(new Error('原密码不正确'), { status: 400 })
+  }
+  const hash = await bcrypt.hash(newPassword, PASSWORD_SALT_ROUNDS)
+  await execute('UPDATE `user` SET password = ? WHERE id = ?', [hash, userId])
+}
+
+/** 当前用户是否已设置密码（前端「我的」页展示「设置/修改密码」用） */
+export async function hasPassword(userId: number): Promise<boolean> {
+  const user = await queryOne<{ password: string | null }>('SELECT password FROM `user` WHERE id = ?', [userId])
+  return !!user?.password
+}
+
+/** 手机号 + 密码登录 */
+export async function passwordLogin(phone: string, password: string): Promise<{ token: string; user: UserRow }> {
+  const user = await queryOne<UserRow>('SELECT * FROM `user` WHERE phone = ?', [phone])
+  // 统一错误信息，避免暴露「手机号是否注册」
+  if (!user || !user.password) {
+    throw Object.assign(new Error('手机号或密码错误'), { status: 401 })
+  }
+  if (user.status !== 1) {
+    throw Object.assign(new Error('账号已被禁用'), { status: 403 })
+  }
+  const matched = await bcrypt.compare(password, user.password)
+  if (!matched) {
+    throw Object.assign(new Error('手机号或密码错误'), { status: 401 })
   }
   const token = await issueToken(user.id, 'user')
   return { token, user }

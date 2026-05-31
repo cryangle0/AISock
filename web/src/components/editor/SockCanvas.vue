@@ -157,11 +157,18 @@ function getDataURL(): string {
     return ''
   }
 }
-function download(filename = `袜版印花_${Date.now()}.png`) {
-  const url = getDataURL()
+function download(format: 'png' | 'jpg' = 'png') {
+  const canvas = canvasEl.value
+  if (!canvas) return
+  let url = ''
+  try {
+    url = format === 'jpg' ? canvas.toDataURL('image/jpeg', 0.92) : canvas.toDataURL('image/png')
+  } catch {
+    return
+  }
   if (!url) return
   const link = document.createElement('a')
-  link.download = filename
+  link.download = `袜版设计_${Date.now()}.${format}`
   link.href = url
   link.click()
 }

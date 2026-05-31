@@ -50,6 +50,15 @@ aiRouter.get('/tasks', async (c) => {
   return ok(c, await listTasks(getUserId(c)))
 })
 
+/** 意图分析：把模糊指令优化成高质量提示词（DeepSeek，失败回退原文） */
+aiRouter.post('/optimize-prompt', async (c) => {
+  const { prompt } = await c.req.json<{ prompt?: string }>()
+  if (!prompt?.trim()) return fail(c, '提示词不能为空')
+  const { optimizePrompt } = await import('../../services/aiText.service.js')
+  const optimized = await optimizePrompt(prompt)
+  return ok(c, { original: prompt, optimized })
+})
+
 /** 款式衍生（1/2/4 套配色方案配方） */
 aiRouter.post('/derive', async (c) => {
   const { count } = await c.req.json<{ count?: number }>()

@@ -35,6 +35,29 @@ export function updateOrder(id: number, patch: { remark?: string; address?: stri
   return http.put(`/api/v1/app/orders/${id}`, patch)
 }
 
+// ── 订单附件（设计稿 / 图片 / 文件，下单后可补传）──
+export interface OrderAttachment {
+  id: number
+  order_id: number
+  name: string
+  url: string
+  mime: string | null
+  size: number
+  created_at: string
+}
+
+export function listOrderAttachments(orderId: number) {
+  return http.get<OrderAttachment[]>(`/api/v1/app/orders/${orderId}/attachments`, undefined, { showLoading: false })
+}
+
+export function addOrderAttachment(orderId: number, file: { name: string; url: string; mime?: string; size?: number }) {
+  return http.post<{ id: number }>(`/api/v1/app/orders/${orderId}/attachments`, file)
+}
+
+export function removeOrderAttachment(orderId: number, attachmentId: number) {
+  return http.delete(`/api/v1/app/orders/${orderId}/attachments/${attachmentId}`)
+}
+
 // ── 价格（服务端权威，前端仅展示）──
 export interface PriceBreakdown {
   material: string

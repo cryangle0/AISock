@@ -18,17 +18,24 @@
     </view>
 
     <view class="card">
-      <view class="tabs"><text class="tab active">手机号登录</text></view>
+      <view class="tabs">
+        <text :class="['tab', { active: mode === 'sms' }]" @tap="mode = 'sms'">验证码登录</text>
+        <text :class="['tab', { active: mode === 'password' }]" @tap="mode = 'password'">密码登录</text>
+      </view>
       <view class="field">
         <text class="field-icon">📱</text>
         <input v-model="phone" type="number" placeholder="请输入手机号" maxlength="11" />
       </view>
-      <view class="field">
+      <view v-if="mode === 'sms'" class="field">
         <text class="field-icon">🔑</text>
         <input v-model="code" type="number" placeholder="请输入验证码" maxlength="6" />
         <text class="code-btn" :class="{ disabled: counting > 0 }" @tap="onSendCode">
           {{ counting > 0 ? `${counting}s` : '获取验证码' }}
         </text>
+      </view>
+      <view v-else class="field">
+        <text class="field-icon">🔒</text>
+        <input v-model="password" :password="true" placeholder="请输入登录密码" maxlength="32" />
       </view>
 
       <text class="agreement">
@@ -58,6 +65,8 @@ import { getInviter, clearInviter } from '@/composables/useInvite'
 const userStore = useUserStore()
 const phone = ref('')
 const code = ref('')
+const password = ref('')
+const mode = ref<'sms' | 'password'>('sms')
 const counting = ref(0)
 
 // PC 扫码登录：扫码打开时带 scene 参数
@@ -96,7 +105,10 @@ function onQrCancel() {
   qrScene.value = ''
 }
 
-const canSubmit = computed(() => /^1\d{10}$/.test(phone.value) && code.value.length >= 4)
+const canSubmit = computed(() => {
+  if (!/^1\d{10}$/.test(phone.value)) return false
+  return mode.value === 'sms' ? code.value.length >= 4 : password.value.length >= 6
+})
 
 async function onSendCode() {
   if (counting.value > 0) return
@@ -115,7 +127,11 @@ async function onSendCode() {
 
 async function onLogin() {
   if (!canSubmit.value) return
-  await userStore.loginBySms(phone.value, code.value)
+  if (mode.value === 'sms') {
+    await userStore.loginBySms(phone.value, code.value)
+  } else {
+    await userStore.loginByPassword(phone.value, password.value)
+  }
   goBackOrHome()
 }
 
@@ -270,7 +286,13 @@ function goBackOrHome() {
   box-shadow: 0 12rpx 36rpx rgba(94, 60, 30, 0.1);
 }
 .tabs {
+  display: flex;
+  gap: 32rpx;
   margin-bottom: 24rpx;
+}
+.tab {
+  font-size: 28rpx;
+  color: $mp-text-muted;
 }
 .tab.active {
   font-size: 30rpx;

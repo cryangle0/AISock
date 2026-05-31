@@ -33,6 +33,9 @@
         <view class="list-item" @tap="goAssets">
           <view class="list-icon">🎨</view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text><text class="arrow">›</text>
         </view>
+        <view v-if="userStore.isLogin" class="list-item" @tap="onSetPassword">
+          <view class="list-icon">🔒</view><text class="list-label">{{ hasPassword ? '修改登录密码' : '设置登录密码' }}</text><text class="list-extra">{{ hasPassword ? '已设置' : '未设置' }}</text><text class="arrow">›</text>
+        </view>
         <view class="list-item" @tap="onSettings">
           <view class="list-icon">⚙️</view><text class="list-label">设置</text><text class="list-extra">账号、通知</text><text class="arrow">›</text>
         </view>
@@ -58,6 +61,7 @@ const overview = reactive<{ designs: number; orders: Record<string, number> }>({
 const avatarText = computed(() => (userStore.userInfo?.nickname || '客').charAt(0))
 const phoneText = computed(() => maskPhone(userStore.userInfo?.phone))
 const orderTotal = computed(() => overview.orders.total ?? 0)
+const hasPassword = computed(() => !!userStore.userInfo?.hasPassword)
 
 onShow(async () => {
   if (!userStore.isLogin) return
@@ -65,6 +69,12 @@ onShow(async () => {
     const res = await userApi.getOverview()
     overview.designs = res.data.designs
     overview.orders = res.data.orders
+  } catch {
+    /* 忽略 */
+  }
+  // 刷新资料以拿到 hasPassword（设置密码入口文案随之更新）
+  try {
+    await userStore.refreshProfile()
   } catch {
     /* 忽略 */
   }
@@ -82,6 +92,7 @@ const goLogin = () => reLaunch('/pages/login/index')
 const goDesigns = () => requireLogin(() => navigateTo('/pages/designs/index'))
 const goOrders = () => requireLogin(() => navigateTo('/pages/orders/index'))
 const goAssets = () => navigateTo('/pages/assets/index')
+const onSetPassword = () => requireLogin(() => navigateTo('/pages/set-password/index'))
 
 function onSettings() {
   uni.showActionSheet({
