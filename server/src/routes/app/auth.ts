@@ -32,6 +32,10 @@ authRouter.post('/wechat-login', async (c) => {
 
   let openid = openidDirect
   let unionid: string | undefined
+  // 安全：生产环境禁止直接用 openid 登录（防伪造），必须用 uni.login 的 code 换取
+  if (process.env.NODE_ENV === 'production' && openidDirect && !code) {
+    return fail(c, '请使用微信授权登录')
+  }
   if (!openid && code) {
     const { code2session } = await import('../../services/wechat.service.js')
     const sess = await code2session(code)

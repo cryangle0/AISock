@@ -5,11 +5,22 @@ import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import {
-  listOrders, getOrder, createOrder, markPaid, updateOrder, orderStats,
+  listOrders, getOrder, createOrder, updateOrder, orderStats,
   type OrderStatus,
 } from '../../services/order.service.js'
+import { computePrice, MATERIAL_UNIT_PRICE, CRAFT_SURCHARGE } from '../../services/pricing.service.js'
 
 export const ordersRouter = new Hono()
+
+/** 价目表 + 试算：前端用于展示价格（最终以下单时服务端计算为准） */
+ordersRouter.get('/pricing', async (c) => {
+  return ok(c, { materials: MATERIAL_UNIT_PRICE, crafts: CRAFT_SURCHARGE })
+})
+
+ordersRouter.post('/quote', async (c) => {
+  const body = await c.req.json<{ material?: string; craft?: string; quantity?: number }>()
+  return ok(c, computePrice({ material: body.material, craft: body.craft, quantity: body.quantity ?? 1 }))
+})
 
 ordersRouter.get('/', async (c) => {
   const status = c.req.query('status') as OrderStatus | undefined
@@ -33,12 +44,8 @@ ordersRouter.post('/', async (c) => {
   return ok(c, result)
 })
 
-/** 支付（占位：标记已支付；实际接微信支付回调） */
-ordersRouter.post('/:id/pay', async (c) => {
-  const { payMethod } = await c.req.json<{ payMethod?: string }>()
-  await markPaid(Number(c.req.param('id')), getUserId(c), payMethod || '微信支付')
-  return ok(c, { paid: true })
-})
+// 注意：订单「已支付」状态只能由 /pay/prepay → 微信回调 或 /pay/mock-paid（仅非生产）写入，
+// 不再提供「直接标记已支付」的接口，杜绝绕过支付刷单。
 
 ordersRouter.put('/:id', async (c) => {
   const body = await c.req.json()

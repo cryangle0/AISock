@@ -2,6 +2,7 @@
  * 订单领域服务
  */
 import { query, queryOne, execute } from '../db.js'
+import { computePrice } from './pricing.service.js'
 
 export type OrderStatus = 'pending' | 'paid' | 'producing' | 'shipped' | 'done' | 'cancelled'
 
@@ -54,7 +55,8 @@ export interface CreateOrderInput {
   sockModelId?: number
   sizes?: Record<string, number>
   quantity: number
-  unitPrice: number
+  /** 前端传的单价仅作参考，最终以服务端 computePrice 为准 */
+  unitPrice?: number
   material?: string
   craft?: string
   address?: string
@@ -63,26 +65,19 @@ export interface CreateOrderInput {
 
 export async function createOrder(userId: number, input: CreateOrderInput): Promise<{ id: number; orderNo: string }> {
   const orderNo = genOrderNo()
-  const total = +(input.quantity * input.unitPrice).toFixed(2)
+  // 服务端权威计价：单价/总价按 材质 + 工艺 + 数量 计算，不信任前端传值
+  const price = computePrice({ material: input.material, craft: input.craft, quantity: input.quantity })
   const r = await execute(
     `INSERT INTO \`order\`
       (order_no, user_id, design_id, design_name, sock_model_id, sizes, quantity, unit_price, total_amount, material, craft, address, remark, status)
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending')`,
     [
       orderNo, userId, input.designId ?? null, input.designName ?? null, input.sockModelId ?? null,
-      input.sizes ? JSON.stringify(input.sizes) : null, input.quantity, input.unitPrice, total,
+      input.sizes ? JSON.stringify(input.sizes) : null, price.quantity, price.unitPrice, price.total,
       input.material ?? null, input.craft ?? null, input.address ?? null, input.remark ?? null,
     ],
   )
   return { id: r.insertId, orderNo }
-}
-
-export async function markPaid(id: number, userId: number, payMethod: string): Promise<void> {
-  await execute(
-    `UPDATE \`order\` SET status = 'paid', pay_method = ?, paid_at = NOW()
-     WHERE id = ? AND user_id = ? AND status = 'pending'`,
-    [payMethod, id, userId],
-  )
 }
 
 export async function updateOrder(id: number, userId: number, patch: { remark?: string; address?: string }): Promise<void> {

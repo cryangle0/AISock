@@ -7,8 +7,9 @@ import { getUserId } from '../../utils/context.js'
 import { queryOne } from '../../db.js'
 import {
   createTask, listTasks, getRemainingQuota, computeDailyLimit,
-  grantBonusQuota, deriveStyleVariants, deriveFamilyPair,
+  grantBonusQuota,
 } from '../../services/ai.service.js'
+import { deriveStyleVariants, deriveFamilyPair } from '../../services/variant.service.js'
 
 export const aiRouter = new Hono()
 
@@ -48,16 +49,15 @@ aiRouter.get('/tasks', async (c) => {
   return ok(c, await listTasks(getUserId(c)))
 })
 
-/** 款式衍生（1/2/4 套变体方案） */
+/** 款式衍生（1/2/4 套配色方案配方） */
 aiRouter.post('/derive', async (c) => {
-  const { prompt, count } = await c.req.json<{ prompt?: string; count?: number }>()
-  return ok(c, deriveStyleVariants(prompt || '', count || 2))
+  const { count } = await c.req.json<{ count?: number }>()
+  return ok(c, deriveStyleVariants(count || 2))
 })
 
-/** 亲子袜（成人 + 儿童） */
+/** 亲子袜（成人 + 儿童配方） */
 aiRouter.post('/family', async (c) => {
-  const { prompt } = await c.req.json<{ prompt?: string }>()
-  return ok(c, deriveFamilyPair(prompt || ''))
+  return ok(c, deriveFamilyPair())
 })
 
 /** 邀请奖励：被邀请人注册后，给邀请人 + 自己各加生图次数 */

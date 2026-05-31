@@ -71,8 +71,13 @@ payRouter.post('/notify', async (c) => {
   }
 })
 
-/** dev 模式：前端调用 mock 完成支付（生产不应可用） */
+/** dev/演示模式：前端调用 mock 完成支付。生产环境（NODE_ENV=production 且具备真实支付能力）禁用 */
 payRouter.post('/mock-paid', async (c) => {
+  // 安全：生产环境一旦具备真实支付凭证，禁止 mock 支付，杜绝绕过支付刷单
+  const { canRealPay } = await import('../../services/wxpay/signer.js')
+  if (process.env.NODE_ENV === 'production' && canRealPay()) {
+    return fail(c, '当前环境不支持演示支付', 403)
+  }
   const { outTradeNo } = await c.req.json<{ outTradeNo?: string }>()
   if (!outTradeNo) return fail(c, '缺少 outTradeNo')
   await handlePaidNotify(outTradeNo, `mock_tx_${Date.now()}`)
