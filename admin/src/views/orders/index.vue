@@ -25,14 +25,17 @@
           </template>
         </a-table-column>
         <a-table-column title="创建时间" data-index="created_at" :width="170" />
-        <a-table-column title="操作" :width="140" fixed="right">
+        <a-table-column title="操作" :width="200" fixed="right">
           <template #cell="{ record }">
-            <a-dropdown @select="(v) => onChangeStatus(record.id, v as string)">
-              <a-button type="text" size="small">改状态<icon-down /></a-button>
-              <template #content>
-                <a-doption v-for="(label, key) in STATUS_MAP" :key="key" :value="key">{{ label }}</a-doption>
-              </template>
-            </a-dropdown>
+            <a-space>
+              <a-button type="text" size="small" @click="openDetail(record.id)">详情</a-button>
+              <a-dropdown @select="(v) => onChangeStatus(record.id, v as string)">
+                <a-button type="text" size="small">改状态<icon-down /></a-button>
+                <template #content>
+                  <a-doption v-for="(label, key) in STATUS_MAP" :key="key" :value="key">{{ label }}</a-doption>
+                </template>
+              </a-dropdown>
+            </a-space>
           </template>
         </a-table-column>
       </template>
@@ -41,13 +44,36 @@
     <div class="pager">
       <a-pagination :total="total" :current="pageNum" :page-size="pageSize" show-total @change="onPageChange" />
     </div>
+
+    <!-- 订单详情抽屉 -->
+    <a-drawer v-model:visible="detailVisible" title="订单详情" :width="420" :footer="false">
+      <a-spin :loading="detailLoading" style="width: 100%">
+        <a-descriptions v-if="detail" :column="1" bordered size="medium">
+          <a-descriptions-item label="订单号">{{ detail.order_no }}</a-descriptions-item>
+          <a-descriptions-item label="状态">
+            <a-tag :color="statusColor(detail.status)">{{ STATUS_MAP[detail.status] || detail.status }}</a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item label="设计名称">{{ detail.design_name || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="用户">{{ detail.user_nickname || '-' }}（{{ detail.user_phone || '-' }}）</a-descriptions-item>
+          <a-descriptions-item label="数量">{{ detail.quantity }} 双</a-descriptions-item>
+          <a-descriptions-item label="金额">¥ {{ detail.total_amount }}</a-descriptions-item>
+          <a-descriptions-item label="材质 / 工艺">{{ detail.material || '-' }} / {{ detail.craft || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="收货信息">{{ detail.address || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="尺码分布">{{ sizeText }}</a-descriptions-item>
+          <a-descriptions-item label="备注">{{ detail.remark || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="支付方式">{{ detail.pay_method || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="支付时间">{{ detail.paid_at || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="创建时间">{{ detail.created_at }}</a-descriptions-item>
+        </a-descriptions>
+      </a-spin>
+    </a-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { listOrders, updateOrderStatus, type AdminOrder } from '@/api/orders'
+import { listOrders, getOrder, updateOrderStatus, type AdminOrder } from '@/api/orders'
 
 const STATUS_MAP: Record<string, string> = {
   pending: '待支付',
@@ -65,6 +91,29 @@ const pageNum = ref(1)
 const pageSize = ref(10)
 const status = ref<string | undefined>()
 const keyword = ref('')
+
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detail = ref<AdminOrder | null>(null)
+
+const sizeText = computed(() => {
+  const s = detail.value?.sizes
+  if (!s || typeof s !== 'object') return '-'
+  const entries = Object.entries(s).filter(([, v]) => Number(v) > 0)
+  return entries.length ? entries.map(([k, v]) => `${k}×${v}`).join('，') : '-'
+})
+
+async function openDetail(id: number) {
+  detailVisible.value = true
+  detailLoading.value = true
+  detail.value = null
+  try {
+    const res = await getOrder(id)
+    detail.value = res.data
+  } finally {
+    detailLoading.value = false
+  }
+}
 
 function statusColor(s: string): string {
   return { pending: 'orange', paid: 'blue', producing: 'cyan', shipped: 'purple', done: 'green', cancelled: 'gray' }[s] || 'gray'

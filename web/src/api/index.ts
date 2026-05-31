@@ -132,3 +132,18 @@ export const aiApi = {
   inviteBonus: (bonus = 3) =>
     http.post<unknown, { data: { remaining: number } }>('/api/v1/app/ai/invite-bonus', { bonus }),
 }
+
+// ── 站点品牌配置 ──
+export interface SiteConfig {
+  siteTitle: string
+  brandName: string
+  brandEn: string
+  logoUrl: string
+  faviconUrl: string
+  loginTitle: string
+  loginSubtitle: string
+  copyright: string
+}
+export const siteConfigApi = {
+  get: () => http.get<unknown, { data: SiteConfig }>('/api/v1/app/site-config'),
+}

@@ -78,3 +78,19 @@ export async function deletePattern(id: number, ownerId?: number): Promise<void>
     await execute('DELETE FROM pattern WHERE id = ?', [id])
   }
 }
+
+/** 更新公共花型（名称/分类/图片/缩略图） */
+export async function updatePattern(
+  id: number,
+  data: { name?: string; categoryId?: number | null; imageUrl?: string; thumbUrl?: string | null },
+): Promise<void> {
+  const fields: string[] = []
+  const args: any[] = []
+  if (data.name !== undefined) { fields.push('name = ?'); args.push(data.name) }
+  if (data.categoryId !== undefined) { fields.push('category_id = ?'); args.push(data.categoryId) }
+  if (data.imageUrl !== undefined) { fields.push('image_url = ?'); args.push(data.imageUrl) }
+  if (data.thumbUrl !== undefined) { fields.push('thumb_url = ?'); args.push(data.thumbUrl) }
+  if (!fields.length) return
+  args.push(id)
+  await execute(`UPDATE pattern SET ${fields.join(', ')} WHERE id = ?`, args)
+}

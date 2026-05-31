@@ -2,10 +2,10 @@
   <div class="layout" :class="{ 'is-home': isHome }">
     <header class="topnav">
       <div class="brand">
-        <img class="brand-logo" src="/logo.png" alt="爱花型" />
+        <img class="brand-logo" :src="site.logo()" alt="logo" />
         <div class="brand-text">
-          <span class="brand-cn">爱花型 · 设计</span>
-          <span class="brand-en">SOCK DESIGN</span>
+          <span class="brand-cn">{{ site.config.brandName }}</span>
+          <span class="brand-en">{{ site.config.brandEn }}</span>
         </div>
       </div>
       <nav v-if="!isHome" class="nav">
@@ -71,11 +71,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from '@/store'
+import { useUserStore, useSiteConfigStore } from '@/store'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const site = useSiteConfigStore()
 
 const isHome = computed(() => route.name === 'Home')
 const isFull = computed(() => route.name === 'Home' || route.name === 'Editor')

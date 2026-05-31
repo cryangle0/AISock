@@ -17,6 +17,8 @@ export interface AdminOrder {
   pay_method: string | null
   paid_at: string | null
   created_at: string
+  remark?: string | null
+  sizes?: Record<string, number> | null
 }
 
 export function listOrders(params: { pageNum?: number; pageSize?: number; status?: string; keyword?: string }) {

@@ -126,24 +126,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { userApi } from '@/api'
-import { useUserStore } from '@/store'
+import { userApi, feedApi } from '@/api'
+import { useUserStore, useSiteConfigStore } from '@/store'
 import SockMiniSvg from '@/components/SockMiniSvg.vue'
 import { PRESETS } from '@/data/presets'
 
 const router = useRouter()
 const userStore = useUserStore()
+const site = useSiteConfigStore()
 const presets = PRESETS
 const overview = reactive<{ designs: number; orders: Record<string, number> }>({ designs: 0, orders: {} })
 const orderTotal = computed(() => overview.orders.total ?? 0)
 
-const news = [
-  { emoji: '🌸', title: '2024 春夏趋势花型发布', meta: '最新花型趋势已上线，快来获取灵感！', date: '2024-06-20', bg: 'rgba(222,195,138,0.4)' },
-  { emoji: '🏆', title: '敦煌主题设计大赛开启', meta: '参与赢取丰厚奖励，展示你的创意！', date: '2024-06-15', bg: 'rgba(197,72,60,0.18)' },
-  { emoji: '⚙️', title: '系统升级维护通知', meta: '9月25日 02:00~04:00 系统升级维护', date: '2024-05-15', bg: 'rgba(90,138,125,0.2)' },
+const NEWS_ICONS = ['🌸', '🏆', '⚙️', '🎨', '📦']
+const NEWS_BGS = ['rgba(222,195,138,0.4)', 'rgba(197,72,60,0.18)', 'rgba(90,138,125,0.2)', 'rgba(58,111,176,0.18)']
+interface NewsItem { emoji: string; title: string; meta: string; date: string; bg: string }
+// 兜底资讯（后端无数据时展示，保证不空屏）
+const FALLBACK_NEWS: NewsItem[] = [
+  { emoji: '🌸', title: '2024 春夏趋势花型发布', meta: '最新花型趋势已上线，快来获取灵感！', date: '2024-06-20', bg: NEWS_BGS[0] },
+  { emoji: '🏆', title: '敦煌主题设计大赛开启', meta: '参与赢取丰厚奖励，展示你的创意！', date: '2024-06-15', bg: NEWS_BGS[1] },
+  { emoji: '⚙️', title: '系统升级维护通知', meta: '9月25日 02:00~04:00 系统升级维护', date: '2024-05-15', bg: NEWS_BGS[2] },
 ]
+const news = ref<NewsItem[]>(FALLBACK_NEWS)
 const tips = ['尝试用 AI 延展生成同款变体', '搭配色卡映射快速换季配色', '亲子袜一键生成成人 + 儿童款']
 const activities = [
   { text: '保存了「经典条纹袜」设计', time: '2 小时前' },
@@ -163,6 +169,22 @@ function goAuthed(name: string) {
 }
 
 onMounted(async () => {
+  // 资讯中心：后端 news 文章驱动，失败/空保留兜底
+  try {
+    const res = await feedApi.news()
+    if (res.data.length) {
+      news.value = res.data.map((a, i) => ({
+        emoji: NEWS_ICONS[i % NEWS_ICONS.length],
+        title: a.title,
+        meta: a.summary || '',
+        date: '',
+        bg: NEWS_BGS[i % NEWS_BGS.length],
+      }))
+    }
+  } catch {
+    /* 保留兜底资讯 */
+  }
+
   if (userStore.isLogin) {
     try {
       const ov = await userApi.overview()

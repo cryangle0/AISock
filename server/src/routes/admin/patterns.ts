@@ -4,7 +4,7 @@
 import { Hono } from 'hono'
 import { ok, fail, paginated } from '../../utils/response.js'
 import { getPageQuery } from '../../utils/context.js'
-import { listPatterns, listCategories, createPattern, deletePattern } from '../../services/pattern.service.js'
+import { listPatterns, listCategories, createPattern, deletePattern, updatePattern } from '../../services/pattern.service.js'
 import { execute } from '../../db.js'
 
 export const adminPatternsRouter = new Hono()
@@ -44,4 +44,10 @@ adminPatternsRouter.post('/', async (c) => {
 adminPatternsRouter.delete('/:id', async (c) => {
   await deletePattern(Number(c.req.param('id')))
   return ok(c, { deleted: true })
+})
+
+adminPatternsRouter.put('/:id', async (c) => {
+  const body = await c.req.json<{ name?: string; categoryId?: number | null; imageUrl?: string; thumbUrl?: string | null }>()
+  await updatePattern(Number(c.req.param('id')), body)
+  return ok(c, { updated: true })
 })

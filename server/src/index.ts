@@ -26,6 +26,7 @@ import { payRouter } from './routes/app/pay.js'
 import { feedRouter } from './routes/app/feed.js'
 import { shipmentRouter } from './routes/app/shipment.js'
 import { appConfigRouter } from './routes/app/config.js'
+import { siteConfigRouter } from './routes/app/site-config.js'
 
 // Admin 路由
 import { adminAuthRouter } from './routes/admin/auth.js'
@@ -40,6 +41,7 @@ import { adminShipmentsRouter } from './routes/admin/shipments.js'
 import { adminAiTasksRouter } from './routes/admin/ai-tasks.js'
 import { adminConfigRouter } from './routes/admin/config.js'
 import { adminAiConfigRouter } from './routes/admin/ai-config.js'
+import { adminSiteConfigRouter } from './routes/admin/site-config.js'
 
 const app = new Hono()
 
@@ -83,6 +85,7 @@ app.route('/api/v1/app/upload', uploadRouter)
 app.route('/api/v1/app/pay', payRouter)
 app.route('/api/v1/app/feed', feedRouter)
 app.route('/api/v1/app/config', appConfigRouter)
+app.route('/api/v1/app/site-config', siteConfigRouter)
 app.route('/api/v1/app/shipment', shipmentRouter)
 
 // === Admin 路由 ===
@@ -97,6 +100,7 @@ app.route('/api/v1/admin/articles', adminArticlesRouter)
 app.route('/api/v1/admin/shipments', adminShipmentsRouter)
 app.route('/api/v1/admin/ai-tasks', adminAiTasksRouter)
 app.route('/api/v1/admin/ai-config', adminAiConfigRouter)
+app.route('/api/v1/admin/site-config', adminSiteConfigRouter)
 app.route('/api/v1/admin/config', adminConfigRouter)
 
 // 健康检查

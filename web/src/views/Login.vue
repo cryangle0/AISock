@@ -3,16 +3,16 @@
     <!-- 左面板：品牌 + 视觉 -->
     <aside class="lp-left">
       <header class="lp-left-header">
-        <img class="lp-left-logo" src="/logo.png" alt="爱花型" />
-        <span class="lp-left-brand">爱花型</span>
+        <img class="lp-left-logo" :src="site.logo()" alt="logo" />
+        <span class="lp-left-brand">{{ site.config.brandName }}</span>
       </header>
 
       <div class="lp-left-stage">
         <div class="lp-hero-logo">
-          <img src="/logo.png" alt="爱花型" />
+          <img :src="site.logo()" alt="logo" />
         </div>
-        <h2 class="lp-hero-title">AI 袜版设计系统</h2>
-        <p class="lp-hero-sub">从一根花线到成品，3 分钟出袜款<br />自由编辑模板，AI 同款一键延展</p>
+        <h2 class="lp-hero-title">{{ site.config.loginTitle }}</h2>
+        <p class="lp-hero-sub">{{ site.config.loginSubtitle }}</p>
       </div>
 
       <div class="lp-left-grid" />
@@ -24,8 +24,8 @@
     <main class="lp-right">
       <div class="lp-card">
         <div class="lp-mobile-brand">
-          <img src="/logo.png" alt="爱花型" />
-          <span>爱花型</span>
+          <img :src="site.logo()" alt="logo" />
+          <span>{{ site.config.brandName }}</span>
         </div>
 
         <div class="lp-heading">
@@ -79,7 +79,7 @@
         <p class="lp-tip">开发环境验证码固定为 1234</p>
       </div>
 
-      <div class="lp-copy">爱花型袜业 · 2026</div>
+      <div class="lp-copy">{{ site.config.copyright }}</div>
     </main>
   </div>
 </template>
@@ -88,11 +88,12 @@
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '@/api'
-import { useUserStore } from '@/store'
+import { useUserStore, useSiteConfigStore } from '@/store'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const site = useSiteConfigStore()
 
 const phone = ref('')
 const code = ref('')

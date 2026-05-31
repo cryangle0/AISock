@@ -45,6 +45,12 @@ export const appRoutes: RouteRecordRaw[] = [
     meta: { title: '小程序配置', icon: 'icon-mobile' },
   },
   {
+    path: 'site-config',
+    name: 'SiteConfig',
+    component: () => import('@/views/site-config/index.vue'),
+    meta: { title: '站点配置', icon: 'icon-desktop' },
+  },
+  {
     path: 'articles',
     name: 'Articles',
     component: () => import('@/views/articles/index.vue'),

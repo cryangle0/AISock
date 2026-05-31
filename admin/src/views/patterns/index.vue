@@ -13,7 +13,11 @@
           <a-option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</a-option>
         </a-select>
         <a-input-search v-model="keyword" placeholder="搜索名称" :style="{ width: '200px' }" @search="onFilter" />
-        <a-button type="primary" @click="modalVisible = true">
+        <a-button @click="categoryModalVisible = true">
+          <template #icon><icon-plus /></template>
+          新增分类
+        </a-button>
+        <a-button type="primary" @click="openCreate">
           <template #icon><icon-plus /></template>
           新增花型
         </a-button>
@@ -28,9 +32,12 @@
               <img :src="p.thumb_url || p.image_url" :alt="p.name" class="pattern-img" />
             </template>
             <div class="pattern-name">{{ p.name }}</div>
-            <a-popconfirm content="确定删除？" @ok="onDelete(p.id)">
-              <a-button type="text" status="danger" size="mini" long>删除</a-button>
-            </a-popconfirm>
+            <div class="pattern-ops">
+              <a-button type="text" size="mini" @click="openEdit(p)">编辑</a-button>
+              <a-popconfirm content="确定删除？" @ok="onDelete(p.id)">
+                <a-button type="text" status="danger" size="mini">删除</a-button>
+              </a-popconfirm>
+            </div>
           </a-card>
         </a-grid-item>
       </a-grid>
@@ -46,7 +53,7 @@
       />
     </div>
 
-    <a-modal v-model:visible="modalVisible" title="新增花型" @ok="onCreate" @cancel="modalVisible = false">
+    <a-modal v-model:visible="modalVisible" :title="editing ? '编辑花型' : '新增花型'" @ok="onSubmit" @cancel="modalVisible = false">
       <a-form :model="form" layout="vertical">
         <a-form-item label="名称"><a-input v-model="form.name" /></a-form-item>
         <a-form-item label="分类">
@@ -58,6 +65,13 @@
         <a-form-item label="缩略图 URL"><a-input v-model="form.thumbUrl" /></a-form-item>
       </a-form>
     </a-modal>
+
+    <a-modal v-model:visible="categoryModalVisible" title="新增分类" @ok="onCreateCategory" @cancel="categoryModalVisible = false">
+      <a-form :model="categoryForm" layout="vertical">
+        <a-form-item label="分类名"><a-input v-model="categoryForm.name" placeholder="如 节气 / 国潮" /></a-form-item>
+        <a-form-item label="排序"><a-input-number v-model="categoryForm.sort" :min="0" /></a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -65,7 +79,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import {
-  listPatterns, listCategories, createPattern, deletePattern,
+  listPatterns, listCategories, createPattern, updatePattern, deletePattern, createCategory,
   type Pattern, type PatternCategory,
 } from '@/api/patterns'
 
@@ -78,9 +92,12 @@ const pageSize = ref(18)
 const categoryId = ref<number | undefined>()
 const keyword = ref('')
 const modalVisible = ref(false)
+const editing = ref<Pattern | null>(null)
 const form = reactive<{ name: string; imageUrl: string; thumbUrl: string; categoryId?: number }>({
   name: '', imageUrl: '', thumbUrl: '', categoryId: undefined,
 })
+const categoryModalVisible = ref(false)
+const categoryForm = reactive<{ name: string; sort: number }>({ name: '', sort: 0 })
 
 async function fetchList() {
   loading.value = true
@@ -106,15 +123,40 @@ function onPageChange(p: number) {
   fetchList()
 }
 
-async function onCreate() {
+function resetForm() {
+  Object.assign(form, { name: '', imageUrl: '', thumbUrl: '', categoryId: undefined })
+}
+
+function openCreate() {
+  editing.value = null
+  resetForm()
+  modalVisible.value = true
+}
+
+function openEdit(p: Pattern) {
+  editing.value = p
+  Object.assign(form, {
+    name: p.name, imageUrl: p.image_url, thumbUrl: p.thumb_url || '', categoryId: p.category_id ?? undefined,
+  })
+  modalVisible.value = true
+}
+
+async function onSubmit() {
   if (!form.name || !form.imageUrl) {
     Message.warning('名称和图片 URL 必填')
     return
   }
-  await createPattern(form)
-  Message.success('已创建')
+  if (editing.value) {
+    await updatePattern(editing.value.id, {
+      name: form.name, imageUrl: form.imageUrl, thumbUrl: form.thumbUrl, categoryId: form.categoryId ?? null,
+    })
+    Message.success('已更新')
+  } else {
+    await createPattern(form)
+    Message.success('已创建')
+  }
   modalVisible.value = false
-  Object.assign(form, { name: '', imageUrl: '', thumbUrl: '', categoryId: undefined })
+  resetForm()
   fetchList()
 }
 
@@ -122,6 +164,19 @@ async function onDelete(id: number) {
   await deletePattern(id)
   Message.success('已删除')
   fetchList()
+}
+
+async function onCreateCategory() {
+  if (!categoryForm.name.trim()) {
+    Message.warning('分类名必填')
+    return
+  }
+  await createCategory({ name: categoryForm.name.trim(), sort: categoryForm.sort })
+  Message.success('分类已创建')
+  categoryModalVisible.value = false
+  Object.assign(categoryForm, { name: '', sort: 0 })
+  const cats = await listCategories()
+  categories.value = cats.data
 }
 
 onMounted(async () => {
@@ -144,6 +199,11 @@ onMounted(async () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.pattern-ops {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
 }
 .pager {
   display: flex;

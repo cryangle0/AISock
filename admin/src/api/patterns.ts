@@ -40,6 +40,10 @@ export function createPattern(data: { name: string; imageUrl: string; thumbUrl?:
   return axios.post<{ id: number }>('/api/v1/admin/patterns', data)
 }
 
+export function updatePattern(id: number, data: { name?: string; imageUrl?: string; thumbUrl?: string; categoryId?: number | null }) {
+  return axios.put(`/api/v1/admin/patterns/${id}`, data)
+}
+
 export function deletePattern(id: number) {
   return axios.delete(`/api/v1/admin/patterns/${id}`)
 }
