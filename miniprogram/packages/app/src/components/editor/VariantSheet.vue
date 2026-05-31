@@ -21,7 +21,7 @@
         >
           <image v-if="v.cover" :src="v.cover" mode="aspectFit" class="variant-thumb" />
           <view v-else class="variant-thumb placeholder">🧦</view>
-          <text class="variant-name">{{ v.pattern }}</text>
+          <text class="variant-name">{{ v.name }}</text>
           <text class="variant-scheme">{{ v.scheme }}</text>
         </view>
       </template>
@@ -42,18 +42,18 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
-import { deriveVariants, deriveFamily, type MiniVariant } from './variantGen'
+import { generateDeriveVariants, generateFamilyVariants, type DesignVariant } from '@/composables/useVariants'
 import type { SockColors, SockParams } from './sockShape'
 
 const props = defineProps<{
   mode: 'derive' | 'family'
   basePrompt: string
-  baseDesign?: { patternId?: string | null; colors?: Partial<SockColors>; params?: Partial<SockParams> }
+  baseDesign?: { patternId?: string | null; printImage?: string | null; colors?: Partial<SockColors>; params?: Partial<SockParams> }
 }>()
-const emit = defineEmits<{ close: []; apply: [v: MiniVariant]; saveAll: [vs: MiniVariant[]] }>()
+const emit = defineEmits<{ close: []; apply: [v: DesignVariant]; saveAll: [vs: DesignVariant[]] }>()
 
 const count = ref(2)
-const variants = ref<MiniVariant[]>([])
+const variants = ref<DesignVariant[]>([])
 const picked = ref<string | null>(null)
 const loading = ref(true)
 
@@ -63,10 +63,18 @@ const subtitle = computed(() => (props.mode === 'family' ? '一键生成成人 +
 async function load() {
   loading.value = true
   try {
-    const base = { printName: props.basePrompt, ...props.baseDesign }
-    const res = props.mode === 'family' ? await deriveFamily(base) : await deriveVariants(base, count.value)
+    const base = {
+      printName: props.basePrompt,
+      patternId: props.baseDesign?.patternId ?? null,
+      printImage: props.baseDesign?.printImage ?? null,
+    }
+    const res = props.mode === 'family'
+      ? await generateFamilyVariants(base)
+      : await generateDeriveVariants(base, count.value)
     variants.value = res
     picked.value = res[0]?.id ?? null
+  } catch {
+    variants.value = []
   } finally {
     loading.value = false
   }

@@ -44,12 +44,13 @@
         <view class="pattern-grid">
           <view
             v-for="p in patterns"
-            :key="p.id"
-            :class="['pattern-item', { active: patternId === p.id }]"
+            :key="p.key"
+            :class="['pattern-item', { active: isPatternActive(p) }]"
             :style="{ background: p.bg }"
-            @tap="applyPattern(p.id, p.name)"
+            @tap="applyPattern(p)"
           >
-            <view class="pattern-fg" :style="{ background: p.fg }" />
+            <image v-if="p.kind === 'image'" :src="p.imageUrl" mode="aspectFill" class="pattern-img" />
+            <view v-else class="pattern-fg" :style="{ background: p.fg }" />
             <text class="pattern-name">{{ p.name }}</text>
           </view>
         </view>
@@ -139,7 +140,7 @@
       v-if="variantMode"
       :mode="variantMode"
       :base-prompt="printName"
-      :base-design="{ patternId, colors, params }"
+      :base-design="{ patternId, printImage, colors, params }"
       @close="variantMode = null"
       @apply="onVariantApply"
       @save-all="onFamilySaveAll"
@@ -160,23 +161,23 @@
 import { computed, reactive, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import {
-  SOCK_TYPES, DEFAULT_SOCK_TYPE_ID, PATTERN_LIST, COLOR_PALETTES, BASE_COLOR_PRESETS,
+  COLOR_PALETTES, BASE_COLOR_PRESETS,
 } from '@aisock/common'
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
 import { aiApi, designApi } from '@aisock/service'
+import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
 import PaymentSheet from '@/components/editor/PaymentSheet.vue'
 import VariantSheet from '@/components/editor/VariantSheet.vue'
 import ShareSheet from '@/components/editor/ShareSheet.vue'
-import type { MiniVariant } from '../../components/editor/variantGen'
+import type { DesignVariant } from '@/composables/useVariants'
 import { toRegions, fromRegions } from '../../components/editor/designSnapshot'
 
 const userStore = useUserStore()
-const sockTypes = SOCK_TYPES
-const patterns = PATTERN_LIST
+const { socks: sockTypes, patterns, defaultSockId, ensureLoaded: ensureCatalog } = useCatalog()
 const palettes = COLOR_PALETTES
 const baseColors = BASE_COLOR_PRESETS
 
@@ -193,7 +194,7 @@ const colorRegions = [
 ]
 
 const tab = ref('print')
-const sockTypeId = ref(DEFAULT_SOCK_TYPE_ID)
+const sockTypeId = ref(defaultSockId)
 const printImage = ref<string | null>(null)
 const patternId = ref<string | null>(null)
 const printName = ref('')
@@ -265,6 +266,7 @@ async function loadDesignIfRequested() {
 }
 
 onShow(async () => {
+  ensureCatalog()
   await loadDesignIfRequested()
   if (userStore.isLogin) {
     try {
@@ -285,10 +287,21 @@ function ensureLogin(): boolean {
   return true
 }
 
-function applyPattern(id: string, name: string) {
-  patternId.value = id
-  printImage.value = null
-  printName.value = name
+function applyPattern(p: EditorPattern) {
+  if (p.kind === 'image') {
+    // 后端图片印花：走贴图渲染
+    printImage.value = p.imageUrl ?? null
+    patternId.value = null
+  } else {
+    // 内置矢量花型：走 canvas 引擎
+    patternId.value = p.patternId ?? null
+    printImage.value = null
+  }
+  printName.value = p.name
+}
+/** 网格项是否选中（图片款比 printImage，内置款比 patternId） */
+function isPatternActive(p: EditorPattern): boolean {
+  return p.kind === 'image' ? printImage.value === p.imageUrl : patternId.value === p.patternId
 }
 function onScale(e: any) { params.density = e.detail.value }
 function onRotate(e: any) { params.rotation = e.detail.value }
@@ -341,26 +354,44 @@ function onFamily() {
 function onShare() {
   shareOpen.value = true
 }
-function onVariantApply(v: MiniVariant) {
-  // 应用衍生款：一次性回填 花型 + 四区颜色 + 调节参数
+function onVariantApply(v: DesignVariant) {
+  // 应用衍生款：一次性回填 印花(花型或AI图) + 四区颜色 + 调节参数
   patternId.value = v.patternId
-  printImage.value = null
-  printName.value = v.pattern
+  printImage.value = v.printImage
+  printName.value = v.printName || v.scheme
   Object.assign(colors, v.colors)
   Object.assign(params, v.params)
   variantMode.value = null
-  uni.showToast({ title: `已应用：${v.pattern}`, icon: 'none' })
+  uni.showToast({ title: `已应用：${v.scheme}`, icon: 'none' })
 }
-async function onFamilySaveAll(vs: MiniVariant[]) {
+async function onFamilySaveAll(vs: DesignVariant[]) {
   variantMode.value = null
+  if (!vs.length) return
+  uni.showLoading({ title: '保存套装中…', mask: true })
+  let ok = 0
   for (const v of vs) {
     try {
-      await designApi.createDesign({ name: v.pattern, coverUrl: v.cover || undefined })
+      // 保存完整设计数据（regions），保证再次打开可还原编辑
+      await designApi.createDesign({
+        name: v.name,
+        coverUrl: v.cover || undefined,
+        regions: toRegions({
+          sockTypeId: sockTypeId.value,
+          patternId: v.patternId,
+          printImage: v.printImage,
+          printName: v.printName,
+          params: { ...v.params },
+          colors: { ...v.colors },
+          paletteId: null,
+        }),
+      })
+      ok += 1
     } catch {
-      /* 忽略 */
+      /* 单款失败不阻断其余 */
     }
   }
-  uni.showToast({ title: '亲子套装已保存', icon: 'success' })
+  uni.hideLoading()
+  uni.showToast({ title: ok === vs.length ? '亲子套装已保存' : `已保存 ${ok}/${vs.length} 款`, icon: 'none' })
 }
 function onShared(target: string) {
   shareOpen.value = false
@@ -576,9 +607,17 @@ function goDesigns() {
   justify-content: center;
   gap: 6rpx;
   border: 2rpx solid transparent;
+  overflow: hidden;
+  position: relative;
 }
 .pattern-item.active {
   border-color: $mp-primary;
+}
+.pattern-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 .pattern-fg {
   width: 40rpx;
@@ -587,8 +626,16 @@ function goDesigns() {
   opacity: 0.7;
 }
 .pattern-name {
+  position: relative;
+  z-index: 1;
   font-size: 20rpx;
   color: $mp-text-primary;
+}
+.pattern-item .pattern-img + .pattern-name {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0 8rpx;
+  border-radius: 6rpx;
 }
 .ai-gen-entry {
   margin-top: 20rpx;

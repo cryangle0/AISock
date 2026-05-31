@@ -9,10 +9,6 @@ export function smsLogin(phone: string, code: string) {
   return http.post<{ token: string; user: UserInfo }>('/api/v1/app/auth/sms-login', { phone, code })
 }
 
-export function wechatLogin(openid: string) {
-  return http.post<{ token: string; user: UserInfo }>('/api/v1/app/auth/wechat-login', { openid })
-}
-
 export function wechatLoginByCode(code: string, inviterId?: number) {
   return http.post<{ token: string; user: UserInfo }>('/api/v1/app/auth/wechat-login', { code, inviterId })
 }

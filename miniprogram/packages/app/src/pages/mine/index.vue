@@ -33,7 +33,7 @@
         <view class="list-item" @tap="goAssets">
           <view class="list-icon">🎨</view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text><text class="arrow">›</text>
         </view>
-        <view class="list-item disabled">
+        <view class="list-item" @tap="onSettings">
           <view class="list-icon">⚙️</view><text class="list-label">设置</text><text class="list-extra">账号、通知</text><text class="arrow">›</text>
         </view>
       </view>
@@ -82,6 +82,20 @@ const goLogin = () => reLaunch('/pages/login/index')
 const goDesigns = () => requireLogin(() => navigateTo('/pages/designs/index'))
 const goOrders = () => requireLogin(() => navigateTo('/pages/orders/index'))
 const goAssets = () => navigateTo('/pages/assets/index')
+
+function onSettings() {
+  uni.showActionSheet({
+    itemList: ['清除缓存', '关于爱花型'],
+    success: (r) => {
+      if (r.tapIndex === 0) {
+        try { uni.clearStorageSync() } catch { /* 忽略 */ }
+        uni.showToast({ title: '缓存已清除', icon: 'none' })
+      } else if (r.tapIndex === 1) {
+        uni.showModal({ title: '关于爱花型', content: '爱花型 · AI 袜版定制\n版本 1.0.0', showCancel: false })
+      }
+    },
+  })
+}
 
 async function onLogout() {
   await userStore.logout()

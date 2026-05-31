@@ -13,19 +13,36 @@ export function listTasks() {
   return http.get<AiTask[]>('/api/v1/app/ai/tasks')
 }
 
-export interface StyleVariant {
+export interface VariantColors {
+  bodyHex: string
+  weltHex: string
+  heelHex: string
+  toeHex: string
+}
+export interface VariantParams {
+  density: number
+  rotation: number
+  singleMode: boolean
+  tileDensity: number
+}
+/** 服务端下发的变体「配方」：配色 + 调节参数，由客户端套用到当前印花渲染预览 */
+export interface VariantRecipe {
   id: string
-  pattern: string
+  name: string
   scheme: string
-  prompt: string
+  colors: VariantColors
+  params: VariantParams
+  tag?: 'adult' | 'kid'
 }
 
-export function derive(prompt: string, count: number) {
-  return http.post<StyleVariant[]>('/api/v1/app/ai/derive', { prompt, count }, { loadingText: 'AI 创作中...' })
+/** 款式衍生：取 N 套配色/排布配方 */
+export function derive(count: number) {
+  return http.post<VariantRecipe[]>('/api/v1/app/ai/derive', { count }, { loadingText: 'AI 创作中...' })
 }
 
-export function family(prompt: string) {
-  return http.post<StyleVariant[]>('/api/v1/app/ai/family', { prompt }, { loadingText: 'AI 创作中...' })
+/** 亲子袜：成人 + 儿童配方 */
+export function family() {
+  return http.post<VariantRecipe[]>('/api/v1/app/ai/family', {}, { loadingText: 'AI 创作中...' })
 }
 
 export function inviteBonus(bonus = 3) {

@@ -1,6 +1,12 @@
 /** API 基础地址：生产指向线上后端；本地联调可临时改回 http://127.0.0.1:8199 */
 export const API_BASE_URL = 'https://onnsa.cn/aisock-api'
 
+/** 分享 H5 页基址（与线上域名一致，避免写死无关域名） */
+export const SHARE_BASE_URL = 'https://onnsa.cn/aisock'
+
+/** 客服联系方式（占位，可按实际替换） */
+export const SUPPORT_PHONE = '400-000-0000'
+
 /** 本地存储 key */
 export const STORAGE_KEYS = {
   TOKEN: 'aisock_token',

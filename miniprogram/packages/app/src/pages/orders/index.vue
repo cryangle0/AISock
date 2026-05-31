@@ -27,7 +27,9 @@
         </view>
         <view class="order-foot">
           <text class="order-qty">数量 {{ o.quantity }}</text>
-          <button v-if="o.status === 'pending'" class="pay-btn" @tap.stop="onPay(o)">去支付</button>
+          <button v-if="o.status === 'pending'" class="pay-btn" :disabled="paying === o.id" @tap.stop="onPay(o)">
+            {{ paying === o.id ? '支付中…' : '去支付' }}
+          </button>
         </view>
       </view>
     </view>
@@ -40,6 +42,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { orderApi } from '@aisock/service'
 import { ORDER_STATUS_TEXT } from '@aisock/common/constants'
 import type { Order } from '@aisock/common/types'
+import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
 
 const statusTabs = [
   { key: '', label: '全部' },
@@ -50,6 +53,7 @@ const statusTabs = [
 
 const activeStatus = ref('')
 const list = ref<Order[]>([])
+const paying = ref<number | null>(null)
 
 async function fetchList() {
   try {
@@ -67,10 +71,31 @@ function onSwitch(key: string) {
   fetchList()
 }
 
+/** 待支付订单走真实预下单 → 微信支付 / 演示落库（不再直接标记已付） */
 async function onPay(o: Order) {
-  await orderApi.payOrder(o.id)
-  uni.showToast({ title: '支付成功', icon: 'success' })
-  fetchList()
+  if (paying.value) return
+  paying.value = o.id
+  try {
+    const result = await payOrderById(o.id, o.order_no)
+    if (!result.paid) {
+      uni.showToast({ title: '支付未完成', icon: 'none' })
+      return
+    }
+    if (result.real) {
+      // 真实支付由微信异步回调落库，轮询确认最终状态
+      uni.showLoading({ title: '确认支付结果…' })
+      const ok = await pollOrderPaid(o.id)
+      uni.hideLoading()
+      uni.showToast({ title: ok ? '支付成功' : '支付处理中，请稍后刷新', icon: 'none' })
+    } else {
+      uni.showToast({ title: '支付成功', icon: 'success' })
+    }
+    fetchList()
+  } catch (e: any) {
+    uni.showToast({ title: e?.message || '支付失败，请重试', icon: 'none' })
+  } finally {
+    paying.value = null
+  }
 }
 
 const statusText = (s: string) => ORDER_STATUS_TEXT[s] || s
@@ -171,5 +196,8 @@ function goDetail(id: number) {
   line-height: 56rpx;
   height: 56rpx;
   padding: 0 32rpx;
+}
+.pay-btn[disabled] {
+  opacity: 0.6;
 }
 </style>

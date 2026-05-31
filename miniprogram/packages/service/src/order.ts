@@ -19,7 +19,8 @@ export interface CreateOrderInput {
   sockModelId?: number
   sizes?: Record<string, number>
   quantity: number
-  unitPrice: number
+  /** 单价仅用于展示参考，最终金额由服务端按材质/工艺权威计算 */
+  unitPrice?: number
   material?: string
   craft?: string
   address?: string
@@ -30,12 +31,31 @@ export function createOrder(data: CreateOrderInput) {
   return http.post<{ id: number; orderNo: string }>('/api/v1/app/orders', data)
 }
 
-export function payOrder(id: number, payMethod = '微信支付') {
-  return http.post(`/api/v1/app/orders/${id}/pay`, { payMethod })
-}
-
 export function updateOrder(id: number, patch: { remark?: string; address?: string }) {
   return http.put(`/api/v1/app/orders/${id}`, patch)
+}
+
+// ── 价格（服务端权威，前端仅展示）──
+export interface PriceBreakdown {
+  material: string
+  craft: string
+  basePrice: number
+  craftFee: number
+  unitPrice: number
+  quantity: number
+  total: number
+}
+
+/** 价目表：材质单价 + 工艺加价 */
+export function getPricing() {
+  return http.get<{ materials: Record<string, number>; crafts: Record<string, number> }>(
+    '/api/v1/app/orders/pricing', undefined, { showLoading: false },
+  )
+}
+
+/** 价格试算（服务端计算，下单最终以此为准） */
+export function quotePrice(input: { material?: string; craft?: string; quantity: number }) {
+  return http.post<PriceBreakdown>('/api/v1/app/orders/quote', input, { showLoading: false })
 }
 
 // ── 微信支付 ──

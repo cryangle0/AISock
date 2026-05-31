@@ -22,13 +22,6 @@ export const useUserStore = defineStore('user', () => {
     persist()
   }
 
-  async function loginByWechat(openid: string) {
-    const res = await authApi.wechatLogin(openid)
-    token.value = res.data.token
-    userInfo.value = res.data.user
-    persist()
-  }
-
   async function loginByWechatCode(code: string, inviterId?: number) {
     const res = await authApi.wechatLoginByCode(code, inviterId)
     token.value = res.data.token
@@ -63,5 +56,5 @@ export const useUserStore = defineStore('user', () => {
     uni.removeStorageSync(STORAGE_KEYS.USER_INFO)
   }
 
-  return { token, userInfo, isLogin, loginBySms, loginByWechat, loginByWechatCode, loginByWechatWithPhone, refreshProfile, logout }
+  return { token, userInfo, isLogin, loginBySms, loginByWechatCode, loginByWechatWithPhone, refreshProfile, logout }
 })

@@ -43,12 +43,13 @@
 import { computed, ref } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
 import { aiApi } from '@aisock/service'
+import { SHARE_BASE_URL } from '@aisock/common/constants'
 
 const props = defineProps<{ design: { name?: string; printName?: string }; cover?: string | null }>()
 const emit = defineEmits<{ close: []; shared: [target: string] }>()
 
 const copied = ref(false)
-const shareLink = computed(() => `https://aihuaxing.cn/s/${(props.design.printName || props.design.name || 'design').slice(0, 16)}`)
+const shareLink = computed(() => `${SHARE_BASE_URL}/s/${encodeURIComponent((props.design.printName || props.design.name || 'design').slice(0, 16))}`)
 
 function onCopy() {
   uni.setClipboardData({

@@ -57,10 +57,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
-import { PAY_METHODS, UNIT_PRICE, CRAFT_FEE } from '@aisock/common'
-import { createOrderAndPay } from './usePayment'
+import { PAY_METHODS } from '@aisock/common'
+import { orderApi } from '@aisock/service'
+import { createOrderAndPay } from '@/composables/usePayment'
 
 interface OrderForm {
   designName: string
@@ -86,9 +87,26 @@ const method = ref('wechat')
 const phase = ref<'select' | 'paying' | 'paid'>('select')
 const orderNo = ref('')
 
-const unit = computed(() => UNIT_PRICE[props.order.materialValue] || 28)
-const fee = computed(() => CRAFT_FEE[props.order.craftValue] || 0)
-const total = computed(() => props.order.total * (unit.value + fee.value))
+// 价格由服务端权威试算（与下单落库一致），前端不再本地计算金额
+const unit = ref(0)
+const fee = ref(0)
+const total = ref(0)
+
+watchEffect(async () => {
+  try {
+    const res = await orderApi.quotePrice({
+      material: props.order.materialValue,
+      craft: props.order.craftValue,
+      quantity: props.order.total,
+    })
+    unit.value = res.data.basePrice
+    fee.value = res.data.craftFee
+    total.value = res.data.total
+  } catch {
+    /* 试算失败时金额留 0，下单时仍以服务端为准 */
+  }
+})
+
 const subtitle = computed(
   () => `${props.order.designName} · ${props.order.total} 双 · ${props.order.material}${props.order.craft ? ' · ' + props.order.craft : ''}`,
 )
@@ -101,9 +119,8 @@ async function startPay() {
       designName: props.order.designName,
       sizes: props.order.sizes,
       quantity: props.order.total,
-      unitPrice: +(unit.value + fee.value).toFixed(2),
-      material: props.order.material,
-      craft: props.order.craft,
+      material: props.order.materialValue,
+      craft: props.order.craftValue,
       address: props.order.address,
       remark: props.order.note,
     })

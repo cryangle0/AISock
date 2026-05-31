@@ -21,7 +21,7 @@
       </view>
 
       <text class="agreement">
-        登录即代表同意 <text class="link">《用户协议》</text> 和 <text class="link">《隐私政策》</text>
+        登录即代表同意 <text class="link" @tap="openAgreement('user')">《用户协议》</text> 和 <text class="link" @tap="openAgreement('privacy')">《隐私政策》</text>
       </text>
 
       <button class="submit" :class="{ active: canSubmit }" :disabled="!canSubmit" @tap="onLogin">登录</button>
@@ -87,10 +87,25 @@ async function onWechat() {
     await userStore.loginByWechatCode(loginCode)
     goBackOrHome()
   } catch {
-    // 取不到 code（如 H5 调试）时兜底
-    await userStore.loginByWechat(`wx_${Date.now()}`)
-    goBackOrHome()
+    // 真机理论上不会取不到 code；仅 H5/非微信环境兜底，提示改用手机号登录
+    uni.showToast({ title: '请使用手机号登录', icon: 'none' })
   }
+}
+
+const AGREEMENTS = {
+  user: {
+    title: '用户协议',
+    content: '欢迎使用爱花型 AI 袜版定制服务。使用本服务即表示您同意：合法合规使用平台进行袜款设计与下单；尊重原创，不上传侵权素材；订单一经支付进入生产将不可随意取消。完整条款以正式发布版本为准。',
+  },
+  privacy: {
+    title: '隐私政策',
+    content: '我们仅收集为提供服务所必需的信息（手机号/微信标识、设计与订单数据），用于登录、下单、配送与售后。我们不会向无关第三方出售您的个人信息。您可随时联系客服注销账号。完整政策以正式发布版本为准。',
+  },
+} as const
+
+function openAgreement(key: 'user' | 'privacy') {
+  const a = AGREEMENTS[key]
+  uni.showModal({ title: a.title, content: a.content, showCancel: false, confirmText: '我已知晓' })
 }
 
 function goBackOrHome() {

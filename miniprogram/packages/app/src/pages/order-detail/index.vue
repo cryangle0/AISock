@@ -68,7 +68,7 @@
 
     <!-- 操作 -->
     <view class="footer">
-      <button class="cta secondary">联系客服</button>
+      <button class="cta secondary" @tap="onContactSupport">联系客服</button>
       <button class="cta primary" @tap="goBack">返回列表</button>
     </view>
   </view>
@@ -84,6 +84,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { orderApi } from '@aisock/service'
 import { navigateBack } from '@aisock/common/utils'
+import { SUPPORT_PHONE } from '@aisock/common/constants'
 import type { Order } from '@aisock/common/types'
 
 const statusFlow = ['paid', 'producing', 'shipped', 'done']
@@ -133,6 +134,18 @@ function toggleEdit() {
 }
 function goBack() {
   navigateBack()
+}
+
+/** 联系客服：复制客服电话并提示拨打 */
+function onContactSupport() {
+  uni.showModal({
+    title: '联系客服',
+    content: `客服电话：${SUPPORT_PHONE}`,
+    confirmText: '拨打',
+    success: (r) => {
+      if (r.confirm) uni.makePhoneCall({ phoneNumber: SUPPORT_PHONE, fail: () => {} })
+    },
+  })
 }
 </script>
 

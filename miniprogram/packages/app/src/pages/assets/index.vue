@@ -6,7 +6,7 @@
     </view>
 
     <view class="summary">
-      {{ scope === 'public' ? `${publicItems.length} 套花型 · 拖到编辑器即可应用` : `${mine.length} 张 · 我上传的素材` }}
+      {{ scope === 'public' ? `${visiblePublic.length} 套花型 · 点选即可应用` : `${mine.length} 张 · 我上传的素材` }}
     </view>
 
     <view class="scope-tabs">
@@ -17,8 +17,11 @@
 
     <!-- 公共库 -->
     <view v-if="scope === 'public'" class="asset-grid">
-      <view v-for="p in visiblePublic" :key="p.id" class="asset-card">
-        <view class="thumb"><PatternThumb :pattern-id="p.id" /></view>
+      <view v-for="p in visiblePublic" :key="p.key" class="asset-card">
+        <view class="thumb">
+          <image v-if="p.kind === 'image'" :src="p.imageUrl" mode="aspectFill" class="thumb-img" />
+          <PatternThumb v-else :pattern-id="p.patternId!" />
+        </view>
         <text class="asset-name">{{ p.name }}</text>
         <view class="tags">
           <text class="tag">官方</text>
@@ -53,22 +56,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { PATTERN_LIST } from '@aisock/common'
 import { catalogApi, uploadApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
+import { useCatalog } from '@/composables/useCatalog'
 import PatternThumb from '@/components/PatternThumb.vue'
 
 const userStore = useUserStore()
+const { patterns: publicItems, ensureLoaded: ensureCatalog } = useCatalog()
 const scopes = [
   { key: 'public', label: '公共库' },
   { key: 'mine', label: '我的' },
 ]
 const scope = ref('public')
 const query = ref('')
-const publicItems = PATTERN_LIST
 const mine = ref<{ id: number; url: string; name: string }[]>([])
 
-const visiblePublic = computed(() => publicItems.filter((p) => !query.value || p.name.includes(query.value)))
+const visiblePublic = computed(() => publicItems.value.filter((p) => !query.value || p.name.includes(query.value)))
 const visibleMine = computed(() => mine.value.filter((m) => !query.value || m.name.includes(query.value)))
 
 async function fetchMine() {
@@ -80,7 +83,10 @@ async function fetchMine() {
     /* 忽略 */
   }
 }
-onShow(fetchMine)
+onShow(() => {
+  ensureCatalog()
+  fetchMine()
+})
 
 function onUpload() {
   uni.chooseImage({
