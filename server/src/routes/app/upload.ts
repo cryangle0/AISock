@@ -8,7 +8,8 @@ import { saveBuffer } from '../../services/upload.service.js'
 
 export const uploadRouter = new Hono()
 
-const ALLOW_MIME = /^(image\/(png|jpe?g|webp|gif|svg\+xml)|application\/pdf)$/
+// 仅允许位图与 PDF；SVG 可内嵌脚本（存储型 XSS 风险）故不允许
+const ALLOW_MIME = /^(image\/(png|jpe?g|webp|gif)|application\/pdf)$/
 
 uploadRouter.post('/', async (c) => {
   const form = await c.req.formData()

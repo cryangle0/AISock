@@ -8,7 +8,7 @@
  *   WXPAY_PRIVATE_KEY_PATH=/root/work/aisock/server/certs/apiclient_key.pem
  *   WX_SECRET=<小程序密钥>
  */
-import { execute, queryOne } from '../db.js'
+import { execute, queryOne, transaction } from '../db.js'
 import { canRealPay, buildJsapiPayParams } from './wxpay/signer.js'
 import { jsapiPrepay } from './wxpay/client.js'
 
@@ -52,7 +52,13 @@ export async function createPrepay(
   openid: string,
   description: string,
 ): Promise<PrepayResult> {
-  const outTradeNo = genOutTradeNo(orderId)
+  // 复用未支付的 payment：同一订单多次发起支付时不重复落库，金额变化则更新
+  const existing = await queryOne<{ id: number; out_trade_no: string; status: string }>(
+    'SELECT id, out_trade_no, status FROM payment WHERE order_id = ? ORDER BY id DESC LIMIT 1',
+    [orderId],
+  )
+  const reusePending = existing && existing.status === 'pending'
+  const outTradeNo = reusePending ? existing!.out_trade_no : genOutTradeNo(orderId)
   const appid = process.env.WX_APPID || ''
   let prepayId = `mock_${outTradeNo}`
   let jsApi: JsApiParams | undefined
@@ -75,11 +81,18 @@ export async function createPrepay(
     }
   }
 
-  await execute(
-    `INSERT INTO payment (order_id, out_trade_no, method, amount_fen, status, prepay_id)
-     VALUES (?,?,?,?, 'pending', ?)`,
-    [orderId, outTradeNo, 'wechat', amountFen, prepayId],
-  )
+  if (reusePending) {
+    await execute(
+      `UPDATE payment SET amount_fen = ?, prepay_id = ? WHERE id = ?`,
+      [amountFen, prepayId, existing!.id],
+    )
+  } else {
+    await execute(
+      `INSERT INTO payment (order_id, out_trade_no, method, amount_fen, status, prepay_id)
+       VALUES (?,?,?,?, 'pending', ?)`,
+      [orderId, outTradeNo, 'wechat', amountFen, prepayId],
+    )
+  }
 
   return { prepayId, outTradeNo, jsApi, real }
 }
@@ -106,14 +119,17 @@ export async function handlePaidNotify(
     return { ok: false }
   }
 
-  await execute(
-    'UPDATE payment SET status = ?, transaction_id = ?, paid_at = NOW() WHERE id = ?',
-    ['success', transactionId, row.id],
-  )
-  await execute(
-    `UPDATE \`order\` SET status = 'paid', pay_method = '微信支付', paid_at = NOW()
-     WHERE id = ? AND status = 'pending'`,
-    [row.order_id],
-  )
+  // payment 与 order 在同一事务内更新，保证状态一致（避免支付成功但订单卡 pending）
+  await transaction(async (conn) => {
+    await conn.query(
+      'UPDATE payment SET status = ?, transaction_id = ?, paid_at = NOW() WHERE id = ? AND status != ?',
+      ['success', transactionId, row.id, 'success'],
+    )
+    await conn.query(
+      `UPDATE \`order\` SET status = 'paid', pay_method = '微信支付', paid_at = NOW()
+       WHERE id = ? AND status = 'pending'`,
+      [row.order_id],
+    )
+  })
   return { ok: true }
 }

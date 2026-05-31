@@ -8,6 +8,7 @@
 import type { Context, Next } from 'hono'
 import { getRedis, CacheKey } from '../redis.js'
 import { parseToken } from '../utils/jwt.js'
+import { queryOne } from '../db.js'
 import { fail } from '../utils/response.js'
 
 const TOKEN_RENEW_SECONDS = 7 * 24 * 3600
@@ -36,6 +37,19 @@ function cacheSet(token: string): void {
 
 export function invalidateTokenCache(token: string): void {
   tokenCache.delete(token)
+}
+
+/** 校验用户是否被禁用（status!=1）。仅在 cache-miss 时调用，性能开销可忽略。
+ *  被禁用则删除其会话并清缓存，旧 token 立即失效。 */
+async function ensureUserActive(token: string, userId: number, type: string): Promise<boolean> {
+  if (type !== 'user') return true // admin 账号不在此表
+  const u = await queryOne<{ status: number }>('SELECT status FROM `user` WHERE id = ?', [userId])
+  if (!u || u.status !== 1) {
+    await getRedis().del(CacheKey.TOKEN + token)
+    invalidateTokenCache(token)
+    return false
+  }
+  return true
 }
 
 /** 公开端点：未登录也可访问（须与前端 http 层白名单保持一致） */
@@ -132,6 +146,10 @@ export async function requireAuth(c: Context, next: Next) {
   if (!(await redis.exists(key))) {
     invalidateTokenCache(token)
     return fail(c, '登录已过期，请重新登录', 401)
+  }
+  // cache-miss 路径校验账号是否被禁用（被禁用立即踢下线）
+  if (!(await ensureUserActive(token, userId, tokenType))) {
+    return fail(c, '账号已被禁用', 403)
   }
   await redis.expire(key, TOKEN_RENEW_SECONDS)
   cacheSet(token)

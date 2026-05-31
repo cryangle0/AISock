@@ -25,7 +25,10 @@ export async function code2session(code: string): Promise<{ openid: string; unio
   return { openid: data.openid, unionid: data.unionid, sessionKey: data.session_key }
 }
 
-/** 获取小程序全局 access_token（Redis 缓存，提前 5 分钟过期重取） */
+/** 进程内并发锁：同一进程多请求同时取 token 时复用同一次远程请求，避免缓存击穿 */
+let accessTokenInflight: Promise<string> | null = null
+
+/** 获取小程序全局 access_token（Redis 缓存，提前 5 分钟过期重取；进程内防并发击穿） */
 export async function getAccessToken(): Promise<string> {
   const appid = process.env.WX_APPID
   const secret = process.env.WX_SECRET
@@ -36,16 +39,27 @@ export async function getAccessToken(): Promise<string> {
   const cached = await redis.get(CacheKey.WX_ACCESS_TOKEN)
   if (cached) return cached
 
-  const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`
-  const resp = await fetch(url)
-  const data = (await resp.json()) as { access_token?: string; expires_in?: number; errcode?: number; errmsg?: string }
-  if (!data.access_token) {
-    throw Object.assign(new Error(`获取 access_token 失败: ${data.errmsg || data.errcode}`), { status: 400 })
+  // 已有在途请求则复用，避免并发同时打微信接口
+  if (accessTokenInflight) return accessTokenInflight
+
+  accessTokenInflight = (async () => {
+    const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`
+    const resp = await fetch(url)
+    const data = (await resp.json()) as { access_token?: string; expires_in?: number; errcode?: number; errmsg?: string }
+    if (!data.access_token) {
+      throw Object.assign(new Error(`获取 access_token 失败: ${data.errmsg || data.errcode}`), { status: 400 })
+    }
+    // 提前 300s 过期，避免边界失效
+    const ttl = Math.max(60, (data.expires_in || 7200) - 300)
+    await redis.set(CacheKey.WX_ACCESS_TOKEN, data.access_token, 'EX', ttl)
+    return data.access_token
+  })()
+
+  try {
+    return await accessTokenInflight
+  } finally {
+    accessTokenInflight = null
   }
-  // 提前 300s 过期，避免边界失效
-  const ttl = Math.max(60, (data.expires_in || 7200) - 300)
-  await redis.set(CacheKey.WX_ACCESS_TOKEN, data.access_token, 'EX', ttl)
-  return data.access_token
 }
 
 /**
