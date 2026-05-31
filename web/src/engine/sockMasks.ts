@@ -227,16 +227,27 @@ function buildHeelToeMasks(otherMask: Uint8Array, w: number, h: number) {
   return { heelMask, toeMask, separable: true }
 }
 
+/** 带兜底的图片加载：先试指定 URL，失败则用兜底 URL（用于按袜型子目录加载、缺失回退 default） */
+async function loadImageWithFallback(url: string, fallbackUrl: string): Promise<HTMLImageElement | null> {
+  if (url === fallbackUrl) return loadImage(url)
+  const img = await loadImage(url)
+  if (img) return img
+  return loadImage(fallbackUrl)
+}
+
 /**
  * 加载并预处理某个袜型的全部资源。
- * 当前所有袜型共用 default 资源（image-tool 根目录），后续替换为各自子目录即可。
+ * 资源按袜型子目录组织：`image-tool/{sockTypeId}/sock.png` 等；
+ * 某袜型缺少专属素材时自动回退到 `image-tool/` 根目录的 default 素材。
+ * → 后续为各袜型补上专属蒙版图即自动差异化，无需改渲染逻辑。
  */
-export async function buildSockResources(_sockTypeId: string): Promise<SockResources> {
+export async function buildSockResources(sockTypeId: string): Promise<SockResources> {
+  const dir = sockTypeId && sockTypeId !== 'crew' ? `${ASSET_BASE}${sockTypeId}/` : ASSET_BASE
   const [sock, maskImg, otherMaskImg, lineart] = await Promise.all([
-    loadImage(`${ASSET_BASE}sock.png`),
-    loadImage(`${ASSET_BASE}mask.png`),
-    loadImage(`${ASSET_BASE}othermask.png`),
-    loadImage(`${ASSET_BASE}lineart.png`),
+    loadImageWithFallback(`${dir}sock.png`, `${ASSET_BASE}sock.png`),
+    loadImageWithFallback(`${dir}mask.png`, `${ASSET_BASE}mask.png`),
+    loadImageWithFallback(`${dir}othermask.png`, `${ASSET_BASE}othermask.png`),
+    loadImageWithFallback(`${dir}lineart.png`, `${ASSET_BASE}lineart.png`),
   ])
 
   if (!sock) {

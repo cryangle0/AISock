@@ -22,7 +22,7 @@
     </view>
 
     <!-- 袜版预览（真实 canvas 矢量渲染） -->
-    <SockCanvas ref="canvasRef" :print-image="printImage" :pattern-id="patternId" :params="params" :colors="colors" @region-click="onRegionClick" />
+    <SockCanvas ref="canvasRef" :sock-type-id="sockTypeId" :print-image="printImage" :pattern-id="patternId" :params="params" :colors="colors" @region-click="onRegionClick" />
 
     <!-- 滚动区：快捷操作 + 调节面板（袜版预览固定在上方，此区独立滚动、隐藏滚动条） -->
     <scroll-view class="editor-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
@@ -97,12 +97,12 @@
 
       <!-- 推荐色 -->
       <template v-else>
-        <view v-if="!hasPrint" class="palette-tip">需先设置印花</view>
+        <view class="palette-tip">点击色卡一键套用整体配色</view>
         <view
           v-for="p in palettes"
           :key="p.id"
-          :class="['palette-item', { active: paletteId === p.id, disabled: !hasPrint }]"
-          @tap="hasPrint && (paletteId = paletteId === p.id ? null : p.id)"
+          :class="['palette-item', { active: paletteId === p.id }]"
+          @tap="onPalette(p)"
         >
           <view class="palette-swatches">
             <view v-for="(c, i) in p.colors" :key="i" class="ps" :style="{ background: c }" />
@@ -167,6 +167,7 @@ import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
 import { aiApi, designApi, uploadApi } from '@aisock/service'
 import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
+import { paletteToColors } from '@/composables/usePalette'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
@@ -315,6 +316,21 @@ function onRegionClick(region: string) {
 function setColor(field: 'bodyHex' | 'weltHex' | 'heelHex', hex: string | null) {
   colors[field] = hex
   if (field === 'heelHex') colors.toeHex = hex
+  // 手动改色即视为脱离色卡方案
+  paletteId.value = null
+}
+
+/** 应用色卡：一键把整套配色映射到四区 */
+function onPalette(p: { id: string; name: string; colors: string[] }) {
+  if (paletteId.value === p.id) {
+    // 再次点击取消：清空为「跟印花」
+    paletteId.value = null
+    Object.assign(colors, { bodyHex: null, weltHex: null, heelHex: null, toeHex: null })
+    return
+  }
+  paletteId.value = p.id
+  Object.assign(colors, paletteToColors(p))
+  uni.showToast({ title: `已套用：${p.name}`, icon: 'none', duration: 800 })
 }
 
 async function onAiGen() {

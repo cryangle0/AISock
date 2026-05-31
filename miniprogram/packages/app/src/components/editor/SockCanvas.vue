@@ -23,6 +23,7 @@ const props = defineProps<{
   patternId?: string | null
   params: SockParams
   colors: SockColors
+  sockTypeId?: string | null
 }>()
 
 const emit = defineEmits<{ regionClick: [region: string]; ready: [] }>()
@@ -98,7 +99,7 @@ async function render() {
   if (!img && props.patternId) {
     img = buildPatternImage(props.patternId)
   }
-  drawSock(ctx, cssSize, cssSizeH, props.colors, props.params, img)
+  drawSock(ctx, cssSize, cssSizeH, props.colors, props.params, img, props.sockTypeId)
 }
 
 watch(
@@ -113,6 +114,7 @@ watch(
   },
 )
 watch(() => props.patternId, render)
+watch(() => props.sockTypeId, render)
 watch(() => [props.colors, props.params], render, { deep: true })
 
 function onTap(e: any) {
