@@ -86,20 +86,35 @@ export const userApi = {
 // ── 设计 ──
 export const designApi = {
   list: () => http.get<unknown, { data: Design[] }>('/api/v1/app/designs'),
-  create: (data: { name: string; sockModelId?: number; coverUrl?: string }) =>
+  get: (id: number) => http.get<unknown, { data: Design & { regions: Record<string, unknown> | null; sock_model_id: number | null } }>(`/api/v1/app/designs/${id}`),
+  create: (data: { name: string; sockModelId?: number; coverUrl?: string; regions?: Record<string, unknown> }) =>
     http.post<unknown, { data: { id: number } }>('/api/v1/app/designs', data),
+  update: (id: number, data: { name: string; sockModelId?: number; coverUrl?: string; regions?: Record<string, unknown> }) =>
+    http.put(`/api/v1/app/designs/${id}`, data),
   remove: (id: number) => http.delete(`/api/v1/app/designs/${id}`),
 }
 
 // ── 订单 ──
+export interface PriceBreakdown {
+  material: string
+  craft: string
+  basePrice: number
+  craftFee: number
+  unitPrice: number
+  quantity: number
+  total: number
+}
 export const orderApi = {
   list: (status?: string) => http.get<unknown, { data: Order[] }>('/api/v1/app/orders', { params: status ? { status } : {} }),
   stats: () => http.get<unknown, { data: Record<string, number> }>('/api/v1/app/orders/stats'),
   get: (id: number) => http.get<unknown, { data: Order }>(`/api/v1/app/orders/${id}`),
-  create: (data: { designName?: string; sizes?: Record<string, number>; quantity: number; unitPrice: number; material?: string; craft?: string; address?: string; remark?: string }) =>
+  pricing: () => http.get<unknown, { data: { materials: Record<string, number>; crafts: Record<string, number> } }>('/api/v1/app/orders/pricing'),
+  quote: (input: { material?: string; craft?: string; quantity: number }) =>
+    http.post<unknown, { data: PriceBreakdown }>('/api/v1/app/orders/quote', input),
+  create: (data: { designId?: number; designName?: string; sizes?: Record<string, number>; quantity: number; material?: string; craft?: string; address?: string; remark?: string }) =>
     http.post<unknown, { data: { id: number; orderNo: string } }>('/api/v1/app/orders', data),
   prepay: (orderId: number) =>
-    http.post<unknown, { data: { prepayId: string; outTradeNo: string } }>('/api/v1/app/pay/prepay', { orderId }),
+    http.post<unknown, { data: { prepayId: string; outTradeNo: string; real?: boolean; jsApi?: unknown } }>('/api/v1/app/pay/prepay', { orderId }),
   mockPaid: (outTradeNo: string) => http.post('/api/v1/app/pay/mock-paid', { outTradeNo }),
   shipment: (orderId: number) =>
     http.get<unknown, { data: { carrier: string | null; tracking_no: string | null; status: string; traces: Array<{ time: string; desc: string }> | null } | null }>(`/api/v1/app/shipment/${orderId}`),

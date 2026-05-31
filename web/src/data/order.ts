@@ -10,9 +10,8 @@ export interface OptionItem {
 }
 
 export const MATERIALS: OptionItem[] = [
-  { value: 'cotton', label: '精梳棉', desc: '舒适亲肤 · 日常首选' },
-  { value: 'nylon', label: '锦纶', desc: '弹性强韧 · 运动通勤' },
-  { value: 'combed', label: '长绒棉', desc: '高支细腻 · 高端质感' },
+  { value: 'cotton', label: '棉', desc: '舒适亲肤 · 日常首选' },
+  { value: 'nylon', label: '尼龙', desc: '弹性强韧 · 运动通勤' },
 ]
 
 export const CRAFTS: OptionItem[] = [
@@ -23,18 +22,17 @@ export const CRAFTS: OptionItem[] = [
 
 export const SIZE_LIST = ['S', 'M', 'L', 'XL'] as const
 
-/** 单价（元/双）按材质 */
+/** 单价（元/双）按材质 —— 与服务端 pricing.service 价目表保持一致（仅作展示，落库以服务端为准） */
 export const UNIT_PRICE: Record<string, number> = {
-  cotton: 6.8,
-  nylon: 7.5,
-  combed: 9.2,
+  cotton: 28,
+  nylon: 32,
 }
 
-/** 工艺加价（元/双） */
+/** 工艺加价（元/双）—— 与服务端 pricing.service 一致 */
 export const CRAFT_FEE: Record<string, number> = {
   uv: 0,
-  '3d': 1.5,
-  jacquard: 2.2,
+  '3d': 6,
+  jacquard: 12,
 }
 
 export interface PayMethod {

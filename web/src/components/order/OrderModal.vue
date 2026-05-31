@@ -88,6 +88,7 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import { MATERIALS, CRAFTS, SIZE_LIST, UNIT_PRICE, CRAFT_FEE, DEFAULT_SIZES } from '@/data/order'
 
 export interface OrderFormData {
+  designId?: number
   designName: string
   sizes: Record<string, number>
   total: number
@@ -101,7 +102,7 @@ export interface OrderFormData {
   note: string
 }
 
-const props = defineProps<{ defaultDesignName?: string }>()
+const props = defineProps<{ defaultDesignName?: string; designId?: number }>()
 const emit = defineEmits<{ close: []; submit: [data: OrderFormData] }>()
 
 const MIN_ORDER = 50

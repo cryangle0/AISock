@@ -47,13 +47,25 @@ export function computeDailyLimit(createdAt: string | Date | null, override?: nu
   return Math.max(base, override ?? 0)
 }
 
-/** 邀请奖励：给用户额外增加今日额度（通过减少 used 计数实现） */
-export async function grantBonusQuota(userId: number, bonus: number): Promise<void> {
+/** 邀请奖励：给用户额外增加今日额度（通过减少 used 计数实现）。
+ *  防刷：每人每天最多发放 BONUS_DAILY_CAP 次额度，超出忽略。
+ *  @returns 实际发放是否成功 */
+const BONUS_DAILY_CAP = 5
+export async function grantBonusQuota(userId: number, bonus: number): Promise<boolean> {
   const redis = getRedis()
+  // 每日发放计数守卫，避免重复点击/伪造分享无限刷额度
+  const guardKey = `${CacheKey.AI_QUOTA}bonus:${new Date().toISOString().slice(0, 10)}:${userId}`
+  const granted = await redis.incr(guardKey)
+  if (granted === 1) await redis.expire(guardKey, secondsUntilMidnight())
+  if (granted > BONUS_DAILY_CAP) {
+    await redis.decr(guardKey)
+    return false
+  }
   const key = quotaKey(userId)
   const used = Number((await redis.get(key)) || 0)
   const next = Math.max(0, used - bonus)
   await redis.set(key, String(next), 'EX', secondsUntilMidnight())
+  return true
 }
 
 function quotaKey(userId: number): string {

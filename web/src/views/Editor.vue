@@ -78,8 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import AssetPanel from '@/components/editor/AssetPanel.vue'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import ParamsPanel from '@/components/editor/ParamsPanel.vue'
@@ -88,10 +88,11 @@ import ShareModal from '@/components/editor/ShareModal.vue'
 import OrderModal, { type OrderFormData } from '@/components/order/OrderModal.vue'
 import PaymentModal from '@/components/order/PaymentModal.vue'
 import { useSockEditor } from '@/composables/useSockEditor'
-import { compressDataURL, type DesignVariant, type SockResources } from '@/engine'
+import { compressDataURL, toRegions, fromRegions, type DesignVariant, type SockResources } from '@/engine'
 import { designApi } from '@/api'
 
 const router = useRouter()
+const route = useRoute()
 
 const {
   sockTypeId,
@@ -111,6 +112,7 @@ const {
   setColors,
   setParams,
   applyDesign,
+  restoreSnapshot,
 } = useSockEditor()
 
 const canvasRef = ref<InstanceType<typeof SockCanvas> | null>(null)
@@ -121,6 +123,8 @@ const shareOpen = ref(false)
 const orderOpen = ref(false)
 const pendingOrder = ref<OrderFormData | null>(null)
 const toast = ref('')
+/** 当前编辑的已存设计 id（从「我的设计」继续编辑时有值，保存走更新） */
+const currentDesignId = ref<number | null>(null)
 let regionTimer: number | undefined
 let toastTimer: number | undefined
 
@@ -128,6 +132,33 @@ function showToast(msg: string) {
   toast.value = msg
   window.clearTimeout(toastTimer)
   toastTimer = window.setTimeout(() => (toast.value = ''), 2000)
+}
+
+// 继续编辑：路由带 ?design=ID 时拉取并还原整套设计
+onMounted(async () => {
+  const id = Number(route.query.design)
+  if (!id) return
+  try {
+    const res = await designApi.get(id)
+    restoreSnapshot(fromRegions(res.data.regions))
+    currentDesignId.value = id
+    showToast(`继续编辑：${res.data.name}`)
+  } catch {
+    /* 拉取失败按空白新建 */
+  }
+})
+
+/** 打包当前编辑器状态为设计快照 regions */
+function buildRegions() {
+  return toRegions({
+    sockTypeId: sockTypeId.value,
+    printImage: printImage.value,
+    printName: printName.value,
+    params: { ...params },
+    colors: { ...colors },
+    paletteId: paletteId.value,
+    paletteStrength: paletteStrength.value,
+  })
 }
 
 function onApplyPattern(patternId: string, name: string) {
@@ -158,9 +189,16 @@ async function snapshotCover(): Promise<string | undefined> {
 
 async function onSave() {
   const cover = await snapshotCover()
+  const payload = { name: composeName(), coverUrl: cover, regions: buildRegions() }
   try {
-    await designApi.create({ name: composeName(), coverUrl: cover })
-    showToast('已保存到我的设计')
+    if (currentDesignId.value) {
+      await designApi.update(currentDesignId.value, payload)
+      showToast('已更新设计')
+    } else {
+      const res = await designApi.create(payload)
+      currentDesignId.value = res.data.id
+      showToast('已保存到我的设计')
+    }
   } catch (e) {
     showToast((e as Error).message || '保存失败')
   }
@@ -173,9 +211,22 @@ function onOrder() {
   }
   orderOpen.value = true
 }
-function onOrderSubmit(data: OrderFormData) {
+async function onOrderSubmit(data: OrderFormData) {
   orderOpen.value = false
-  pendingOrder.value = data
+  // 下单前确保设计已保存，拿到 designId 关联订单
+  try {
+    const cover = await snapshotCover()
+    const payload = { name: composeName(), coverUrl: cover, regions: buildRegions() }
+    if (currentDesignId.value) {
+      await designApi.update(currentDesignId.value, payload)
+    } else {
+      const res = await designApi.create(payload)
+      currentDesignId.value = res.data.id
+    }
+  } catch {
+    /* 保存失败不阻断下单 */
+  }
+  pendingOrder.value = { ...data, designId: currentDesignId.value ?? undefined }
 }
 function onPaid(payment: { orderNo: string }) {
   pendingOrder.value = null
@@ -207,7 +258,16 @@ async function onFamilySaveAll(vs: DesignVariant[]) {
   for (const v of vs) {
     try {
       const cover = v.cover ? await compressDataURL(v.cover, 360, 'image/jpeg', 0.82) : undefined
-      await designApi.create({ name: v.printName, coverUrl: cover })
+      const regions = toRegions({
+        sockTypeId: sockTypeId.value,
+        printImage: v.printImage ?? printImage.value,
+        printName: v.printName,
+        params: { ...params, ...(v.params || {}) },
+        colors: { ...colors, ...(v.colors || {}) },
+        paletteId: null,
+        paletteStrength: paletteStrength.value,
+      })
+      await designApi.create({ name: v.printName, coverUrl: cover, regions })
     } catch {
       /* 忽略单个失败 */
     }

@@ -25,9 +25,13 @@
       <h3 class="title">我的设计</h3>
       <div v-if="designs.length === 0" class="empty">还没有保存的设计</div>
       <div v-else class="design-grid">
-        <div v-for="d in designs" :key="d.id" class="design-item">
-          <div class="cover">{{ d.cover_url ? '' : '🧦' }}</div>
+        <div v-for="d in designs" :key="d.id" class="design-item" @click="editDesign(d.id)">
+          <div class="cover">
+            <img v-if="d.cover_url" :src="d.cover_url" :alt="d.name" class="cover-img" />
+            <span v-else class="cover-empty">🧦</span>
+          </div>
           <div class="d-name">{{ d.name }}</div>
+          <button class="d-edit" @click.stop="editDesign(d.id)">继续编辑</button>
         </div>
       </div>
     </div>
@@ -63,6 +67,11 @@ onMounted(async () => {
 async function onLogout() {
   await userStore.logout()
   router.push({ name: 'Home' })
+}
+
+/** 继续编辑：带 design id 进入编辑器还原 */
+function editDesign(id: number) {
+  router.push({ name: 'Editor', query: { design: id } })
 }
 </script>
 
@@ -152,6 +161,11 @@ async function onLogout() {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.design-item:hover {
+  box-shadow: 0 6px 18px rgba(94, 60, 30, 0.12);
 }
 .cover {
   height: 110px;
@@ -160,11 +174,30 @@ async function onLogout() {
   align-items: center;
   justify-content: center;
   font-size: 40px;
+  overflow: hidden;
+}
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-empty {
+  font-size: 40px;
 }
 .d-name {
   padding: 8px;
   font-size: 13px;
   font-weight: 600;
   text-align: center;
+}
+.d-edit {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--primary);
+  font-size: 12px;
+  padding: 7px 0;
+  cursor: pointer;
 }
 </style>

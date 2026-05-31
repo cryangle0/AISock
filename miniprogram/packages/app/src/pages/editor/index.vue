@@ -165,7 +165,7 @@ import {
 } from '@aisock/common'
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
-import { aiApi, designApi } from '@aisock/service'
+import { aiApi, designApi, uploadApi } from '@aisock/service'
 import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
@@ -397,13 +397,24 @@ function onShared(target: string) {
   shareOpen.value = false
   uni.showToast({ title: `已分享到${target}`, icon: 'none' })
 }
-/** 当前编辑器状态打包成保存输入 */
+/** 当前编辑器状态打包成保存输入。封面：canvas 临时路径先上传换永久 URL，避免存库后失效 */
 async function buildSavePayload() {
-  const cover = (await canvasRef.value?.exportImage?.()) || printImage.value || undefined
+  const tempCover = (await canvasRef.value?.exportImage?.()) || ''
+  let coverUrl: string | undefined
+  if (tempCover) {
+    try {
+      const up = await uploadApi.uploadFile(tempCover)
+      coverUrl = up.url
+    } catch {
+      coverUrl = undefined // 上传失败则不存封面，避免存入会失效的临时路径
+    }
+  } else if (printImage.value) {
+    coverUrl = printImage.value
+  }
   return {
     name: printName.value ? `${printName.value} 袜款` : '未命名袜版',
     sockModelId: undefined,
-    coverUrl: cover,
+    coverUrl,
     regions: toRegions({
       sockTypeId: sockTypeId.value,
       patternId: patternId.value,

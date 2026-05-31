@@ -109,6 +109,25 @@ export function useSockEditor() {
     paletteId.value = null
   }
 
+  /** 从设计快照还原整套编辑器状态（继续编辑已存设计） */
+  function restoreSnapshot(snap: {
+    sockTypeId?: string
+    printImage?: string | null
+    printName?: string
+    params?: Partial<SockParams>
+    colors?: Partial<SockColors>
+    paletteId?: string | null
+    paletteStrength?: number
+  }) {
+    if (snap.sockTypeId) sockTypeId.value = snap.sockTypeId
+    if (snap.printImage !== undefined) printImage.value = snap.printImage
+    if (snap.printName !== undefined) printName.value = snap.printName
+    if (snap.params) Object.assign(params, DEFAULT_PARAMS, snap.params)
+    if (snap.colors) Object.assign(colors, DEFAULT_COLORS, snap.colors)
+    paletteId.value = snap.paletteId ?? null
+    if (typeof snap.paletteStrength === 'number') paletteStrength.value = snap.paletteStrength
+  }
+
   const composeName = () => (printName.value ? `${printName.value} 袜款` : '未命名袜版')
 
   return {
@@ -132,5 +151,6 @@ export function useSockEditor() {
     setColors,
     setParams,
     applyDesign,
+    restoreSnapshot,
   }
 }

@@ -50,9 +50,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
-import { PAY_METHODS, UNIT_PRICE, CRAFT_FEE } from '@/data/order'
+import { PAY_METHODS } from '@/data/order'
 import { orderApi } from '@/api'
 import type { OrderFormData } from './OrderModal.vue'
 
@@ -67,9 +67,26 @@ const method = ref('wechat')
 const phase = ref<'select' | 'paying' | 'paid'>('select')
 const orderNo = ref('')
 
-const unit = computed(() => UNIT_PRICE[props.order.materialValue] || 6.8)
-const fee = computed(() => CRAFT_FEE[props.order.craftValue] || 0)
-const totalAmount = computed(() => props.order.total * (unit.value + fee.value))
+// 价格由服务端权威试算（与下单落库一致），前端不再本地计算金额
+const unit = ref(0)
+const fee = ref(0)
+const totalAmount = ref(0)
+
+watchEffect(async () => {
+  try {
+    const res = await orderApi.quote({
+      material: props.order.materialValue,
+      craft: props.order.craftValue,
+      quantity: props.order.total,
+    })
+    unit.value = res.data.basePrice
+    fee.value = res.data.craftFee
+    totalAmount.value = res.data.total
+  } catch {
+    /* 试算失败留 0，下单时仍以服务端为准 */
+  }
+})
+
 const methodLabel = computed(() => payMethods.find((m) => m.value === method.value)?.label || '')
 const subtitle = computed(
   () => `${props.order.designName} · ${props.order.total} 双 · ${props.order.material} · ${props.order.craft}`,
@@ -78,14 +95,14 @@ const subtitle = computed(
 async function startPay() {
   phase.value = 'paying'
   try {
-    // 1) 创建订单
+    // 1) 创建订单（材质/工艺传 key，金额由服务端按价目表权威计算）
     const created = await orderApi.create({
+      designId: props.order.designId,
       designName: props.order.designName,
       sizes: props.order.sizes,
       quantity: props.order.total,
-      unitPrice: +(unit.value + fee.value).toFixed(2),
-      material: props.order.material,
-      craft: props.order.craft,
+      material: props.order.materialValue,
+      craft: props.order.craftValue,
       address: `${props.order.contact} ${props.order.phone} ${props.order.address}`,
       remark: props.order.note,
     })
