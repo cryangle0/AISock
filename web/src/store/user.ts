@@ -15,6 +15,13 @@ export const useUserStore = defineStore('user', () => {
     setToken(res.data.token)
   }
 
+  /** 用已获取的 token 完成登录（PC 扫码登录确认后） */
+  async function loginByToken(newToken: string) {
+    token.value = newToken
+    setToken(newToken)
+    await refreshProfile()
+  }
+
   async function refreshProfile() {
     if (!token.value) return
     const res = await userApi.profile()
@@ -32,5 +39,5 @@ export const useUserStore = defineStore('user', () => {
     clearToken()
   }
 
-  return { token, userInfo, isLogin, loginBySms, refreshProfile, logout }
+  return { token, userInfo, isLogin, loginBySms, loginByToken, refreshProfile, logout }
 })

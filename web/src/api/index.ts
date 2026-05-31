@@ -59,6 +59,13 @@ export const authApi = {
   smsLogin: (phone: string, code: string) =>
     http.post<unknown, { data: { token: string; user: UserInfo } }>('/api/v1/app/auth/sms-login', { phone, code }),
   logout: () => http.post('/api/v1/app/auth/logout'),
+  // PC 扫码登录
+  qrCreate: () =>
+    http.post<unknown, { data: { sceneId: string; qrImage: string } }>('/api/v1/app/qr-login/create'),
+  qrPoll: (sceneId: string) =>
+    http.get<unknown, { data: { status: 'pending' | 'scanned' | 'confirmed' | 'expired'; token?: string } }>(
+      '/api/v1/app/qr-login/poll', { params: { sceneId } },
+    ),
 }
 
 // ── 目录 ──

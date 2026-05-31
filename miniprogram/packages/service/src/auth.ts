@@ -21,3 +21,14 @@ export function wechatLoginWithPhone(code: string, phoneCode: string, inviterId?
 export function logout() {
   return http.post('/api/v1/app/auth/logout', {}, { silent: true })
 }
+
+// ── PC 扫码登录（小程序侧）──
+/** 标记已扫码（可选，用于 Web 端展示「已扫码」态） */
+export function qrScanned(sceneId: string) {
+  return http.post('/api/v1/app/qr-login/scanned', { sceneId }, { silent: true })
+}
+
+/** 确认 PC 登录（已登录用户授权） */
+export function qrConfirm(sceneId: string) {
+  return http.post<{ confirmed: boolean }>('/api/v1/app/qr-login/confirm', { sceneId })
+}

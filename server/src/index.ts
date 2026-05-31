@@ -27,6 +27,7 @@ import { feedRouter } from './routes/app/feed.js'
 import { shipmentRouter } from './routes/app/shipment.js'
 import { appConfigRouter } from './routes/app/config.js'
 import { siteConfigRouter } from './routes/app/site-config.js'
+import { qrLoginRouter } from './routes/app/qr-login.js'
 
 // Admin 路由
 import { adminAuthRouter } from './routes/admin/auth.js'
@@ -86,6 +87,7 @@ app.route('/api/v1/app/pay', payRouter)
 app.route('/api/v1/app/feed', feedRouter)
 app.route('/api/v1/app/config', appConfigRouter)
 app.route('/api/v1/app/site-config', siteConfigRouter)
+app.route('/api/v1/app/qr-login', qrLoginRouter)
 app.route('/api/v1/app/shipment', shipmentRouter)
 
 // === Admin 路由 ===

@@ -1,5 +1,16 @@
 <template>
   <view class="login">
+    <!-- PC 扫码登录确认浮层 -->
+    <view v-if="qrScene" class="qr-confirm-mask">
+      <view class="qr-confirm-card">
+        <image class="qr-logo" src="/static/logo.png" mode="aspectFit" />
+        <text class="qr-title">网页登录确认</text>
+        <text class="qr-desc">是否授权登录「爱花型」电脑网页版？</text>
+        <button class="qr-btn primary" :disabled="qrLoading" @tap="onQrConfirm">{{ qrLoading ? '处理中…' : '确认登录' }}</button>
+        <button class="qr-btn ghost" :disabled="qrLoading" @tap="onQrCancel">取消</button>
+      </view>
+    </view>
+
     <view class="hero">
       <image class="logo" src="/static/logo.png" mode="aspectFit" />
       <text class="brand">爱花型</text>
@@ -38,6 +49,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { authApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import { STORAGE_KEYS } from '@aisock/common/constants'
@@ -46,6 +58,42 @@ const userStore = useUserStore()
 const phone = ref('')
 const code = ref('')
 const counting = ref(0)
+
+// PC 扫码登录：扫码打开时带 scene 参数
+const qrScene = ref('')
+const qrLoading = ref(false)
+
+onLoad((q?: Record<string, string>) => {
+  // 小程序码场景值在 q.scene（URL 编码），普通带参用 q.sceneId
+  const scene = q?.scene ? decodeURIComponent(q.scene) : (q?.sceneId || '')
+  if (scene) {
+    qrScene.value = scene
+    // 标记已扫码（未登录也先记录，登录后再确认）
+    if (userStore.isLogin) authApi.qrScanned(scene).catch(() => {})
+  }
+})
+
+async function onQrConfirm() {
+  if (!userStore.isLogin) {
+    uni.showToast({ title: '请先登录小程序', icon: 'none' })
+    return
+  }
+  qrLoading.value = true
+  try {
+    await authApi.qrConfirm(qrScene.value)
+    uni.showToast({ title: '已确认，请在电脑端查看', icon: 'success' })
+    qrScene.value = ''
+    setTimeout(() => uni.switchTab({ url: '/pages/home/index' }), 1200)
+  } catch {
+    /* 拦截器已提示（二维码失效等） */
+  } finally {
+    qrLoading.value = false
+  }
+}
+
+function onQrCancel() {
+  qrScene.value = ''
+}
 
 const canSubmit = computed(() => /^1\d{10}$/.test(phone.value) && code.value.length >= 4)
 
@@ -109,6 +157,12 @@ function openAgreement(key: 'user' | 'privacy') {
 }
 
 function goBackOrHome() {
+  // 扫码场景：登录后不跳转，停留确认浮层让用户点「确认登录」
+  if (qrScene.value) {
+    uni.showToast({ title: '登录成功，请确认网页登录', icon: 'none' })
+    authApi.qrScanned(qrScene.value).catch(() => {})
+    return
+  }
   uni.showToast({ title: '登录成功', icon: 'success' })
   const returnTo = uni.getStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO)
   uni.removeStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO)
@@ -128,6 +182,57 @@ function goBackOrHome() {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.qr-confirm-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(43, 31, 20, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-confirm-card {
+  width: 560rpx;
+  background: $mp-bg-card;
+  border-radius: 28rpx;
+  padding: 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+.qr-logo {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 22rpx;
+}
+.qr-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: $mp-text-primary;
+}
+.qr-desc {
+  font-size: 24rpx;
+  color: $mp-text-secondary;
+  text-align: center;
+  margin-bottom: 12rpx;
+}
+.qr-btn {
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  padding: 0;
+}
+.qr-btn.primary {
+  background: $mp-primary;
+  color: #fff;
+}
+.qr-btn.ghost {
+  background: $mp-bg;
+  color: $mp-text-secondary;
 }
 .hero {
   display: flex;

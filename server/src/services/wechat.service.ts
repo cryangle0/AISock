@@ -76,3 +76,33 @@ export async function getPhoneNumber(phoneCode: string): Promise<{ phone: string
   }
   return { phone, countryCode: data.phone_info?.countryCode }
 }
+
+/**
+ * 生成无限制小程序码（wxacode.getUnlimited）。
+ * @param scene   场景值（≤32 字符，扫码后小程序可通过启动参数解析）
+ * @param page    扫码打开的小程序页面路径（需已发布）
+ * @returns       PNG 图片 Buffer
+ * 未配置密钥时抛错，由调用方决定兜底（dev 用占位码）。
+ */
+export async function getUnlimitedQRCode(scene: string, page: string): Promise<Buffer> {
+  const appid = process.env.WX_APPID
+  const secret = process.env.WX_SECRET
+  if (!appid || !secret) {
+    throw Object.assign(new Error('未配置微信小程序密钥'), { status: 500 })
+  }
+  const token = await getAccessToken()
+  const url = `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${token}`
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scene, page, check_path: false, env_version: 'release', width: 280 }),
+  })
+  const contentType = resp.headers.get('content-type') || ''
+  if (contentType.includes('application/json')) {
+    // 返回 JSON 说明出错（如 page 未发布、access_token 失效）
+    const err = (await resp.json()) as { errcode?: number; errmsg?: string }
+    throw Object.assign(new Error(`生成小程序码失败: ${err.errmsg || err.errcode}`), { status: 400 })
+  }
+  const arrayBuf = await resp.arrayBuffer()
+  return Buffer.from(arrayBuf)
+}

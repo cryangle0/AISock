@@ -30,10 +30,15 @@
 
         <div class="lp-heading">
           <h1>欢迎回来</h1>
-          <p>输入手机号和验证码，开始你的袜款设计</p>
+          <p>{{ mode === 'sms' ? '输入手机号和验证码，开始你的袜款设计' : '微信扫码，快速登录' }}</p>
         </div>
 
-        <form class="lp-form" @submit.prevent="onLogin">
+        <div class="lp-mode-tabs">
+          <button :class="['lp-mode-tab', { active: mode === 'sms' }]" @click="mode = 'sms'">手机号登录</button>
+          <button :class="['lp-mode-tab', { active: mode === 'qr' }]" @click="switchToQr">微信扫码</button>
+        </div>
+
+        <form v-if="mode === 'sms'" class="lp-form" @submit.prevent="onLogin">
           <label class="lp-field">
             <span class="lp-label">手机号</span>
             <div class="lp-input" :class="{ focus: focused === 'phone' }">
@@ -76,7 +81,18 @@
           </button>
         </form>
 
-        <p class="lp-tip">开发环境验证码固定为 1234</p>
+        <!-- 微信扫码登录 -->
+        <div v-else class="lp-qr">
+          <div class="lp-qr-box">
+            <img v-if="qrImage" :src="qrImage" alt="微信扫码登录" class="lp-qr-img" />
+            <div v-else class="lp-qr-empty">{{ qrError || '二维码生成中…' }}</div>
+            <div v-if="qrStatus === 'scanned'" class="lp-qr-overlay">已扫码<br />请在手机上确认</div>
+            <div v-else-if="qrStatus === 'expired'" class="lp-qr-overlay" @click="startQr">二维码已过期<br />点击刷新</div>
+          </div>
+          <p class="lp-qr-tip">打开微信扫一扫，在手机上确认登录</p>
+        </div>
+
+        <p class="lp-tip">{{ mode === 'sms' ? '开发环境验证码固定为 1234' : '需在微信中扫码并确认' }}</p>
       </div>
 
       <div class="lp-copy">{{ site.config.copyright }}</div>
@@ -85,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '@/api'
 import { useUserStore, useSiteConfigStore } from '@/store'
@@ -95,11 +111,68 @@ const route = useRoute()
 const userStore = useUserStore()
 const site = useSiteConfigStore()
 
+const mode = ref<'sms' | 'qr'>('sms')
 const phone = ref('')
 const code = ref('')
 const counting = ref(0)
 const loading = ref(false)
 const focused = ref<'phone' | 'code' | null>(null)
+
+// ── 微信扫码登录 ──
+const qrImage = ref('')
+const qrError = ref('')
+const qrStatus = ref<'pending' | 'scanned' | 'confirmed' | 'expired'>('pending')
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+function stopPoll() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+function switchToQr() {
+  mode.value = 'qr'
+  startQr()
+}
+
+async function startQr() {
+  stopPoll()
+  qrImage.value = ''
+  qrError.value = ''
+  qrStatus.value = 'pending'
+  try {
+    const res = await authApi.qrCreate()
+    if (!res.data.qrImage) {
+      qrError.value = '二维码暂不可用，请用手机号登录'
+      return
+    }
+    qrImage.value = res.data.qrImage
+    const sceneId = res.data.sceneId
+    pollTimer = setInterval(() => pollQr(sceneId), 2000)
+  } catch {
+    qrError.value = '二维码生成失败，请稍后再试'
+  }
+}
+
+async function pollQr(sceneId: string) {
+  try {
+    const res = await authApi.qrPoll(sceneId)
+    qrStatus.value = res.data.status
+    if (res.data.status === 'confirmed' && res.data.token) {
+      stopPoll()
+      await userStore.loginByToken(res.data.token)
+      const redirect = (route.query.redirect as string) || '/home'
+      router.push(redirect)
+    } else if (res.data.status === 'expired') {
+      stopPoll()
+    }
+  } catch {
+    /* 单次轮询失败忽略 */
+  }
+}
+
+onUnmounted(stopPoll)
 
 const canSubmit = computed(() => /^1\d{10}$/.test(phone.value) && code.value.length >= 4)
 
@@ -358,6 +431,79 @@ async function onLogin() {
   text-align: center;
   font-size: 12px;
   color: var(--text-3, #b3a690);
+}
+.lp-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  background: var(--bg, #faf6ee);
+  border-radius: 12px;
+  padding: 4px;
+}
+.lp-mode-tab {
+  flex: 1;
+  height: 38px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-3, #998975);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.lp-mode-tab.active {
+  background: #fff;
+  color: var(--primary, #8c5a3c);
+  box-shadow: 0 2px 8px rgba(94, 60, 30, 0.1);
+}
+.lp-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+}
+.lp-qr-box {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;
+  border: 1px solid var(--border, #e5d8c0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+}
+.lp-qr-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.lp-qr-empty {
+  font-size: 13px;
+  color: var(--text-3, #998975);
+  text-align: center;
+  padding: 0 16px;
+}
+.lp-qr-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 252, 246, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary, #8c5a3c);
+  line-height: 1.8;
+  cursor: pointer;
+}
+.lp-qr-tip {
+  font-size: 13px;
+  color: var(--text-2, #6b5a48);
 }
 .lp-copy {
   position: absolute;

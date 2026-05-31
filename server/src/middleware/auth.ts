@@ -53,6 +53,8 @@ const AUTH_WHITELIST = new Set<string>([
   '/api/v1/app/feed/faq',
   '/api/v1/app/config/home', // 小程序首页运营配置（访客可读）
   '/api/v1/app/site-config', // 站点品牌配置（访客可读）
+  '/api/v1/app/qr-login/create', // PC 扫码登录：创建会话（公开）
+  '/api/v1/app/qr-login/poll', // PC 扫码登录：轮询（公开）
   '/api/v1/app/pay/notify', // 微信支付回调（验签替代鉴权）
   '/api/v1/admin/auth/login',
 ])
