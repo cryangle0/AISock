@@ -3,6 +3,9 @@
  *
  * 用 DeepSeek（OpenAI 兼容 chat/completions）把用户输入的模糊、口语化指令
  * 优化成适合文生图的高质量提示词。未配置或失败时原样返回用户输入，绝不阻断生图。
+ *
+ * 注：默认模型 deepseek-v4-flash 为「推理模型」，会先产出 reasoning_content 再产出
+ * 正式回答，故 max_tokens 需留足推理预算（否则正式提示词会被截断，finish_reason=length）。
  */
 
 const SYSTEM_PROMPT = [
@@ -12,9 +15,25 @@ const SYSTEM_PROMPT = [
   '只输出优化后的提示词本身，不要解释、不要引号、不超过 60 字。',
 ].join('')
 
+const TIMEOUT_MS = 15000
+// 推理模型预算：reasoning + 正式输出，留足避免正式提示词被截断
+const MAX_TOKENS = 1024
+const MAX_PROMPT_LEN = 80
+
+/** 清洗模型输出：去引号/前后缀/多余空白，限制长度，避免把解释性长文塞进提示词 */
+function sanitize(text: string): string {
+  let s = (text || '').trim()
+  // 去掉成对包裹的中英文引号
+  s = s.replace(/^["'“”‘’「」]+|["'“”‘’「」]+$/g, '').trim()
+  // 取第一段（模型偶尔换行附带说明）
+  s = s.split(/\n+/)[0].trim()
+  if (s.length > MAX_PROMPT_LEN) s = s.slice(0, MAX_PROMPT_LEN)
+  return s.trim()
+}
+
 /**
  * 优化提示词。
- * @returns 优化后的提示词；未配置 DeepSeek / 调用失败 / 超时 → 返回原输入
+ * @returns 优化后的提示词；未配置 DeepSeek / 调用失败 / 超时 / 被截断 → 返回原输入
  */
 export async function optimizePrompt(userPrompt: string): Promise<string> {
   const raw = (userPrompt || '').trim()
@@ -27,7 +46,7 @@ export async function optimizePrompt(userPrompt: string): Promise<string> {
 
   try {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 8000)
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
     const resp = await fetch(`${apiUrl.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
@@ -38,14 +57,20 @@ export async function optimizePrompt(userPrompt: string): Promise<string> {
           { role: 'user', content: raw },
         ],
         temperature: 0.7,
-        max_tokens: 120,
+        max_tokens: MAX_TOKENS,
+        stream: false,
       }),
       signal: controller.signal,
     })
     clearTimeout(timer)
     if (!resp.ok) return raw
-    const data = (await resp.json()) as { choices?: Array<{ message?: { content?: string } }> }
-    const optimized = data.choices?.[0]?.message?.content?.trim()
+    const data = (await resp.json()) as {
+      choices?: Array<{ finish_reason?: string; message?: { content?: string } }>
+    }
+    const choice = data.choices?.[0]
+    // 正式输出被 token 预算截断 → 不可靠，回退原文
+    if (choice?.finish_reason === 'length') return raw
+    const optimized = sanitize(choice?.message?.content || '')
     return optimized || raw
   } catch {
     return raw // 失败回退原输入，不阻断生图
