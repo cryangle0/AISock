@@ -32,16 +32,19 @@ import ConfigBlockCard from './ConfigBlockCard.vue'
 const configs = ref<AppConfig[]>([])
 const loading = ref(false)
 
-// 固定展示顺序：主题 → 功能区 → 案例
+// 固定展示顺序：主题 → 功能区 → 案例；未在列表中的配置项排到最后
 const ORDER = ['home_themes', 'home_zones', 'home_cases']
+/** 取排序权重：已知 key 用其下标，未知 key 排末尾 */
+function orderRank(key: string): number {
+  const i = ORDER.indexOf(key)
+  return i === -1 ? ORDER.length : i
+}
 
 async function fetchList() {
   loading.value = true
   try {
     const res = await listConfigs()
-    configs.value = [...res.data].sort(
-      (a, b) => (ORDER.indexOf(a.config_key) + 99) % 100 - ((ORDER.indexOf(b.config_key) + 99) % 100),
-    )
+    configs.value = [...res.data].sort((a, b) => orderRank(a.config_key) - orderRank(b.config_key))
   } finally {
     loading.value = false
   }
