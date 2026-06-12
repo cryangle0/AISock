@@ -13,7 +13,7 @@
           <button class="empty-btn" @tap="goEditor">开始设计</button>
         </view>
         <view v-else class="list">
-          <view v-for="o in orders" :key="o.id" class="order-card" @tap="goOrders">
+          <view v-for="o in orders" :key="o.id" class="order-card" @tap="goOrderDetail(o.id)">
             <view class="order-top">
               <text class="order-no">{{ o.order_no }}</text>
               <text class="order-status">{{ statusText(o.status) }}</text>
@@ -56,7 +56,7 @@ onShow(async () => {
 const statusText = (s: string) => ORDER_STATUS_TEXT[s] || s
 const goLogin = () => reLaunch('/pages/login/index')
 const goEditor = () => switchTab('/pages/ai/index')
-const goOrders = () => navigateTo('/pages/orders/index')
+const goOrderDetail = (id: number) => navigateTo(`/pages/order-detail/index?id=${id}`)
 </script>
 
 <style scoped lang="scss">

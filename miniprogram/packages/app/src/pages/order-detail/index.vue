@@ -1,5 +1,10 @@
 <template>
   <view class="od" v-if="order">
+    <!-- 待支付提示 -->
+    <view v-if="isPending" class="pay-banner">
+      <text class="pay-banner-text">订单待支付，完成支付后进入生产排期</text>
+    </view>
+
     <!-- 状态进度 -->
     <view class="card steps">
       <view
@@ -83,7 +88,8 @@
     <!-- 操作 -->
     <view class="footer">
       <button class="cta secondary" @tap="onContactSupport">联系客服</button>
-      <button class="cta primary" @tap="goBack">返回列表</button>
+      <button v-if="isPending" class="cta primary" :disabled="paying" @tap="onPay">{{ paying ? '支付中…' : '去支付' }}</button>
+      <button v-else class="cta primary" @tap="goBack">返回列表</button>
     </view>
   </view>
 
@@ -101,6 +107,7 @@ import { navigateBack } from '@aisock/common/utils'
 import { SUPPORT_PHONE } from '@aisock/common/constants'
 import type { Order } from '@aisock/common/types'
 import OrderAttachments from '@/components/order/OrderAttachments.vue'
+import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
 
 const statusFlow = ['paid', 'producing', 'shipped', 'done']
 const statusText: Record<string, string> = { paid: '待生产', producing: '生产中', shipped: '已发货', done: '已完成' }
@@ -111,11 +118,20 @@ const shipment = ref<{ carrier: string | null; tracking_no: string | null; trace
 const editing = ref(false)
 const draftNote = ref('')
 const draftAddress = ref('')
+const paying = ref(false)
 
-const currentIdx = computed(() => Math.max(0, statusFlow.indexOf(order.value?.status || 'paid')))
+// 待支付（未进入生产流程）：步骤条不点亮任一节点，单独引导支付
+const isPending = computed(() => order.value?.status === 'pending')
+const currentIdx = computed(() => statusFlow.indexOf(order.value?.status || ''))
 const sizeEntries = computed(() => Object.entries(order.value?.sizes || {}))
 // 仅待付款 / 已付款（未进入生产）可编辑备注、地址与附件
 const canEdit = computed(() => ['pending', 'paid'].includes(order.value?.status || ''))
+
+async function reload() {
+  if (!order.value) return
+  const res = await orderApi.getOrder(order.value.id)
+  order.value = res.data as typeof order.value
+}
 
 onLoad(async (q) => {
   const id = Number((q as { id?: string }).id)
@@ -129,6 +145,32 @@ onLoad(async (q) => {
     /* 忽略 */
   }
 })
+
+/** 待支付订单去支付（与订单列表一致：真实预下单 → 微信支付 / 演示落库） */
+async function onPay() {
+  if (!order.value || paying.value) return
+  paying.value = true
+  try {
+    const result = await payOrderById(order.value.id, order.value.order_no)
+    if (!result.paid) {
+      uni.showToast({ title: '支付未完成', icon: 'none' })
+      return
+    }
+    if (result.real) {
+      uni.showLoading({ title: '确认支付结果…' })
+      const ok = await pollOrderPaid(order.value.id)
+      uni.hideLoading()
+      uni.showToast({ title: ok ? '支付成功' : '支付处理中，请稍后刷新', icon: 'none' })
+    } else {
+      uni.showToast({ title: '支付成功', icon: 'success' })
+    }
+    await reload()
+  } catch (e: any) {
+    uni.showToast({ title: e?.message || '支付失败，请重试', icon: 'none' })
+  } finally {
+    paying.value = false
+  }
+}
 
 function stepIcon(label: string) {
   return { 待生产: '⏱', 生产中: '📦', 已发货: '🚚', 已完成: '✓' }[label] || '•'
@@ -178,6 +220,18 @@ function onContactSupport() {
 .od {
   min-height: 100vh;
   padding: 24rpx 32rpx 40rpx;
+}
+.pay-banner {
+  background: $mp-primary-soft;
+  border: 1rpx solid $mp-primary;
+  border-radius: 16rpx;
+  padding: 18rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+.pay-banner-text {
+  font-size: 24rpx;
+  color: $mp-primary-deep;
+  font-weight: 600;
 }
 .card {
   background: $mp-bg-card;
