@@ -32,6 +32,14 @@ export function createCategory(data: { name: string; sort?: number }) {
   return axios.post<{ id: number }>('/api/v1/admin/patterns/categories', data)
 }
 
+export function updateCategory(id: number, data: { name?: string; sort?: number }) {
+  return axios.put(`/api/v1/admin/patterns/categories/${id}`, data)
+}
+
+export function deleteCategory(id: number) {
+  return axios.delete(`/api/v1/admin/patterns/categories/${id}`)
+}
+
 export function listPatterns(params: { pageNum?: number; pageSize?: number; categoryId?: number; keyword?: string }) {
   return axios.get<PageResult<Pattern>>('/api/v1/admin/patterns', { params })
 }

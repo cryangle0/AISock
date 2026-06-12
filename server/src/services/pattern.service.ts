@@ -25,6 +25,23 @@ export async function listCategories(): Promise<PatternCategory[]> {
   return query<PatternCategory>('SELECT * FROM pattern_category ORDER BY sort ASC, id ASC')
 }
 
+/** 更新分类（名称/排序） */
+export async function updateCategory(id: number, data: { name?: string; sort?: number }): Promise<void> {
+  const fields: string[] = []
+  const args: any[] = []
+  if (data.name !== undefined) { fields.push('name = ?'); args.push(data.name) }
+  if (data.sort !== undefined) { fields.push('sort = ?'); args.push(data.sort) }
+  if (!fields.length) return
+  args.push(id)
+  await execute(`UPDATE pattern_category SET ${fields.join(', ')} WHERE id = ?`, args)
+}
+
+/** 删除分类：先把该分类下花型的 category_id 置空（避免悬挂引用），再删分类 */
+export async function deleteCategory(id: number): Promise<void> {
+  await execute('UPDATE pattern SET category_id = NULL WHERE category_id = ?', [id])
+  await execute('DELETE FROM pattern_category WHERE id = ?', [id])
+}
+
 export interface ListPatternParams {
   categoryId?: number
   keyword?: string

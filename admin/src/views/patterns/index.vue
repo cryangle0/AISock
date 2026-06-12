@@ -14,8 +14,8 @@
         </a-select>
         <a-input-search v-model="keyword" placeholder="搜索名称" :style="{ width: '200px' }" @search="onFilter" />
         <a-button @click="categoryModalVisible = true">
-          <template #icon><icon-plus /></template>
-          新增分类
+          <template #icon><icon-settings /></template>
+          分类管理
         </a-button>
         <a-button type="primary" @click="openCreate">
           <template #icon><icon-plus /></template>
@@ -48,8 +48,11 @@
         :total="total"
         :current="pageNum"
         :page-size="pageSize"
+        :page-size-options="[12, 18, 24, 48, 96]"
         show-total
+        show-page-size
         @change="onPageChange"
+        @page-size-change="onPageSizeChange"
       />
     </div>
 
@@ -66,11 +69,29 @@
       </a-form>
     </a-modal>
 
-    <a-modal v-model:visible="categoryModalVisible" title="新增分类" @ok="onCreateCategory" @cancel="categoryModalVisible = false">
-      <a-form :model="categoryForm" layout="vertical">
-        <a-form-item label="分类名"><a-input v-model="categoryForm.name" placeholder="如 节气 / 国潮" /></a-form-item>
-        <a-form-item label="排序"><a-input-number v-model="categoryForm.sort" :min="0" /></a-form-item>
-      </a-form>
+    <a-modal v-model:visible="categoryModalVisible" title="分类管理" :footer="false" @cancel="categoryModalVisible = false">
+      <a-list :bordered="false" :max-height="320">
+        <a-list-item v-for="cat in categories" :key="cat.id">
+          <a-space>
+            <a-input v-model="cat.name" :style="{ width: '150px' }" />
+            <a-input-number v-model="cat.sort" :min="0" :style="{ width: '90px' }" placeholder="排序" />
+            <a-button size="mini" type="primary" @click="onSaveCategory(cat)">保存</a-button>
+            <a-popconfirm content="删除该分类？其下花型将变为未分类" @ok="onDeleteCategory(cat.id)">
+              <a-button size="mini" status="danger">删除</a-button>
+            </a-popconfirm>
+          </a-space>
+        </a-list-item>
+        <template #empty><a-empty description="暂无分类" /></template>
+      </a-list>
+      <a-divider :margin="12" />
+      <a-space>
+        <a-input v-model="categoryForm.name" placeholder="新分类名，如 节气 / 国潮" :style="{ width: '150px' }" />
+        <a-input-number v-model="categoryForm.sort" :min="0" :style="{ width: '90px' }" placeholder="排序" />
+        <a-button type="primary" @click="onCreateCategory">
+          <template #icon><icon-plus /></template>
+          新增分类
+        </a-button>
+      </a-space>
     </a-modal>
   </div>
 </template>
@@ -79,7 +100,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import {
-  listPatterns, listCategories, createPattern, updatePattern, deletePattern, createCategory,
+  listPatterns, listCategories, createPattern, updatePattern, deletePattern,
+  createCategory, updateCategory, deleteCategory,
   type Pattern, type PatternCategory,
 } from '@/api/patterns'
 
@@ -120,6 +142,12 @@ function onFilter() {
 
 function onPageChange(p: number) {
   pageNum.value = p
+  fetchList()
+}
+
+function onPageSizeChange(size: number) {
+  pageSize.value = size
+  pageNum.value = 1
   fetchList()
 }
 
@@ -173,8 +201,29 @@ async function onCreateCategory() {
   }
   await createCategory({ name: categoryForm.name.trim(), sort: categoryForm.sort })
   Message.success('分类已创建')
-  categoryModalVisible.value = false
   Object.assign(categoryForm, { name: '', sort: 0 })
+  await refreshCategories()
+}
+
+async function onSaveCategory(cat: PatternCategory) {
+  if (!cat.name?.trim()) {
+    Message.warning('分类名不能为空')
+    return
+  }
+  await updateCategory(cat.id, { name: cat.name.trim(), sort: cat.sort })
+  Message.success('已保存')
+  await refreshCategories()
+}
+
+async function onDeleteCategory(id: number) {
+  await deleteCategory(id)
+  Message.success('分类已删除')
+  if (categoryId.value === id) categoryId.value = undefined
+  await refreshCategories()
+  fetchList()
+}
+
+async function refreshCategories() {
   const cats = await listCategories()
   categories.value = cats.data
 }

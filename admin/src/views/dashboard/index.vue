@@ -34,6 +34,7 @@ const cards = computed(() => [
   { label: '用户总数', value: overview.value?.userCount ?? '-' },
   { label: '订单总数', value: overview.value?.orderCount ?? '-' },
   { label: '设计稿数', value: overview.value?.designCount ?? '-' },
+  { label: 'AI 任务数', value: overview.value?.aiTaskCount ?? '-' },
   { label: '累计营收(元)', value: overview.value?.revenue ?? '-' },
 ])
 

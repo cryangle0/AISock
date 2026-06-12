@@ -4,9 +4,13 @@
 import { Hono } from 'hono'
 import { ok, fail, paginated } from '../../utils/response.js'
 import { getPageQuery } from '../../utils/context.js'
+import { requireRole } from '../../middleware/auth.js'
 import { query, queryOne, execute } from '../../db.js'
 
 export const adminUsersRouter = new Hono()
+
+// 用户管理涉及用户隐私(手机号)与配额，仅超管(admin)可访问；运营(operator)无权
+adminUsersRouter.use('*', requireRole('admin'))
 
 adminUsersRouter.get('/', async (c) => {
   const { pageNum, pageSize, offset } = getPageQuery(c, 10)

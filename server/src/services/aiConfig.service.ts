@@ -11,14 +11,24 @@ export type AiPlatform = 'miniprogram' | 'web' | 'default'
 
 /** 单平台的 AI 生成参数 */
 export interface AiPlatformConfig {
-  /** 文生图模型 */
+  /** 图像服务提供方：dashscope=阿里万相 / kie=KIE nano-banana / generic=通用接口 */
+  provider: 'dashscope' | 'kie' | 'generic'
+  /** 文生图模型（如 万相 wan2.7-t2i-preview） */
   text2imgModel: string
-  /** 图生图模型 */
+  /** 图生图 / 图像编辑模型（如 万相 wan2.7-image-edit） */
   img2imgModel: string
+  /** 文本模型：提示词优化（如 qwen-plus / qwen3.7-max） */
+  textModel: string
+  /** 语音识别模型（如 qwen3-asr-flash） */
+  asrModel: string
   /** 提示词模板，{prompt} 为用户输入占位符 */
   promptTemplate: string
   /** 出图比例，如 1:1 / 3:4 */
   aspectRatio: string
+  /** 服务 API 密钥（留空则用服务器环境变量）。后台可配，便于免改 .env 切换密钥 */
+  apiKey: string
+  /** 服务接口基址（留空用默认/环境变量），如 https://dashscope.aliyuncs.com */
+  apiBaseUrl: string
 }
 
 /** 完整配置：default 必填，miniprogram/web 为可选覆盖 */
@@ -30,12 +40,17 @@ export interface AiGenerationConfig {
 
 export const AI_CONFIG_KEY = 'ai_generation'
 
-/** 内置默认（与历史写死值一致，保证未配置时行为不变） */
+/** 内置默认：千问/万相最新（模型名后台可改，端点固定不易出错） */
 export const BUILTIN_DEFAULT: AiPlatformConfig = {
-  text2imgModel: 'google/nano-banana',
-  img2imgModel: 'google/nano-banana-edit',
+  provider: 'dashscope',
+  text2imgModel: 'wan2.7-t2i-preview',
+  img2imgModel: 'wan2.7-image-edit',
+  textModel: 'qwen3.7-max',
+  asrModel: 'qwen3-asr-flash',
   promptTemplate: '袜款印花图案，{prompt}，平铺无缝，高清细节，flat lay',
   aspectRatio: '1:1',
+  apiKey: '',
+  apiBaseUrl: '',
 }
 
 /** 读取完整配置（后台编辑用）；不存在时返回内置默认结构 */
@@ -50,7 +65,7 @@ export async function saveAiConfig(config: AiGenerationConfig): Promise<void> {
     title: 'AI 生成模型配置',
     value: normalize(config),
     status: 1,
-    remark: '按平台配置文/图生图模型与提示词模板',
+    remark: '按平台配置 文本/文生图/图生图/语音识别 模型与提示词模板',
   })
 }
 
@@ -64,10 +79,15 @@ export async function resolvePlatformConfig(platform: AiPlatform): Promise<AiPla
   if (platform === 'default') return base
   const override = cfg[platform] || {}
   return {
+    provider: override.provider || base.provider,
     text2imgModel: override.text2imgModel || base.text2imgModel,
     img2imgModel: override.img2imgModel || base.img2imgModel,
+    textModel: override.textModel || base.textModel,
+    asrModel: override.asrModel || base.asrModel,
     promptTemplate: override.promptTemplate || base.promptTemplate,
     aspectRatio: override.aspectRatio || base.aspectRatio,
+    apiKey: override.apiKey || base.apiKey,
+    apiBaseUrl: override.apiBaseUrl || base.apiBaseUrl,
   }
 }
 
@@ -86,7 +106,7 @@ function normalize(config: AiGenerationConfig): AiGenerationConfig {
     const out: Partial<AiPlatformConfig> = {}
     ;(Object.keys(o) as (keyof AiPlatformConfig)[]).forEach((k) => {
       const v = o[k]
-      if (typeof v === 'string' && v.trim()) out[k] = v.trim()
+      if (typeof v === 'string' && v.trim()) (out as Record<string, string>)[k] = v.trim()
     })
     return Object.keys(out).length ? out : undefined
   }

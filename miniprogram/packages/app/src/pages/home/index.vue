@@ -1,39 +1,32 @@
 <template>
   <view class="home">
+    <!-- 顶部品牌带（暖棕渐变 + 状态栏 + 品牌大字） -->
+    <NavBar brand title="爱花型" variant="transparent" />
+
     <scroll-view
       class="home-scroll"
       scroll-y
       :enhanced="true"
       :show-scrollbar="false"
     >
-      <!-- 1. 棕色品牌带：品牌行 + 敦煌梦 banner -->
-      <view class="brand-band" :style="{ paddingTop: statusBarHeight + 'px' }">
-        <view class="brand-row">
-          <image class="brand-logo" src="/static/logo.png" mode="aspectFit" />
-          <text class="brand">爱花型 · 袜稿设计</text>
-        </view>
-        <HomeBanner @tap="goFeed" />
-      </view>
+      <view class="home-body">
+        <!-- 1. Hero 主题大图 banner -->
+        <HomeBanner :item="heroBanner" @tap="onHero" />
 
-      <!-- 2. 主题随心订 -->
-      <view class="section">
-        <view class="section-head">
-          <text class="section-title">主题随心订</text>
-          <text class="section-en">Select theme</text>
-          <text class="section-music">♪♪♪</text>
+        <!-- 2. 主题随心订 -->
+        <view class="section">
+          <view class="section-head">
+            <text class="section-title">主题随心订</text>
+          </view>
+          <view class="themes-grid">
+            <ThemeCard v-for="t in themes" :key="t.id" :theme="t" @tap="onTheme" />
+          </view>
         </view>
-        <view class="themes-grid">
-          <ThemeCard v-for="t in themes" :key="t.id" :theme="t" @tap="onTheme" />
-        </view>
-      </view>
 
-      <!-- 3. 大画展示（3D 横滑 carousel） -->
-      <view class="section">
-        <view class="section-head">
-          <text class="section-title">袜版设计预设</text>
-          <text class="section-en">Featured</text>
+        <!-- 3. 袜版设计预设（3D 横滑，无标题，紧随主题卡） -->
+        <view class="section section--carousel">
+          <ShowcaseCarousel :items="featured" @select="onFeatured" />
         </view>
-        <ShowcaseCarousel :items="featured" @select="onFeatured" />
       </view>
     </scroll-view>
 
@@ -42,55 +35,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { switchTab, navigateTo } from '@aisock/common/utils'
 import { configApi, type ConfigItem } from '@aisock/service'
+import NavBar from '@/components/ui/NavBar.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import HomeBanner from '@/components/home/HomeBanner.vue'
 import ThemeCard from '@/components/home/ThemeCard.vue'
 import ShowcaseCarousel from '@/components/home/ShowcaseCarousel.vue'
 
-// 自定义导航栏：顶部留出状态栏高度，避免品牌带被状态栏/胶囊按钮遮挡
-const statusBarHeight = ref(20)
-try {
-  statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight || 20
-} catch {
-  /* 取不到时用默认 20 */
+/**
+ * 首页运营配置（主题随心订 / 案例 carousel）。
+ * 后台默认数据只含标题+渐变、不含封面图；直接套用会让卡片退化成 CSS 占位。
+ * 故用本地设计兜底图回填后台缺失的 cover：运营上传了用运营的，没上传保留设计真实图，
+ * 内容永不退化为占位图。失败/超时保留本地兜底，首屏永不空白。
+ */
+const FALLBACK_THEMES: ConfigItem[] = [
+  { id: 'jieqi', title: '二十四节气', en: 'JIE QI', cover: '/static/images/theme-jieqi.png', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)', decoColor: '#5a8a7d' },
+  { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', cover: '/static/images/theme-dunhuang.png', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)', decoColor: '#8E4F43' },
+  { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', cover: '/static/images/theme-wenchuang.png', bg: 'linear-gradient(135deg,#9BB8CC,#5F93C2)', decoColor: '#3a6fa3' },
+]
+const FALLBACK_CASES: ConfigItem[] = [
+  { id: 'd1', title: '敦煌九色鹿', cover: '/static/images/showcase.jpg', mainColor: '#C8B89A', accent: '#8E4F43' },
+  { id: 'd2', title: '飞天乐舞', cover: '/static/images/showcase.jpg', mainColor: '#A8C4B0', accent: '#5a8a7d' },
+  { id: 'd3', title: '千手观音', cover: '/static/images/showcase.jpg', mainColor: '#D6A87A', accent: '#A05A3C' },
+]
+
+/** 用本地兜底封面回填后台项缺失的 cover：先按 id 匹配，再按位置，最后默认图 */
+function mergeCover(items: ConfigItem[], fallbacks: ConfigItem[], defaultCover: string): ConfigItem[] {
+  return items.map((it, i) => {
+    if (it.cover) return it
+    const match = fallbacks.find((f) => f.id === it.id) ?? fallbacks[i]
+    return { ...it, cover: (match?.cover as string) || defaultCover }
+  })
 }
 
-// 默认配置（接口无数据时兜底，保证首屏永不空白）
-const themes = ref<ConfigItem[]>([
-  { id: 'jieqi', title: '二十四节气', en: 'JIE QI', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)', decoColor: '#5a8a7d' },
-  { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)', decoColor: '#8C5A3C' },
-  { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', bg: 'linear-gradient(135deg,#DEC38A,#C7A66E)', decoColor: '#3a6fa3' },
-])
-const featured = ref<ConfigItem[]>([
-  { id: 'd1', title: '敦煌九色鹿', mainColor: '#C8B89A', accent: '#8C5A3C' },
-  { id: 'd2', title: '飞天乐舞', mainColor: '#A8C4B0', accent: '#5a8a7d' },
-  { id: 'd3', title: '千手观音', mainColor: '#D6A87A', accent: '#A05A3C' },
-])
+const themes = ref<ConfigItem[]>([...FALLBACK_THEMES])
+const featured = ref<ConfigItem[]>([...FALLBACK_CASES])
+
+// Hero banner：固定主视觉大图，标题随主题联动
+const heroBanner = computed<ConfigItem>(() => ({
+  id: 'hero',
+  title: (themes.value[1]?.title as string) || '敦煌入梦',
+  en: 'DUN HUANG DREAM',
+  cover: '/static/images/hero-dunhuang.jpg',
+}))
 
 onShow(async () => {
   try {
     const res = await configApi.getHomeConfig()
     const { themes: t, cases: c } = res.data || {}
-    if (t?.length) themes.value = t
-    if (c?.length) featured.value = c
+    if (t?.length) themes.value = mergeCover(t, FALLBACK_THEMES, '/static/images/theme-dunhuang.png')
+    if (c?.length) featured.value = mergeCover(c, FALLBACK_CASES, '/static/images/showcase.jpg')
   } catch {
-    /* 保留兜底 */
+    /* 保留本地兜底 */
   }
 })
 
 const TAB_PATHS = new Set([
-  '/pages/home/index', '/pages/feed/index', '/pages/editor/index', '/pages/cart/index', '/pages/mine/index',
+  '/pages/home/index', '/pages/feed/index', '/pages/ai/index', '/pages/cart/index', '/pages/mine/index',
 ])
 function go(link?: string) {
   if (!link) return
   if (TAB_PATHS.has(link)) switchTab(link)
   else navigateTo(link)
 }
-const goFeed = () => switchTab('/pages/feed/index')
+const onHero = () => switchTab('/pages/feed/index')
 const onTheme = (t: ConfigItem) => go(t.link || '/pages/feed/index')
 const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/index')
 </script>
@@ -100,43 +111,25 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/in
 
 .home {
   height: 100vh;
-  background: $mp-bg;
+  /* 顶部暖棕渐变向下延伸、柔和过渡到米色页底（对齐 Figma：Frame 15 ~246px 线性渐变） */
+  background:
+    linear-gradient(180deg, #a4675a 0%, #b07c6c 14%, rgba(176, 124, 108, 0) 470rpx),
+    $mp-bg;
+  display: flex;
+  flex-direction: column;
 }
 .home-scroll {
-  height: 100vh;
-  box-sizing: border-box;
-  padding-bottom: 160rpx;
+  flex: 1;
+  min-height: 0;
 }
-
-/* 棕色品牌带 */
-.brand-band {
-  background: #946c5f;
-  padding: 0 0 28rpx;
-}
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 28rpx 36rpx 20rpx;
-}
-.brand-logo {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 12rpx;
-  background: rgba(255, 252, 246, 0.92);
-  padding: 4rpx;
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-.brand {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #fffcf6;
-  letter-spacing: 0.04em;
-  font-family: $mp-font-art;
+.home-body {
+  padding: 24rpx 40rpx calc(180rpx + env(safe-area-inset-bottom));
 }
 .section {
-  padding: 28rpx 32rpx 0;
+  margin-top: 36rpx;
+}
+.section--carousel {
+  margin-top: 16rpx;
 }
 .section-head {
   display: flex;
@@ -146,21 +139,10 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/in
 }
 .section-title {
   font-size: 32rpx;
-  font-weight: 800;
+  font-weight: 700;
   color: $mp-text-primary;
-  letter-spacing: 0.04em;
-  font-family: $mp-font-art;
-}
-.section-en {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: $mp-text-secondary;
-}
-.section-music {
-  margin-left: auto;
-  font-size: 22rpx;
-  color: $mp-text-muted;
-  letter-spacing: 2rpx;
+  letter-spacing: 0.02em;
+  font-family: $mp-font-serif;
 }
 .themes-grid {
   display: grid;

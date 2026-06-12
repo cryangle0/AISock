@@ -13,6 +13,8 @@ interface RequestOptions {
   showLoading?: boolean
   loadingText?: string
   silent?: boolean
+  /** 单次请求超时（ms）。不传则用 uni 默认（60s），AI 等长任务保持默认 */
+  timeout?: number
 }
 
 const ERROR_MESSAGES: Record<number, string> = {
@@ -57,6 +59,7 @@ class Http {
         url: this.baseURL + options.url,
         method: options.method || 'GET',
         data: options.data,
+        ...(options.timeout ? { timeout: options.timeout } : {}),
         header: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

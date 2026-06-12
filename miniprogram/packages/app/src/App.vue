@@ -13,22 +13,26 @@ onLaunch((options?: { query?: Record<string, string> }) => {
     userStore.refreshProfile().catch(() => {})
   }
 
-  // 延迟加载敦煌艺术字（ZCOOL KuaiLe）：放到下一帧、完全 fire-and-forget，
-  // 字体域名未配置 / 加载失败时回退系统字体，绝不阻断启动。
-  setTimeout(() => {
-    try {
-      ;(uni as any).loadFontFace?.({
-        global: true,
-        family: 'ZCOOL KuaiLe',
-        source: 'url("https://cdn.onnsa.cn/fonts/ZCOOLKuaiLe-Regular.woff2")',
-        success: () => {},
-        fail: () => {},
-        complete: () => {},
-      })
-    } catch {
-      /* 忽略：回退系统字体 */
-    }
-  }, 0)
+  // 敦煌艺术字（ZCOOL KuaiLe）远程字体：仅当配置了可用字体 URL 时才加载。
+  // 留空则直接走 $mp-font-art 的回退字体（Noto Serif SC / 系统衬线），避免无效请求在控制台报错。
+  // 如需启用：把字体上传到你的 https 域名，填入下方 URL，并在小程序后台「下载合法域名」加入该域名。
+  const BRAND_FONT_URL = ''
+  if (BRAND_FONT_URL) {
+    setTimeout(() => {
+      try {
+        ;(uni as any).loadFontFace?.({
+          global: true,
+          family: 'ZCOOL KuaiLe',
+          source: `url("${BRAND_FONT_URL}")`,
+          success: () => {},
+          fail: () => {},
+          complete: () => {},
+        })
+      } catch {
+        /* 忽略：回退系统字体 */
+      }
+    }, 0)
+  }
 })
 
 // 热启动（从分享卡片再次进入）也捕获邀请人

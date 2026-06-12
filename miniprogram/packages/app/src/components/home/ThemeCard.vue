@@ -1,14 +1,17 @@
 <template>
-  <view class="theme-card" :style="{ background: theme.bg }" @tap="$emit('tap', theme)">
-    <view class="theme-text">
-      <text class="theme-cn">{{ titleTop }}</text>
-      <text v-if="titleBottom" class="theme-cn">{{ titleBottom }}</text>
-      <text class="theme-en">{{ theme.en }}</text>
+  <view class="theme-card" @tap="$emit('tap', theme)">
+    <!-- 色块上铺满袜版产品图（Figma：图片满铺圆角块） -->
+    <view class="theme-preview" :style="{ background: theme.bg || defaultBg }">
+      <image v-if="theme.cover" class="theme-img" :src="theme.cover" mode="aspectFill" />
+      <template v-else>
+        <view class="deco-circle" :style="{ background: deco }" />
+        <view class="deco-petal" :style="{ background: deco }" />
+      </template>
     </view>
-    <!-- 矿物质感装饰圆 -->
-    <view class="theme-deco">
-      <view class="deco-circle" :style="{ background: deco }" />
-      <view class="deco-petal" :style="{ background: deco }" />
+    <!-- 标题 + 箭头 -->
+    <view class="theme-foot">
+      <text class="theme-name">{{ theme.title }}</text>
+      <AppIcon name="chevron-right" :size="20" :color="'#8a8378'" />
     </view>
   </view>
 </template>
@@ -16,19 +19,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ConfigItem } from '@aisock/service'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const props = defineProps<{ theme: ConfigItem }>()
 defineEmits<{ tap: [t: ConfigItem] }>()
 
-// 标题超过 3 字时拆两行（与原型"二十四/节气"一致）
-const titleTop = computed(() => {
-  const t = props.theme.title || ''
-  return t.length > 3 ? t.slice(0, 3) : t
-})
-const titleBottom = computed(() => {
-  const t = props.theme.title || ''
-  return t.length > 3 ? t.slice(3) : ''
-})
+const defaultBg = 'linear-gradient(135deg,#E8D5B8,#D4C09A)'
 const deco = computed(() => (props.theme.decoColor as string) || '#5a8a7d')
 </script>
 
@@ -36,58 +32,51 @@ const deco = computed(() => (props.theme.decoColor as string) || '#5a8a7d')
 @import '@aisock/common/styles/variables.scss';
 
 .theme-card {
-  position: relative;
-  border-radius: 24rpx;
-  padding: 26rpx;
-  height: 200rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(94, 60, 30, 0.08);
+  background: $mp-bg-card;
+  border-radius: $mp-radius-md;
+  padding: 14rpx;
+  box-shadow: $mp-shadow-sm;
   box-sizing: border-box;
 }
-.theme-text {
+.theme-preview {
   position: relative;
-  z-index: 1;
+  height: 120rpx;
+  border-radius: $mp-radius-sm;
+  overflow: hidden;
 }
-.theme-cn {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 800;
-  color: #2b1f14;
-  line-height: 1.12;
-  letter-spacing: 0.04em;
-  font-family: $mp-font-art;
-}
-.theme-en {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 16rpx;
-  font-weight: 600;
-  color: rgba(43, 31, 20, 0.5);
-  letter-spacing: 0.16em;
-}
-.theme-deco {
-  position: absolute;
-  right: -8rpx;
-  bottom: -8rpx;
-  width: 70%;
-  height: 75%;
+.theme-img {
+  width: 100%;
+  height: 100%;
 }
 .deco-circle {
   position: absolute;
-  right: 28rpx;
-  top: 22rpx;
-  width: 56rpx;
-  height: 56rpx;
+  right: 18rpx;
+  top: 14rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 .deco-petal {
   position: absolute;
-  right: 10rpx;
-  bottom: 10rpx;
-  width: 72rpx;
-  height: 72rpx;
+  right: 8rpx;
+  bottom: 6rpx;
+  width: 52rpx;
+  height: 52rpx;
   border-radius: 0 70% 0 70%;
-  opacity: 0.55;
+  opacity: 0.5;
+}
+.theme-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  margin-top: 14rpx;
+}
+.theme-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $mp-text-primary;
+  font-family: $mp-font-serif;
 }
 </style>

@@ -6,11 +6,15 @@
     },
     {
       "path": "pages/feed/index",
-      "style": { "navigationBarTitleText": "推荐" }
+      "style": { "navigationStyle": "custom" }
     },
     {
       "path": "pages/editor/index",
       "style": { "navigationBarTitleText": "AI 设计" }
+    },
+    {
+      "path": "pages/ai/index",
+      "style": { "navigationStyle": "custom" }
     },
     {
       "path": "pages/cart/index",
@@ -22,6 +26,18 @@
     },
     {
       "path": "pages/login/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/detail/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/purchase/index",
+      "style": { "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/upload/index",
       "style": { "navigationStyle": "custom" }
     },
     {
@@ -48,18 +64,18 @@
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "爱花型",
-    "navigationBarBackgroundColor": "#F5EDE0",
-    "backgroundColor": "#F5EDE0"
+    "navigationBarBackgroundColor": "#F7F3EA",
+    "backgroundColor": "#F7F3EA"
   },
   "tabBar": {
     "custom": true,
-    "color": "#998975",
-    "selectedColor": "#8C5A3C",
-    "backgroundColor": "#FFFCF6",
+    "color": "#222222",
+    "selectedColor": "#8E4F43",
+    "backgroundColor": "#FFFFFF",
     "list": [
       { "pagePath": "pages/home/index", "text": "首页" },
-      { "pagePath": "pages/feed/index", "text": "推荐" },
-      { "pagePath": "pages/editor/index", "text": "AI 设计" },
+      { "pagePath": "pages/feed/index", "text": "浏览" },
+      { "pagePath": "pages/ai/index", "text": "AI设计" },
       { "pagePath": "pages/cart/index", "text": "购物车" },
       { "pagePath": "pages/mine/index", "text": "我的" }
     ]

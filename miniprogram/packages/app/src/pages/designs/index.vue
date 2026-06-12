@@ -38,7 +38,7 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { designApi } from '@aisock/service'
-import { switchTab } from '@aisock/common/utils'
+import { navigateTo } from '@aisock/common/utils'
 import type { Design } from '@aisock/common/types'
 
 const list = ref<Design[]>([])
@@ -62,12 +62,12 @@ async function onDelete(id: number) {
   uni.showToast({ title: '已删除', icon: 'none' })
   fetchList()
 }
-/** 编辑器是 tabBar 页不能带参，用 storage 传递待编辑 designId */
+/** 编辑器现为普通页，用 storage 传递待编辑 designId */
 function editDesign(id: number) {
   uni.setStorageSync('aisock_edit_design_id', id)
-  switchTab('/pages/editor/index')
+  navigateTo('/pages/editor/index')
 }
-const goEditor = () => switchTab('/pages/editor/index')
+const goEditor = () => navigateTo('/pages/editor/index')
 </script>
 
 <style scoped lang="scss">

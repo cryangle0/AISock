@@ -146,30 +146,137 @@ export async function createTask(userId: number, dailyLimit: number, input: Crea
  * 模型/提示词模板按平台从 app_config(ai_generation) 解析（可后台配置）。
  */
 async function invokeProvider(input: CreateTaskInput): Promise<string[]> {
-  const apiUrl = process.env.AI_IMAGE_API_URL
-  const apiKey = process.env.AI_IMAGE_API_KEY
-  if (!apiUrl || !apiKey) {
-    return [placeholder(input.prompt)]
+  // 解析该平台生效的提供方 / 模型 / 提示词模板 / 出图比例（后台可配）
+  const aiCfg = await resolvePlatformConfig(input.platform ?? 'default')
+  // 密钥/基址：后台「AI 配置」优先，留空回退服务器环境变量
+  const dashKey = aiCfg.apiKey || process.env.DASHSCOPE_API_KEY
+  const apiUrl = aiCfg.apiBaseUrl || process.env.AI_IMAGE_API_URL
+  const apiKey = aiCfg.apiKey || process.env.AI_IMAGE_API_KEY
+
+  // 1) 阿里万相（默认）：provider=dashscope 且配置了 DASHSCOPE key
+  if (aiCfg.provider === 'dashscope' && dashKey) {
+    const urls = await invokeDashScopeImage(dashKey, input, aiCfg)
+    if (urls.length) return urls
+    // 万相失败（如模型名未在百炼开通）→ 若配置了 KIE/通用接口则自动回退，保证不出空图
+    const fb = await invokeConfiguredApi(apiUrl, apiKey, input, aiCfg)
+    return fb.length ? fb : [placeholder(input.prompt)]
   }
 
-  // 解析该平台生效的模型 / 提示词模板 / 出图比例
-  const aiCfg = await resolvePlatformConfig(input.platform ?? 'default')
+  // 2) 显式配置的 KIE / 通用接口
+  const urls = await invokeConfiguredApi(apiUrl, apiKey, input, aiCfg)
+  if (urls.length) return urls
 
-  // KIE nano-banana 协议
+  // 3) 兜底占位图（未配置任何图像服务）
+  return [placeholder(input.prompt)]
+}
+
+/** 调用显式配置的图像接口（KIE / 通用）。未配置或失败返回空数组，交由上层回退。 */
+async function invokeConfiguredApi(
+  apiUrl: string | undefined,
+  apiKey: string | undefined,
+  input: CreateTaskInput,
+  aiCfg: AiPlatformConfig,
+): Promise<string[]> {
+  if (!apiUrl || !apiKey) return []
   if (apiUrl.includes('kie.ai')) {
     return invokeKie(apiUrl, apiKey, input, aiCfg)
   }
-
-  // 通用接口：POST {url} { prompt, image, type, model } → { urls: [] }
   const model = input.refImage ? aiCfg.img2imgModel : aiCfg.text2imgModel
-  const resp = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ prompt: renderPrompt(aiCfg.promptTemplate, input.prompt || ''), image: input.refImage, type: input.type, model }),
-  })
-  if (!resp.ok) throw new Error(`AI 接口返回 ${resp.status}`)
-  const data = (await resp.json()) as { urls?: string[] }
-  return data.urls ?? []
+  try {
+    const resp = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ prompt: renderPrompt(aiCfg.promptTemplate, input.prompt || ''), image: input.refImage, type: input.type, model }),
+    })
+    if (!resp.ok) return []
+    const data = (await resp.json()) as { urls?: string[] }
+    return data.urls ?? []
+  } catch (err: any) {
+    console.warn(`[AI] 通用图像接口异常: ${err?.message || err}`)
+    return []
+  }
+}
+
+/** 出图比例 → 万相 size 字符串 */
+function aspectToSize(ratio: string): string {
+  switch ((ratio || '1:1').trim()) {
+    case '3:4': return '768*1024'
+    case '4:3': return '1024*768'
+    case '9:16': return '720*1280'
+    case '16:9': return '1280*720'
+    default: return '1024*1024'
+  }
+}
+
+/**
+ * 阿里云百炼 · 通义万相 文生图/图生图（异步任务流）。
+ * createTask（X-DashScope-Async）→ 轮询 /tasks/{id} 取图。
+ * 失败/超时返回空数组，由上层 invokeProvider 决定回退（KIE/通用接口或占位图）。
+ * 端点按场景固定：
+ *   - 文生图：/api/v1/services/aigc/text2image/image-synthesis
+ *     body { model, input:{ prompt }, parameters:{ size, n } }
+ *   - 图生图（改色/改背景，万相图像编辑）：/api/v1/services/aigc/image2image/image-synthesis
+ *     body { model, input:{ function:'description_edit', prompt, base_image_url }, parameters:{ n } }
+ * 模型名（wan2.x-t2i / wan2.x-image-edit 等）由后台配置，避免写死出错。
+ */
+async function invokeDashScopeImage(key: string, input: CreateTaskInput, aiCfg: AiPlatformConfig): Promise<string[]> {
+  const base = aiCfg.apiBaseUrl || process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com'
+  const prompt = renderPrompt(aiCfg.promptTemplate, input.prompt || '')
+  const isEdit = !!input.refImage
+  const model = isEdit ? aiCfg.img2imgModel : aiCfg.text2imgModel
+  // 文生图与图像编辑使用不同的官方端点与请求体结构
+  const endpoint = isEdit
+    ? `${base}/api/v1/services/aigc/image2image/image-synthesis`
+    : `${base}/api/v1/services/aigc/text2image/image-synthesis`
+  const body = isEdit
+    ? {
+        model,
+        input: { function: 'description_edit', prompt, base_image_url: input.refImage },
+        parameters: { n: 1 },
+      }
+    : {
+        model,
+        input: { prompt },
+        parameters: { size: aspectToSize(aiCfg.aspectRatio), n: 1 },
+      }
+  try {
+    const createResp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'X-DashScope-Async': 'enable' },
+      body: JSON.stringify(body),
+    })
+    const created = (await createResp.json()) as { output?: { task_id?: string }; code?: string; message?: string }
+    const taskId = created.output?.task_id
+    if (!taskId) {
+      console.warn(`[DashScope] 创建任务无 task_id: code=${created.code} msg=${created.message}`)
+      return []
+    }
+    const deadline = Date.now() + 80_000
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 3000))
+      const infoResp = await fetch(`${base}/api/v1/tasks/${encodeURIComponent(taskId)}`, {
+        headers: { Authorization: `Bearer ${key}` },
+      })
+      if (!infoResp.ok) continue
+      const info = (await infoResp.json()) as {
+        output?: { task_status?: string; results?: Array<{ url?: string }> }
+      }
+      const st = info.output?.task_status
+      if (st === 'SUCCEEDED') {
+        const urls = (info.output?.results || []).map((r) => r.url).filter((u): u is string => !!u)
+        return urls
+      }
+      if (st === 'FAILED' || st === 'UNKNOWN') {
+        console.warn('[DashScope] 任务失败，尝试回退其他图像服务')
+        return []
+      }
+    }
+    console.warn('[DashScope] 生成超时，尝试回退其他图像服务')
+    return []
+  } catch (err: any) {
+    console.warn(`[DashScope] 异常，尝试回退其他图像服务: ${err?.message || err}`)
+    return []
+  }
 }
 
 /** 占位图（接口未配置 / 余额不足 / 失败时回退，保证前端可联调） */

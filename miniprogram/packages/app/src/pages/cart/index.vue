@@ -40,7 +40,6 @@ import { ORDER_STATUS_TEXT } from '@aisock/common/constants'
 import { switchTab, navigateTo, reLaunch } from '@aisock/common/utils'
 import type { Order } from '@aisock/common/types'
 import CustomTabBar from '@/components/CustomTabBar.vue'
-
 const userStore = useUserStore()
 const orders = ref<Order[]>([])
 
@@ -56,7 +55,7 @@ onShow(async () => {
 
 const statusText = (s: string) => ORDER_STATUS_TEXT[s] || s
 const goLogin = () => reLaunch('/pages/login/index')
-const goEditor = () => switchTab('/pages/editor/index')
+const goEditor = () => switchTab('/pages/ai/index')
 const goOrders = () => navigateTo('/pages/orders/index')
 </script>
 

@@ -19,5 +19,6 @@ export interface HomeConfig {
 
 /** 首页运营配置（主题/功能区/案例），后台可配，访客可读 */
 export function getHomeConfig() {
-  return http.get<HomeConfig>('/api/v1/app/config/home', undefined, { showLoading: false })
+  // 启动期非关键请求：静默 + 8s 快速超时，失败回退默认配置，不打断首屏
+  return http.get<HomeConfig>('/api/v1/app/config/home', undefined, { showLoading: false, silent: true, timeout: 8000 })
 }

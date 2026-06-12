@@ -2,6 +2,7 @@
  * App AI 路由（需登录）：生图任务 / 历史 / 剩余配额 / 款式衍生 / 亲子袜 / 邀请奖励
  */
 import { Hono } from 'hono'
+import { streamSSE } from 'hono/streaming'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import { queryOne } from '../../db.js'
@@ -59,6 +60,56 @@ aiRouter.post('/optimize-prompt', async (c) => {
   return ok(c, { original: prompt, optimized })
 })
 
+/**
+ * AI 对话（推荐导购）：SSE 流式返回。
+ * 入参：messages(role/content 列表) + scene + styles + platform。
+ * 事件：{delta:string} 增量 / {done:true} 结束 / {error:string} 失败。
+ * 文本对话成本低，不消耗生图配额；上游未配置/出错时下发 error，由前端回退本地文案。
+ */
+aiRouter.post('/chat', async (c) => {
+  const body = await c.req.json<{
+    messages?: Array<{ role?: string; content?: string }>
+    scene?: string
+    styles?: string[]
+    platform?: string
+  }>().catch(() => ({} as Record<string, never>))
+
+  const messages = (Array.isArray(body.messages) ? body.messages : [])
+    .filter((m) => m && typeof m.content === 'string' && m.content.trim())
+    .map((m) => ({
+      role: m.role === 'assistant' || m.role === 'system' ? m.role : 'user',
+      content: String(m.content).slice(0, 1000),
+    })) as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+
+  const platform = (body.platform === 'miniprogram' || body.platform === 'web') ? body.platform : 'default'
+
+  // 禁用 nginx 缓冲，保证 token 实时下发
+  c.header('X-Accel-Buffering', 'no')
+  c.header('Cache-Control', 'no-cache, no-transform')
+
+  return streamSSE(c, async (stream) => {
+    if (!messages.length) {
+      await stream.writeSSE({ data: JSON.stringify({ error: 'EMPTY_MESSAGES' }) })
+      return
+    }
+    try {
+      const { streamChat } = await import('../../services/aiChat.service.js')
+      let produced = false
+      for await (const delta of streamChat(messages, { scene: body.scene, styles: body.styles }, platform)) {
+        produced = true
+        await stream.writeSSE({ data: JSON.stringify({ delta }) })
+      }
+      if (!produced) {
+        await stream.writeSSE({ data: JSON.stringify({ error: 'EMPTY_REPLY' }) })
+        return
+      }
+      await stream.writeSSE({ data: JSON.stringify({ done: true }) })
+    } catch (e) {
+      await stream.writeSSE({ data: JSON.stringify({ error: (e as Error)?.message || 'AI_ERROR' }) })
+    }
+  })
+})
+
 /** 款式衍生（1/2/4 套配色方案配方） */
 aiRouter.post('/derive', async (c) => {
   const { count } = await c.req.json<{ count?: number }>()
@@ -68,4 +119,13 @@ aiRouter.post('/derive', async (c) => {
 /** 亲子袜（成人 + 儿童配方） */
 aiRouter.post('/family', async (c) => {
   return ok(c, deriveFamilyPair())
+})
+
+/** 语音识别：把上传后的音频 URL 转写为文本（千问 ASR，后台可配模型） */
+aiRouter.post('/asr', async (c) => {
+  const { audioUrl } = await c.req.json<{ audioUrl?: string }>()
+  if (!audioUrl) return fail(c, '缺少音频地址')
+  const { transcribeAudio } = await import('../../services/asr.service.js')
+  const text = await transcribeAudio(audioUrl)
+  return ok(c, { text })
 })

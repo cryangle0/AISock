@@ -6,7 +6,7 @@ export const appRoutes: RouteRecordRaw[] = [
     path: 'dashboard',
     name: 'Dashboard',
     component: () => import('@/views/dashboard/index.vue'),
-    meta: { title: '仪表盘', icon: 'icon-dashboard' },
+    meta: { title: '数据概览', icon: 'icon-dashboard' },
   },
   {
     path: 'socks',
@@ -30,7 +30,7 @@ export const appRoutes: RouteRecordRaw[] = [
     path: 'users',
     name: 'Users',
     component: () => import('@/views/users/index.vue'),
-    meta: { title: '用户管理', icon: 'icon-user-group' },
+    meta: { title: '用户管理', icon: 'icon-user-group', roles: ['admin'] },
   },
   {
     path: 'banners',

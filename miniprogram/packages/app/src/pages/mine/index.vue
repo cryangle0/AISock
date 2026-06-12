@@ -25,19 +25,24 @@
 
       <view class="list">
         <view class="list-item" @tap="goDesigns">
-          <view class="list-icon">📁</view><text class="list-label">我的设计</text><text class="list-extra">{{ overview.designs }} 个袜版</text><text class="arrow">›</text>
+          <view class="list-icon"><AppIcon name="folder" :size="36" /></view><text class="list-label">我的设计</text><text class="list-extra">{{ overview.designs }} 个袜版</text>
+          <AppIcon name="chevron-right" :size="22" color="#b8a892" />
         </view>
         <view class="list-item" @tap="goOrders">
-          <view class="list-icon">📦</view><text class="list-label">订单管理</text><text class="list-extra">{{ orderTotal }} 个订单</text><text class="arrow">›</text>
+          <view class="list-icon"><AppIcon name="bag" :size="36" /></view><text class="list-label">订单管理</text><text class="list-extra">{{ orderTotal }} 个订单</text>
+          <AppIcon name="chevron-right" :size="22" color="#b8a892" />
         </view>
         <view class="list-item" @tap="goAssets">
-          <view class="list-icon">🎨</view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text><text class="arrow">›</text>
+          <view class="list-icon"><AppIcon name="palette" :size="36" /></view><text class="list-label">素材库</text><text class="list-extra">公共 + 个人</text>
+          <AppIcon name="chevron-right" :size="22" color="#b8a892" />
         </view>
         <view v-if="userStore.isLogin" class="list-item" @tap="onSetPassword">
-          <view class="list-icon">🔒</view><text class="list-label">{{ hasPassword ? '修改登录密码' : '设置登录密码' }}</text><text class="list-extra">{{ hasPassword ? '已设置' : '未设置' }}</text><text class="arrow">›</text>
+          <view class="list-icon"><AppIcon name="lock" :size="36" /></view><text class="list-label">{{ hasPassword ? '修改登录密码' : '设置登录密码' }}</text><text class="list-extra">{{ hasPassword ? '已设置' : '未设置' }}</text>
+          <AppIcon name="chevron-right" :size="22" color="#b8a892" />
         </view>
         <view class="list-item" @tap="onSettings">
-          <view class="list-icon">⚙️</view><text class="list-label">设置</text><text class="list-extra">账号、通知</text><text class="arrow">›</text>
+          <view class="list-icon"><AppIcon name="gear" :size="36" /></view><text class="list-label">设置</text><text class="list-extra">账号、通知</text>
+          <AppIcon name="chevron-right" :size="22" color="#b8a892" />
         </view>
       </view>
 
@@ -54,6 +59,7 @@ import { useUserStore } from '@aisock/composition'
 import { userApi } from '@aisock/service'
 import { maskPhone, navigateTo, reLaunch } from '@aisock/common/utils'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const userStore = useUserStore()
 const overview = reactive<{ designs: number; orders: Record<string, number> }>({ designs: 0, orders: {} })
@@ -142,10 +148,11 @@ async function onLogout() {
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a06d36, #8c5a3c);
+  background: $mp-header-gradient;
   color: #fff;
   font-size: 40rpx;
   font-weight: 700;
+  font-family: $mp-font-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,9 +161,10 @@ async function onLogout() {
   flex: 1;
 }
 .user-name {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: $mp-text-primary;
+  font-family: $mp-font-serif;
 }
 .user-phone {
   display: block;
@@ -199,6 +207,7 @@ async function onLogout() {
   font-size: 40rpx;
   font-weight: 800;
   color: $mp-primary;
+  font-family: $mp-font-serif;
 }
 .stat-label {
   font-size: 22rpx;

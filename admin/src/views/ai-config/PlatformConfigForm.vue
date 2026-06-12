@@ -1,10 +1,32 @@
 <template>
   <a-form :model="model" layout="vertical">
+    <a-form-item :label="`图像服务提供方${optionalHint}`">
+      <a-select v-model="model.provider" :placeholder="ph.provider" allow-clear>
+        <a-option value="dashscope">阿里万相（DashScope）</a-option>
+        <a-option value="kie">KIE（nano-banana）</a-option>
+        <a-option value="generic">通用接口</a-option>
+      </a-select>
+    </a-form-item>
+    <a-form-item :label="`API 密钥${optionalHint}`">
+      <a-input-password v-model="model.apiKey" :placeholder="ph.apiKey" allow-clear />
+      <template #extra>
+        <span class="hint">留空则使用服务器环境变量里的密钥（如 DASHSCOPE_API_KEY）</span>
+      </template>
+    </a-form-item>
+    <a-form-item :label="`接口基址${optionalHint}`">
+      <a-input v-model="model.apiBaseUrl" :placeholder="ph.apiBaseUrl" allow-clear />
+    </a-form-item>
     <a-form-item :label="`文生图模型${optionalHint}`">
       <a-input v-model="model.text2imgModel" :placeholder="ph.text2imgModel" allow-clear />
     </a-form-item>
     <a-form-item :label="`图生图模型${optionalHint}`">
       <a-input v-model="model.img2imgModel" :placeholder="ph.img2imgModel" allow-clear />
+    </a-form-item>
+    <a-form-item :label="`文本模型（提示词优化）${optionalHint}`">
+      <a-input v-model="model.textModel" :placeholder="ph.textModel" allow-clear />
+    </a-form-item>
+    <a-form-item :label="`语音识别模型（ASR）${optionalHint}`">
+      <a-input v-model="model.asrModel" :placeholder="ph.asrModel" allow-clear />
     </a-form-item>
     <a-form-item :label="`提示词模板${optionalHint}`">
       <a-textarea
@@ -47,10 +69,15 @@ const model = computed(() => props.modelValue)
 const optionalHint = computed(() => (props.optional ? '（留空沿用默认）' : ''))
 
 const ph = computed<AiPlatformConfig>(() => ({
-  text2imgModel: props.placeholder?.text2imgModel || '如 google/nano-banana',
-  img2imgModel: props.placeholder?.img2imgModel || '如 google/nano-banana-edit',
+  provider: (props.placeholder?.provider as AiPlatformConfig['provider']) || 'dashscope',
+  text2imgModel: props.placeholder?.text2imgModel || '如 wan2.7-t2i-preview',
+  img2imgModel: props.placeholder?.img2imgModel || '如 wan2.7-image-edit',
+  textModel: props.placeholder?.textModel || '如 qwen3.7-max',
+  asrModel: props.placeholder?.asrModel || '如 qwen3-asr-flash',
   promptTemplate: props.placeholder?.promptTemplate || '袜款印花图案，{prompt}，平铺无缝',
   aspectRatio: props.placeholder?.aspectRatio || '1:1',
+  apiKey: props.placeholder?.apiKey || '留空用环境变量，如 sk-xxxxxx',
+  apiBaseUrl: props.placeholder?.apiBaseUrl || '如 https://dashscope.aliyuncs.com',
 }))
 </script>
 

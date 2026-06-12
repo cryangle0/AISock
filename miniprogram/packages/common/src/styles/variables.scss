@@ -1,22 +1,28 @@
 // ─────────────────────────────────────────────
-// 敦煌主题 token —— 与原型 prototype/_palette.css 完整对齐
-// 暖米底 + 棕色 banner + 矿物质感色
+// 爱花型 · 设计 Token —— 严格对齐 FigmaUI「设计定稿」
+// 暖米底 + 敦煌棕主色 + 矿物质感辅色 + 衬线标题
+// 颜色取自 FigmaUI/元素拆解/style-tokens.md
 // ─────────────────────────────────────────────
 
-// 主色（深棕 - 敦煌色）
-$mp-primary: #8c5a3c;
-$mp-primary-hover: #6f4528;
-$mp-primary-active: #5a3a1f;
-$mp-primary-soft: rgba(140, 90, 60, 0.08); // 主色浅底（选中态）
-$mp-primary-soft-strong: rgba(140, 90, 60, 0.16);
-$mp-primary-glow: rgba(140, 90, 60, 0.22);
+// 主色（敦煌棕 - Figma #8E4F43 / #8E4F42）
+$mp-primary: #8e4f43;
+$mp-primary-deep: #8e4f42;
+$mp-primary-hover: #7a4136;
+$mp-primary-active: #63332a;
+$mp-primary-soft: rgba(142, 79, 67, 0.08); // 主色浅底（选中态）
+$mp-primary-soft-strong: rgba(142, 79, 67, 0.16);
+$mp-primary-glow: rgba(142, 79, 67, 0.22);
+
+// 沙金 / 棕金（Figma #B8895A）—— 次级按钮文字、装饰描边
+$mp-gold: #b8895a;
+$mp-gold-soft: rgba(184, 137, 90, 0.16);
 
 // 辅助色（敦煌矿物质感）
 $mp-blue: #4b7bff; // 通用蓝（订单状态等）
 $mp-blue-soft: rgba(75, 123, 255, 0.12);
 $mp-purple: #9b8cff;
 $mp-purple-soft: rgba(155, 140, 255, 0.14);
-$mp-mint: #61d6c4; // 薄荷青（与原型 token 一致）
+$mp-mint: #61d6c4; // 薄荷青
 $mp-mint-soft: rgba(97, 214, 196, 0.16);
 $mp-green: #5a8a7d; // 山水绿（装饰用）
 $mp-pink: #c5483c; // 朱砂
@@ -24,33 +30,52 @@ $mp-pink-soft: rgba(197, 72, 60, 0.12);
 $mp-coral: #dec38a; // 沙金
 $mp-coral-soft: rgba(222, 195, 138, 0.2);
 
-// 文字层级
-$mp-text-primary: #2b1f14;
-$mp-text-secondary: #6b5a48;
-$mp-text-muted: #998975;
+// 价格 / 强调红（Figma #C0492F）
+$mp-price: #c0492f;
+
+// 文字层级（Figma #2A2724 / #222222 / #8A8378 / #5B5650 / #4A443D）
+$mp-text-primary: #2a2724;
+$mp-text-strong: #222222;
+$mp-text-secondary: #4a443d;
+$mp-text-body: #5b5650;
+$mp-text-muted: #8a8378;
 $mp-text-tertiary: #b8a892;
+$mp-text-placeholder: #999999;
 
-// 背景（米色暖底）
-$mp-bg: #f5ede0;
-$mp-bg-card: #fffcf6;
-$mp-bg-tint: #efe5d4;
-$mp-bg-soft: #f0e4d1;
+// 背景（米色暖底 Figma #F7F3EA / #FDF9F1）
+$mp-bg: #f7f3ea;
+$mp-bg-warm: #fdf9f1; // AI 页暖底
+$mp-bg-card: #ffffff;
+$mp-bg-tint: #f3ead7; // 标签底 / 浅色块
+$mp-bg-soft: #efe5d4;
+$mp-bg-inset: #fff5ef; // 描述区淡橙底
 
-// 边框 / 分隔
-$mp-border: #e5d8c0;
+// 边框 / 分隔（Figma #E0D6C4 / #EDE6D7）
+$mp-border: #e0d6c4;
 $mp-border-strong: #c9b89a;
-$mp-divider: #ebe0ce;
+$mp-divider: #ede6d7;
 
 // 阴影
 $mp-shadow-sm: 0 4rpx 16rpx rgba(94, 60, 30, 0.05);
 $mp-shadow-md: 0 12rpx 36rpx rgba(94, 60, 30, 0.1);
 $mp-shadow-lg: 0 32rpx 72rpx rgba(94, 60, 30, 0.18);
+$mp-shadow-card: 0 8rpx 40rpx rgba(162, 101, 89, 0.12); // Figma hero 卡阴影
 
-// 圆角（rpx，与原型 6/10/14/18px 等比）
-$mp-radius-sm: 12rpx;
-$mp-radius-md: 20rpx;
-$mp-radius-lg: 28rpx;
-$mp-radius-xl: 36rpx;
+// 圆角（rpx —— 对齐 Figma 8/12/16/22px）
+$mp-radius-xs: 8rpx;
+$mp-radius-sm: 16rpx; // 8px
+$mp-radius-md: 24rpx; // 12px
+$mp-radius-lg: 32rpx; // 16px
+$mp-radius-xl: 44rpx; // 22px
+$mp-radius-pill: 9999rpx;
 
-// 艺术字体（敦煌风格标题/品牌）
-$mp-font-art: 'ZCOOL KuaiLe', -apple-system, 'PingFang SC', sans-serif;
+// 字体
+// 品牌艺术字（敦煌风格标题/品牌）
+$mp-font-art: 'ZCOOL KuaiLe', 'Noto Serif SC', -apple-system, 'PingFang SC', sans-serif;
+// 衬线标题（Figma 大量使用 Noto Serif SC）
+$mp-font-serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+// 正文无衬线
+$mp-font-sans: -apple-system, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+
+// 头部品牌带渐变（暖棕，对齐 Figma Frame 15 线性渐变质感）
+$mp-header-gradient: linear-gradient(135deg, #a4675a 0%, #8e4f43 100%);

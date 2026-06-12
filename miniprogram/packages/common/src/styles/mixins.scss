@@ -1,0 +1,66 @@
+// ─────────────────────────────────────────────
+// 爱花型 · 共享样式 mixin（与 variables.scss 配套）
+// 用法：@import '@aisock/common/styles/mixins.scss';
+// 注意：mixins 已 @import variables，业务文件只需引此文件即可拿到全部 token
+// ─────────────────────────────────────────────
+@import './variables.scss';
+
+// 白色卡片（圆角 + 阴影）
+@mixin mp-card($radius: $mp-radius-lg) {
+  background: $mp-bg-card;
+  border-radius: $radius;
+  box-shadow: $mp-shadow-sm;
+}
+
+// 单行省略
+@mixin mp-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// 多行省略
+@mixin mp-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// 隐藏滚动条（scroll-view / 页面）
+@mixin mp-hide-scrollbar {
+  ::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+}
+
+// 胶囊按钮（主色实心）
+@mixin mp-pill-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $mp-radius-pill;
+  background: $mp-primary;
+  color: #fff;
+  font-family: $mp-font-serif;
+}
+
+// 胶囊按钮（描边/浅底）
+@mixin mp-pill-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $mp-radius-pill;
+  background: $mp-bg-tint;
+  color: $mp-text-body;
+  font-family: $mp-font-serif;
+}
+
+// flex 居中
+@mixin mp-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

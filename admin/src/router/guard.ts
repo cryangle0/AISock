@@ -23,6 +23,12 @@ export function setupRouterGuard(router: Router) {
         return
       }
     }
+    // 角色分权：访问带 meta.roles 限制的页面时校验角色，无权回仪表盘
+    const roles = to.meta.roles as string[] | undefined
+    if (roles && !roles.includes(userStore.role)) {
+      next({ name: 'Dashboard' })
+      return
+    }
     next()
   })
 }

@@ -2,13 +2,16 @@
   <div class="page-container">
     <div class="page-toolbar">
       <h2>Banner 管理</h2>
-      <a-button type="primary" @click="openCreate">
-        <template #icon><icon-plus /></template>
-        新增 Banner
-      </a-button>
+      <a-space>
+        <a-input-search v-model="keyword" placeholder="搜索标题 / 副标题" :style="{ width: '240px' }" allow-clear @input="onSearch" />
+        <a-button type="primary" @click="openCreate">
+          <template #icon><icon-plus /></template>
+          新增 Banner
+        </a-button>
+      </a-space>
     </div>
 
-    <a-table :data="list" :loading="loading" :pagination="false" row-key="id">
+    <a-table :data="pagedList" :loading="loading" :pagination="false" row-key="id">
       <template #columns>
         <a-table-column title="标题" data-index="title" :width="160" />
         <a-table-column title="副标题" data-index="subtitle" />
@@ -31,6 +34,19 @@
       </template>
     </a-table>
 
+    <div :style="{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }">
+      <a-pagination
+        :total="filtered.length"
+        :current="pageNum"
+        :page-size="pageSize"
+        :page-size-options="[10, 20, 50, 100]"
+        show-total
+        show-page-size
+        @change="(p) => (pageNum = p)"
+        @page-size-change="onPageSize"
+      />
+    </div>
+
     <a-modal v-model:visible="modalVisible" :title="editing ? '编辑 Banner' : '新增 Banner'" @ok="onSubmit" @cancel="modalVisible = false">
       <a-form :model="form" layout="vertical">
         <a-form-item label="标题"><a-input v-model="form.title" /></a-form-item>
@@ -51,12 +67,28 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listBanners, createBanner, updateBanner, deleteBanner, type Banner } from '@/api/banners'
 
 const list = ref<Banner[]>([])
 const loading = ref(false)
+const keyword = ref('')
+const pageNum = ref(1)
+const pageSize = ref(10)
+const filtered = computed(() => {
+  const kw = keyword.value.trim().toLowerCase()
+  if (!kw) return list.value
+  return list.value.filter((b) => `${b.title} ${b.subtitle ?? ''}`.toLowerCase().includes(kw))
+})
+const pagedList = computed(() => filtered.value.slice((pageNum.value - 1) * pageSize.value, pageNum.value * pageSize.value))
+function onSearch() {
+  pageNum.value = 1
+}
+function onPageSize(size: number) {
+  pageSize.value = size
+  pageNum.value = 1
+}
 const modalVisible = ref(false)
 const editing = ref<Banner | null>(null)
 const form = reactive<{ title: string; subtitle: string; imageUrl: string; link: string; sort: number; status: number }>({

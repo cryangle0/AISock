@@ -15,11 +15,15 @@ adminShipmentsRouter.get('/:orderId', async (c) => {
   return ok(c, await getShipment(Number(c.req.param('orderId'))))
 })
 
-/** 录入运单号（自动把订单推到已发货） */
+/** 录入运单号（自动把订单推到已发货；订单未支付则拒绝） */
 adminShipmentsRouter.post('/', async (c) => {
   const { orderId, carrier, trackingNo } = await c.req.json<{ orderId?: number; carrier?: string; trackingNo?: string }>()
   if (!orderId || !carrier || !trackingNo) return fail(c, '订单/承运商/运单号必填')
-  await upsertShipment(orderId, carrier, trackingNo)
+  try {
+    await upsertShipment(orderId, carrier, trackingNo)
+  } catch (e: any) {
+    return fail(c, e?.message || '发货失败', e?.status || 400)
+  }
   return ok(c, { updated: true })
 })
 

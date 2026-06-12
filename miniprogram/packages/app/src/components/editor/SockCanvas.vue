@@ -55,7 +55,8 @@ function initCanvas(): Promise<void> {
         }
         canvasNode = info.node
         ctx = canvasNode.getContext('2d')
-        dpr = (uni.getSystemInfoSync().pixelRatio as number) || 2
+        const winInfo: any = (uni as any).getWindowInfo ? (uni as any).getWindowInfo() : uni.getSystemInfoSync()
+        dpr = (winInfo.pixelRatio as number) || 2
         pxW = cssSize * dpr
         pxH = cssSizeH * dpr
         canvasNode.width = pxW
@@ -179,7 +180,7 @@ onMounted(async () => {
   width: 48rpx;
   height: 48rpx;
   border: 6rpx solid #e8ded0;
-  border-top-color: #946d60;
+  border-top-color: #8e4f43;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

@@ -3,16 +3,15 @@
     <a-layout-sider
       :collapsed="appStore.collapsed"
       :width="232"
-      collapsible
-      :trigger="null"
       breakpoint="xl"
       class="layout-sider"
     >
-      <div class="brand">
+      <div class="brand" :class="{ 'brand--collapsed': appStore.collapsed }">
         <img class="brand-logo" src="/logo.png" alt="爱花型" />
         <span v-show="!appStore.collapsed" class="brand-text">爱花型 · 后台</span>
       </div>
       <a-menu
+        theme="dark"
         :selected-keys="[route.name as string]"
         :auto-open-selected="true"
         @menu-item-click="onMenuClick"
@@ -53,9 +52,9 @@
 
       <a-layout-content class="layout-content">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
+          <keep-alive>
             <component :is="Component" />
-          </transition>
+          </keep-alive>
         </router-view>
       </a-layout-content>
     </a-layout>
@@ -74,11 +73,17 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 
 const menus = computed(() =>
-  appRoutes.map((r) => ({
-    name: r.name as string,
-    title: (r.meta?.title as string) || (r.name as string),
-    icon: (r.meta?.icon as string) || 'icon-apps',
-  })),
+  appRoutes
+    // 角色分权：带 meta.roles 的菜单仅对应角色可见（如"用户管理"仅 admin）
+    .filter((r) => {
+      const roles = r.meta?.roles as string[] | undefined
+      return !roles || roles.includes(userStore.role)
+    })
+    .map((r) => ({
+      name: r.name as string,
+      title: (r.meta?.title as string) || (r.name as string),
+      icon: (r.meta?.icon as string) || 'icon-apps',
+    })),
 )
 
 function onMenuClick(key: string) {
@@ -96,7 +101,11 @@ async function onLogout() {
   height: 100vh;
 }
 .layout-sider {
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+  background: #241b16;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.18);
+}
+.layout-sider :deep(.arco-menu) {
+  background: transparent;
 }
 .brand {
   display: flex;
@@ -104,7 +113,12 @@ async function onLogout() {
   gap: 10px;
   height: 56px;
   padding: 0 18px;
-  color: #fff;
+  color: #f5ede0;
+}
+.brand--collapsed {
+  padding: 0;
+  gap: 0;
+  justify-content: center;
 }
 .brand-logo {
   width: 32px;
@@ -146,13 +160,5 @@ async function onLogout() {
   padding: 16px;
   background: var(--color-fill-1);
   overflow: auto;
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.18s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

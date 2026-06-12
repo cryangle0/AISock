@@ -10,6 +10,7 @@ export * as configApi from './config.js'
 
 // 类型导出（供页面/组件复用）
 export type { CreateOrderInput, PrepayResult, Shipment, PriceBreakdown, OrderAttachment } from './order.js'
+export type { StreamChatTurn, StreamChatPayload, StreamChatHandlers, StreamChatHandle } from './ai.js'
 export type { SaveDesignInput } from './design.js'
 export type { VariantRecipe, VariantColors, VariantParams } from './ai.js'
 export type { Article } from './catalog.js'

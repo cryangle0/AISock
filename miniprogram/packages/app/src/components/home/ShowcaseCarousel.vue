@@ -1,6 +1,11 @@
 <template>
   <view class="showcase">
-    <view class="track">
+    <view
+      class="track"
+      @touchstart="onTouchStart"
+      @touchend="onTouchEnd"
+      @touchcancel="onTouchEnd"
+    >
       <view
         v-for="(d, i) in items"
         :key="d.id"
@@ -8,14 +13,20 @@
         :style="cardStyle(i, d)"
         @tap="onTap(i, d)"
       >
-        <!-- 九色鹿剪影装饰（纯 CSS 拼形，避免依赖外部图） -->
-        <view class="art">
+        <!-- 真实大图（有 cover 时优先；Figma 卡面为纯图，无文字）
+             加载晕染：从中间向四周扩散 + 由模糊到清晰 -->
+        <image
+          v-if="d.cover"
+          class="card-cover"
+          :class="{ revealed: i === active ? activeShown : true }"
+          :src="d.cover"
+          mode="aspectFill"
+        />
+        <!-- 九色鹿剪影装饰（无图时的 CSS 兜底） -->
+        <view v-else class="art">
           <view class="halo" :style="{ background: haloBg(d) }" />
           <view class="deer-body" :style="{ background: mainColor(d) }" />
           <view class="deer-head" :style="{ background: mainColor(d) }" />
-        </view>
-        <view class="title-vertical">
-          <text v-for="(ch, k) in titleChars(d)" :key="k" class="tv-char">{{ ch }}</text>
         </view>
       </view>
     </view>
@@ -32,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import type { ConfigItem } from '@aisock/service'
 
 const props = defineProps<{ items: ConfigItem[] }>()
@@ -40,6 +51,28 @@ const emit = defineEmits<{ select: [item: ConfigItem] }>()
 
 // 默认选中中间一张（与原型一致）
 const active = ref(props.items.length > 1 ? 1 : 0)
+
+// 中心卡圆形扩散：每次轮播到某张图（成为中心卡）时，从中心重放扩散动画
+const activeShown = ref(false)
+function replayReveal() {
+  activeShown.value = false // 先瞬时复位（base 态无 transition，立即收到中心）
+  setTimeout(() => { activeShown.value = true }, 60) // 再播放圆形扩散
+}
+watch(active, replayReveal)
+onMounted(() => { setTimeout(() => { activeShown.value = true }, 150) })
+
+// 触摸左右滑动切换（仅用 start/end 位移判断，不拦截 touchmove，避免影响页面竖向滚动）
+let touchStartX = 0
+function onTouchStart(e: any) {
+  touchStartX = e.changedTouches?.[0]?.clientX ?? 0
+}
+function onTouchEnd(e: any) {
+  const endX = e.changedTouches?.[0]?.clientX ?? touchStartX
+  const dx = endX - touchStartX
+  if (Math.abs(dx) < 30) return // 阈值，过滤误触
+  if (dx < 0 && active.value < props.items.length - 1) active.value += 1
+  else if (dx > 0 && active.value > 0) active.value -= 1
+}
 
 function cardStyle(i: number, d: ConfigItem) {
   const offset = i - active.value
@@ -102,6 +135,30 @@ function onTap(i: number, d: ConfigItem) {
 .card.side {
   filter: brightness(0.92);
   opacity: 0.85;
+}
+.card-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* 初始：收到中心的小圆 + 半透明；无 transition → 复位瞬时完成（切卡不倒放） */
+  clip-path: circle(0% at 50% 50%);
+  -webkit-clip-path: circle(0% at 50% 50%);
+  opacity: 0.25;
+}
+/* 扩散态：transition 只在此 → 切到该卡时从中心圆形扩散 + 渐显（不使用 blur/scale，避免重绘闪烁） */
+.card-cover.revealed {
+  clip-path: circle(150% at 50% 50%);
+  -webkit-clip-path: circle(150% at 50% 50%);
+  opacity: 1;
+  transition: clip-path 1.9s cubic-bezier(0.22, 1, 0.36, 1),
+    -webkit-clip-path 1.9s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 1.6s ease-out;
+}
+.card-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(43, 31, 20, 0.32) 0%, transparent 30%, transparent 70%, rgba(43, 31, 20, 0.32) 100%);
 }
 .art {
   position: relative;

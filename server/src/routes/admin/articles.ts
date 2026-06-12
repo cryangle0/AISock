@@ -9,11 +9,12 @@ export const adminArticlesRouter = new Hono()
 
 adminArticlesRouter.get('/', async (c) => {
   const kind = c.req.query('kind')
-  return ok(c, await listArticles(kind, 200))
+  // 后台需看到全部状态（含已下线），便于重新上线/编辑
+  return ok(c, await listArticles(kind, 200, true))
 })
 
 adminArticlesRouter.get('/:id', async (c) => {
-  const a = await getArticle(Number(c.req.param('id')))
+  const a = await getArticle(Number(c.req.param('id')), true)
   if (!a) return fail(c, '文章不存在', 404)
   return ok(c, a)
 })

@@ -48,3 +48,6 @@ unpackage/
 
 # Deploy artifacts (contain real secrets — never commit to public repo)
 .deploy-*
+
+# 设计稿资源（体积大，不入库）
+FigmaUI/

@@ -11,46 +11,53 @@
       </view>
     </view>
 
-    <view class="hero">
-      <image class="logo" src="/static/logo.png" mode="aspectFit" />
-      <text class="brand">爱花型</text>
-      <text class="slogan">创意由你，花型随心</text>
-    </view>
+    <scroll-view class="login-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
+      <view class="login-inner">
+        <view class="hero">
+          <view class="logo-ring">
+            <image class="logo" src="/static/images/mascot.png" mode="aspectFill" />
+          </view>
+          <text class="brand">爱花型</text>
+          <text class="slogan">创意由你，花型随心</text>
+        </view>
 
-    <view class="card">
-      <view class="tabs">
-        <text :class="['tab', { active: mode === 'sms' }]" @tap="mode = 'sms'">验证码登录</text>
-        <text :class="['tab', { active: mode === 'password' }]" @tap="mode = 'password'">密码登录</text>
+        <view class="card">
+          <view class="tabs">
+            <text :class="['tab', { active: mode === 'sms' }]" @tap="mode = 'sms'">验证码登录</text>
+            <text :class="['tab', { active: mode === 'password' }]" @tap="mode = 'password'">密码登录</text>
+          </view>
+          <view class="field">
+            <AppIcon name="phone" :size="36" color="#8e4f43" />
+            <input v-model="phone" type="number" placeholder="请输入手机号" maxlength="11" />
+          </view>
+          <view v-if="mode === 'sms'" class="field">
+            <AppIcon name="shield" :size="36" color="#8e4f43" />
+            <input v-model="code" type="number" placeholder="请输入验证码" maxlength="6" />
+            <text class="code-btn" :class="{ disabled: counting > 0 }" @tap="onSendCode">
+              {{ counting > 0 ? `${counting}s` : '获取验证码' }}
+            </text>
+          </view>
+          <view v-else class="field">
+            <AppIcon name="lock" :size="36" color="#8e4f43" />
+            <input v-model="password" :password="true" placeholder="请输入登录密码" maxlength="32" />
+          </view>
+
+          <text class="agreement">
+            登录即代表同意 <text class="link" @tap="openAgreement('user')">《用户协议》</text> 和 <text class="link" @tap="openAgreement('privacy')">《隐私政策》</text>
+          </text>
+
+          <button class="submit" :class="{ active: canSubmit }" :disabled="!canSubmit" @tap="onLogin">登录</button>
+
+          <view class="divider"><text>或</text></view>
+          <button class="wechat" @tap="onWechat">
+            <image class="wechat-ico" src="/static/images/wechat.png" mode="aspectFit" />
+            <text class="wechat-text">微信登录</text>
+          </button>
+        </view>
+
+        <text class="footer">爱花型袜业 · 2026</text>
       </view>
-      <view class="field">
-        <text class="field-icon">📱</text>
-        <input v-model="phone" type="number" placeholder="请输入手机号" maxlength="11" />
-      </view>
-      <view v-if="mode === 'sms'" class="field">
-        <text class="field-icon">🔑</text>
-        <input v-model="code" type="number" placeholder="请输入验证码" maxlength="6" />
-        <text class="code-btn" :class="{ disabled: counting > 0 }" @tap="onSendCode">
-          {{ counting > 0 ? `${counting}s` : '获取验证码' }}
-        </text>
-      </view>
-      <view v-else class="field">
-        <text class="field-icon">🔒</text>
-        <input v-model="password" :password="true" placeholder="请输入登录密码" maxlength="32" />
-      </view>
-
-      <text class="agreement">
-        登录即代表同意 <text class="link" @tap="openAgreement('user')">《用户协议》</text> 和 <text class="link" @tap="openAgreement('privacy')">《隐私政策》</text>
-      </text>
-
-      <button class="submit" :class="{ active: canSubmit }" :disabled="!canSubmit" @tap="onLogin">登录</button>
-
-      <view class="divider"><text>或</text></view>
-      <button class="wechat" @tap="onWechat">
-        <text class="wechat-icon">💬</text> 微信登录
-      </button>
-    </view>
-
-    <text class="footer">爱花型袜业 · 2026</text>
+    </scroll-view>
   </view>
 </template>
 
@@ -61,6 +68,7 @@ import { authApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import { STORAGE_KEYS } from '@aisock/common/constants'
 import { getInviter, clearInviter } from '@/composables/useInvite'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const userStore = useUserStore()
 const phone = ref('')
@@ -195,8 +203,19 @@ function goBackOrHome() {
 @import '@aisock/common/styles/variables.scss';
 
 .login {
+  height: 100vh;
+  /* 顶部暖棕渐变向下淡出到米色（与首页一致的品牌底） */
+  background:
+    linear-gradient(180deg, #a4675a 0%, #b07c6c 18%, rgba(176, 124, 108, 0) 520rpx),
+    $mp-bg;
+}
+.login-scroll {
+  height: 100vh;
+}
+.login-inner {
   min-height: 100vh;
-  padding: 120rpx 48rpx 40rpx;
+  box-sizing: border-box;
+  padding: 140rpx 48rpx calc(40rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -229,6 +248,7 @@ function goBackOrHome() {
   font-size: 32rpx;
   font-weight: 800;
   color: $mp-text-primary;
+  font-family: $mp-font-serif;
 }
 .qr-desc {
   font-size: 24rpx;
@@ -256,43 +276,54 @@ function goBackOrHome() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 48rpx;
+  margin-bottom: 52rpx;
+}
+.logo-ring {
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6rpx;
+  box-sizing: border-box;
+  box-shadow: 0 12rpx 30rpx rgba(94, 60, 30, 0.28);
 }
 .logo {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 28rpx;
-  background: #fffcf6;
-  padding: 10rpx;
-  box-sizing: border-box;
-  box-shadow: 0 8rpx 24rpx rgba(94, 60, 30, 0.16);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
 }
 .brand {
-  margin-top: 20rpx;
-  font-size: 40rpx;
-  font-weight: 800;
-  color: $mp-text-primary;
+  margin-top: 22rpx;
+  font-size: 48rpx;
+  font-weight: 900;
+  color: #fffaf0;
+  letter-spacing: 0.06em;
+  font-family: $mp-font-art;
+  text-shadow: 0 2rpx 8rpx rgba(43, 31, 20, 0.25);
 }
 .slogan {
+  margin-top: 8rpx;
   font-size: 24rpx;
-  color: $mp-text-muted;
+  color: rgba(255, 250, 240, 0.85);
+  font-family: $mp-font-serif;
 }
 .card {
   width: 100%;
   background: $mp-bg-card;
-  border: 1rpx solid $mp-border;
-  border-radius: 28rpx;
-  padding: 36rpx 36rpx 40rpx;
-  box-shadow: 0 12rpx 36rpx rgba(94, 60, 30, 0.1);
+  border-radius: 32rpx;
+  padding: 40rpx 36rpx 44rpx;
+  box-shadow: $mp-shadow-md;
 }
 .tabs {
   display: flex;
   gap: 32rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 .tab {
   font-size: 28rpx;
   color: $mp-text-muted;
+  font-family: $mp-font-serif;
 }
 .tab.active {
   font-size: 30rpx;
@@ -302,24 +333,24 @@ function goBackOrHome() {
 .field {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 14rpx;
+  background: $mp-bg;
   border: 1rpx solid $mp-border;
   border-radius: 16rpx;
-  padding: 0 20rpx;
+  padding: 0 24rpx;
   margin-bottom: 20rpx;
 }
 .field input {
   flex: 1;
-  height: 84rpx;
+  height: 88rpx;
   font-size: 28rpx;
-}
-.field-icon {
-  font-size: 30rpx;
+  background: transparent;
 }
 .code-btn {
   font-size: 24rpx;
   color: $mp-primary;
   white-space: nowrap;
+  font-weight: 600;
 }
 .code-btn.disabled {
   color: $mp-text-muted;
@@ -329,19 +360,21 @@ function goBackOrHome() {
   text-align: center;
   font-size: 20rpx;
   color: $mp-text-muted;
-  margin: 8rpx 0 20rpx;
+  margin: 8rpx 0 24rpx;
 }
 .link {
   color: $mp-primary;
 }
 .submit {
   width: 100%;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 16rpx;
-  background: $mp-bg;
+  height: 92rpx;
+  line-height: 92rpx;
+  border-radius: 999rpx;
+  background: $mp-bg-soft;
   color: $mp-text-muted;
   font-size: 30rpx;
+  font-weight: 600;
+  font-family: $mp-font-serif;
   border: none;
 }
 .submit.active {
@@ -350,26 +383,33 @@ function goBackOrHome() {
 }
 .divider {
   text-align: center;
-  margin: 24rpx 0;
+  margin: 26rpx 0;
   font-size: 22rpx;
   color: $mp-text-muted;
 }
 .wechat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
   width: 100%;
-  height: 84rpx;
-  line-height: 84rpx;
+  height: 88rpx;
   border: 1rpx solid $mp-border;
-  border-radius: 16rpx;
+  border-radius: 999rpx;
   background: $mp-bg-card;
   font-size: 28rpx;
   color: $mp-text-secondary;
 }
-.wechat-icon {
-  color: #07c160;
+.wechat-ico {
+  width: 40rpx;
+  height: 40rpx;
+}
+.wechat-text {
+  font-family: $mp-font-serif;
 }
 .footer {
   margin-top: auto;
-  padding-top: 40rpx;
+  padding-top: 48rpx;
   font-size: 20rpx;
   color: $mp-text-muted;
 }

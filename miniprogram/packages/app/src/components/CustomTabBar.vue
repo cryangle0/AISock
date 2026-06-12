@@ -1,39 +1,80 @@
 <template>
   <view class="tabbar">
-    <view
-      v-for="(item, i) in tabs"
-      :key="item.key"
-      :class="['tab', { active: current === item.key, fab: item.key === 'editor' }]"
-      @tap="onTap(item)"
-    >
-      <template v-if="item.key === 'editor'">
-        <view class="fab-circle">
-          <text class="fab-icon">🧦</text>
-        </view>
-        <text class="fab-label">{{ item.text }}</text>
-      </template>
-      <template v-else>
-        <text class="tab-icon">{{ item.icon }}</text>
-        <text class="tab-text">{{ item.text }}</text>
-      </template>
+    <view class="tabbar-bar">
+      <!-- 左侧两项 -->
+      <view
+        v-for="item in leftTabs"
+        :key="item.key"
+        :class="['tab', { active: current === item.key }]"
+        @tap="onTap(item)"
+      >
+        <AppIcon :name="item.icon" :size="44" :color="iconColor(item.key)" />
+        <text class="tab-text" :style="{ color: textColor(item.key) }">{{ item.text }}</text>
+      </view>
+
+      <!-- 中间占位（给浮起的 AI 按钮留空间） -->
+      <view class="tab tab--center-slot" @tap="onTap(editorTab)">
+        <text class="tab-text tab-text--center" :style="{ color: textColor('editor') }">{{ editorTab.text }}</text>
+      </view>
+
+      <!-- 右侧两项 -->
+      <view
+        v-for="item in rightTabs"
+        :key="item.key"
+        :class="['tab', { active: current === item.key }]"
+        @tap="onTap(item)"
+      >
+        <AppIcon :name="item.icon" :size="44" :color="iconColor(item.key)" />
+        <text class="tab-text" :style="{ color: textColor(item.key) }">{{ item.text }}</text>
+      </view>
     </view>
+
+    <!-- 中间浮起 AI 设计入口（吉祥物头像） -->
+    <view :class="['fab', { active: current === 'editor' }]" @tap="onTap(editorTab)">
+      <view class="fab-ring">
+        <image class="fab-avatar" src="/static/images/mascot.png" mode="aspectFill" />
+      </view>
+    </view>
+
+    <!-- iOS Home Indicator 安全区 -->
+    <view class="home-indicator" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { switchTab } from '@aisock/common/utils'
+import AppIcon from './ui/AppIcon.vue'
 
-defineProps<{ current: string }>()
+const props = defineProps<{ current: string }>()
 
-const tabs = [
-  { key: 'home', text: '首页', icon: '🏠', path: '/pages/home/index' },
-  { key: 'feed', text: '推荐', icon: '🧭', path: '/pages/feed/index' },
-  { key: 'editor', text: 'AI 设计', icon: '✏️', path: '/pages/editor/index' },
-  { key: 'cart', text: '购物车', icon: '🛒', path: '/pages/cart/index' },
-  { key: 'mine', text: '我的', icon: '👤', path: '/pages/mine/index' },
+interface Tab {
+  key: string
+  text: string
+  icon: string
+  path: string
+}
+
+const leftTabs: Tab[] = [
+  { key: 'home', text: '首页', icon: 'home-fill', path: '/pages/home/index' },
+  { key: 'feed', text: '浏览', icon: 'compass', path: '/pages/feed/index' },
 ]
+const rightTabs: Tab[] = [
+  { key: 'cart', text: '购物车', icon: 'bag', path: '/pages/cart/index' },
+  { key: 'mine', text: '我的', icon: 'account', path: '/pages/mine/index' },
+]
+const editorTab: Tab = { key: 'editor', text: 'AI设计', icon: 'sparkle', path: '/pages/ai/index' }
 
-function onTap(item: { path: string }) {
+const ACTIVE = '#8e4f43'
+const IDLE = '#222222'
+
+function iconColor(key: string) {
+  return props.current === key ? ACTIVE : IDLE
+}
+function textColor(key: string) {
+  return props.current === key ? ACTIVE : IDLE
+}
+function onTap(item: Tab) {
+  if (props.current === item.key) return
   switchTab(item.path)
 }
 </script>
@@ -46,12 +87,14 @@ function onTap(item: { path: string }) {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 110rpx;
-  display: flex;
-  background: $mp-bg-card;
-  border-top: 1rpx solid $mp-border;
-  padding-bottom: env(safe-area-inset-bottom);
   z-index: 100;
+  background: #fff;
+  box-shadow: 0 -2rpx 24rpx rgba(94, 60, 30, 0.06);
+}
+.tabbar-bar {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
 }
 .tab {
   flex: 1;
@@ -60,50 +103,53 @@ function onTap(item: { path: string }) {
   align-items: center;
   justify-content: center;
   gap: 4rpx;
-  position: relative;
-}
-.tab-icon {
-  font-size: 36rpx;
 }
 .tab-text {
   font-size: 20rpx;
-  color: $mp-text-muted;
+  font-family: $mp-font-serif;
+  font-weight: 400;
 }
 .tab.active .tab-text {
-  color: $mp-primary;
   font-weight: 600;
 }
-.fab {
+.tab--center-slot {
   justify-content: flex-end;
+  padding-bottom: 8rpx;
 }
-.fab-circle {
+.tab-text--center {
+  font-weight: 600;
+}
+
+/* 浮起 AI 头像 */
+.fab {
   position: absolute;
+  left: 50%;
   top: -16rpx;
-  left: 50%;
   transform: translateX(-50%);
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #946d60 0%, #b99d92 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(148, 109, 96, 0.4), 0 0 0 4rpx $mp-bg-card;
 }
-.fab-icon {
-  font-size: 40rpx;
+.fab-ring {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: $mp-header-gradient;
+  padding: 4rpx;
+  box-sizing: border-box;
+  box-shadow: 0 8rpx 20rpx rgba(142, 79, 67, 0.4), 0 0 0 6rpx #fff;
+  transition: transform 0.2s ease;
 }
-.fab-label {
-  font-size: 18rpx;
-  color: #fff;
-  background: $mp-primary;
-  padding: 1rpx 10rpx;
-  border-radius: 999rpx;
-  position: absolute;
-  top: 58rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  z-index: 2;
+.fab.active .fab-ring {
+  transform: scale(1.06);
+}
+.fab-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+}
+.home-indicator {
+  height: env(safe-area-inset-bottom);
 }
 </style>

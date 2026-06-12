@@ -2,13 +2,16 @@
   <div class="page-container">
     <div class="page-toolbar">
       <h2>物流管理</h2>
-      <a-button type="primary" @click="modalVisible = true">
-        <template #icon><icon-plus /></template>
-        录入运单
-      </a-button>
+      <a-space>
+        <a-input-search v-model="keyword" placeholder="搜索订单号 / 运单号 / 承运商" :style="{ width: '280px' }" allow-clear @input="onSearch" />
+        <a-button type="primary" @click="openUpsertModal">
+          <template #icon><icon-plus /></template>
+          录入运单
+        </a-button>
+      </a-space>
     </div>
 
-    <a-table :data="list" :loading="loading" :pagination="false" row-key="id">
+    <a-table :data="pagedList" :loading="loading" :pagination="false" row-key="id">
       <template #columns>
         <a-table-column title="订单ID" data-index="order_id" :width="100" />
         <a-table-column title="承运商" data-index="carrier" :width="120" />
@@ -25,6 +28,19 @@
         </a-table-column>
       </template>
     </a-table>
+
+    <div :style="{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }">
+      <a-pagination
+        :total="filtered.length"
+        :current="pageNum"
+        :page-size="pageSize"
+        :page-size-options="[10, 20, 50, 100]"
+        show-total
+        show-page-size
+        @change="(p) => (pageNum = p)"
+        @page-size-change="onPageSize"
+      />
+    </div>
 
     <a-modal v-model:visible="modalVisible" title="录入运单" @ok="onUpsert" @cancel="modalVisible = false">
       <a-form :model="form" layout="vertical">
@@ -53,13 +69,29 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listShipments, upsertShipment, appendTrace, type Shipment } from '@/api/monitoring'
 
 const carriers = ['顺丰速运', '京东物流', '中通快递', '圆通速递', '韵达快递']
 const list = ref<Shipment[]>([])
 const loading = ref(false)
+const keyword = ref('')
+const pageNum = ref(1)
+const pageSize = ref(10)
+const filtered = computed(() => {
+  const kw = keyword.value.trim().toLowerCase()
+  if (!kw) return list.value
+  return list.value.filter((s) => `${s.order_id} ${s.tracking_no ?? ''} ${s.carrier ?? ''}`.toLowerCase().includes(kw))
+})
+const pagedList = computed(() => filtered.value.slice((pageNum.value - 1) * pageSize.value, pageNum.value * pageSize.value))
+function onSearch() {
+  pageNum.value = 1
+}
+function onPageSize(size: number) {
+  pageSize.value = size
+  pageNum.value = 1
+}
 const modalVisible = ref(false)
 const traceVisible = ref(false)
 const form = reactive({ orderId: undefined as number | undefined, carrier: '顺丰速运', trackingNo: '' })
@@ -80,6 +112,12 @@ async function fetchList() {
   } finally {
     loading.value = false
   }
+}
+function openUpsertModal() {
+  form.orderId = undefined
+  form.carrier = '顺丰速运'
+  form.trackingNo = ''
+  modalVisible.value = true
 }
 async function onUpsert() {
   if (!form.orderId || !form.trackingNo) {

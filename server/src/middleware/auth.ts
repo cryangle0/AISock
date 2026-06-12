@@ -39,6 +39,21 @@ export function invalidateTokenCache(token: string): void {
   tokenCache.delete(token)
 }
 
+/**
+ * 角色分权中间件：要求当前后台账号具备指定角色之一，否则 403。
+ * 用于敏感操作（如用户管理）。需在 requireAuth 之后使用（依赖 c.get('userId')）。
+ */
+export function requireRole(...roles: string[]) {
+  return async (c: Context, next: Next) => {
+    const adminId = (c.get('userId') as number | undefined) ?? 0
+    const row = await queryOne<{ role: string }>('SELECT role FROM admin_account WHERE id = ?', [adminId])
+    if (!row || !roles.includes(row.role)) {
+      return fail(c, '权限不足：该操作需要管理员角色', 403)
+    }
+    return next()
+  }
+}
+
 /** 校验用户是否被禁用（status!=1）。仅在 cache-miss 时调用，性能开销可忽略。
  *  被禁用则删除其会话并清缓存，旧 token 立即失效。 */
 async function ensureUserActive(token: string, userId: number, type: string): Promise<boolean> {

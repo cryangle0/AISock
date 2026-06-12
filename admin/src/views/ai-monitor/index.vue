@@ -35,7 +35,7 @@
         </template>
       </a-table>
       <div class="pager">
-        <a-pagination :total="total" :current="pageNum" :page-size="pageSize" show-total @change="onPage" />
+        <a-pagination :total="total" :current="pageNum" :page-size="pageSize" :page-size-options="[10, 20, 50, 100]" show-total show-page-size @change="onPage" @page-size-change="onPageSize" />
       </div>
     </a-card>
   </div>
@@ -84,6 +84,11 @@ function onFilter() {
 }
 function onPage(p: number) {
   pageNum.value = p
+  fetchAll()
+}
+function onPageSize(size: number) {
+  pageSize.value = size
+  pageNum.value = 1
   fetchAll()
 }
 onMounted(fetchAll)

@@ -29,12 +29,13 @@
           <template #cell="{ record }">
             <a-space>
               <a-button type="text" size="small" @click="openDetail(record.id)">详情</a-button>
-              <a-dropdown @select="(v) => onChangeStatus(record.id, v as string)">
+              <a-dropdown v-if="nextStatuses(record.status).length" @select="(v) => onChangeStatus(record.id, v as string)">
                 <a-button type="text" size="small">改状态<icon-down /></a-button>
                 <template #content>
-                  <a-doption v-for="(label, key) in STATUS_MAP" :key="key" :value="key">{{ label }}</a-doption>
+                  <a-doption v-for="key in nextStatuses(record.status)" :key="key" :value="key">{{ STATUS_MAP[key] }}</a-doption>
                 </template>
               </a-dropdown>
+              <span v-else class="status-end">—</span>
             </a-space>
           </template>
         </a-table-column>
@@ -42,7 +43,7 @@
     </a-table>
 
     <div class="pager">
-      <a-pagination :total="total" :current="pageNum" :page-size="pageSize" show-total @change="onPageChange" />
+      <a-pagination :total="total" :current="pageNum" :page-size="pageSize" :page-size-options="[10, 20, 50, 100]" show-total show-page-size @change="onPageChange" @page-size-change="onPageSizeChange" />
     </div>
 
     <!-- 订单详情抽屉 -->
@@ -103,6 +104,19 @@ const STATUS_MAP: Record<string, string> = {
   shipped: '已发货',
   done: '已完成',
   cancelled: '已取消',
+}
+
+/** 合法状态流转（与后端 STATUS_FLOW 一致），改状态下拉只列出可达状态 */
+const STATUS_FLOW: Record<string, string[]> = {
+  pending: ['paid', 'cancelled'],
+  paid: ['producing', 'cancelled'],
+  producing: ['shipped', 'cancelled'],
+  shipped: ['done'],
+  done: [],
+  cancelled: [],
+}
+function nextStatuses(s: string): string[] {
+  return STATUS_FLOW[s] || []
 }
 
 const list = ref<AdminOrder[]>([])
@@ -168,6 +182,12 @@ function onPageChange(p: number) {
   fetchList()
 }
 
+function onPageSizeChange(size: number) {
+  pageSize.value = size
+  pageNum.value = 1
+  fetchList()
+}
+
 async function onChangeStatus(id: number, newStatus: string) {
   await updateOrderStatus(id, newStatus)
   Message.success('状态已更新')
@@ -182,6 +202,11 @@ onMounted(fetchList)
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+.status-end {
+  color: var(--color-text-3);
+  font-size: 12px;
+  padding: 0 8px;
 }
 .att-block {
   margin-top: 20px;

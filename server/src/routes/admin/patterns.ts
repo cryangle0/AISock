@@ -4,7 +4,7 @@
 import { Hono } from 'hono'
 import { ok, fail, paginated } from '../../utils/response.js'
 import { getPageQuery } from '../../utils/context.js'
-import { listPatterns, listCategories, createPattern, deletePattern, updatePattern } from '../../services/pattern.service.js'
+import { listPatterns, listCategories, createPattern, deletePattern, updatePattern, updateCategory, deleteCategory } from '../../services/pattern.service.js'
 import { execute } from '../../db.js'
 
 export const adminPatternsRouter = new Hono()
@@ -18,6 +18,17 @@ adminPatternsRouter.post('/categories', async (c) => {
   if (!name) return fail(c, '分类名不能为空')
   const r = await execute('INSERT INTO pattern_category (name, sort) VALUES (?, ?)', [name, sort ?? 0])
   return ok(c, { id: r.insertId })
+})
+
+adminPatternsRouter.put('/categories/:id', async (c) => {
+  const { name, sort } = await c.req.json<{ name?: string; sort?: number }>()
+  await updateCategory(Number(c.req.param('id')), { name, sort })
+  return ok(c, { updated: true })
+})
+
+adminPatternsRouter.delete('/categories/:id', async (c) => {
+  await deleteCategory(Number(c.req.param('id')))
+  return ok(c, { deleted: true })
 })
 
 adminPatternsRouter.get('/', async (c) => {

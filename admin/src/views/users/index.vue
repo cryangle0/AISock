@@ -36,7 +36,7 @@
     </a-table>
 
     <div class="pager">
-      <a-pagination :total="total" :current="pageNum" :page-size="pageSize" show-total @change="onPageChange" />
+      <a-pagination :total="total" :current="pageNum" :page-size="pageSize" :page-size-options="[10, 20, 50, 100]" show-total show-page-size @change="onPageChange" @page-size-change="onPageSizeChange" />
     </div>
   </div>
 </template>
@@ -71,6 +71,12 @@ function onFilter() {
 
 function onPageChange(p: number) {
   pageNum.value = p
+  fetchList()
+}
+
+function onPageSizeChange(size: number) {
+  pageSize.value = size
+  pageNum.value = 1
   fetchList()
 }
 

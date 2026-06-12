@@ -18,14 +18,23 @@ export async function getShipment(orderId: number): Promise<Shipment | null> {
   return queryOne<Shipment>('SELECT * FROM order_shipment WHERE order_id = ?', [orderId])
 }
 
+/** 可发货的订单状态：必须已支付（paid/producing），或已发货（再次录入更新运单号） */
+const SHIPPABLE_STATUS = new Set(['paid', 'producing', 'shipped'])
+
 export async function upsertShipment(orderId: number, carrier: string, trackingNo: string): Promise<void> {
+  // 校验订单状态：禁止把未支付/已取消/已完成的订单强制改为已发货（绕过支付的越权流转）
+  const order = await queryOne<{ status: string }>('SELECT status FROM `order` WHERE id = ?', [orderId])
+  if (!order) throw Object.assign(new Error('订单不存在'), { status: 404 })
+  if (!SHIPPABLE_STATUS.has(order.status)) {
+    throw Object.assign(new Error(`订单当前状态（${order.status}）不可发货，请先完成支付/生产`), { status: 400 })
+  }
   await execute(
     `INSERT INTO order_shipment (order_id, carrier, tracking_no, status, traces)
      VALUES (?,?,?, 'in-transit', ?)
      ON DUPLICATE KEY UPDATE carrier=VALUES(carrier), tracking_no=VALUES(tracking_no), status=VALUES(status)`,
     [orderId, carrier, trackingNo, JSON.stringify([{ time: new Date().toISOString(), desc: '已发货，等待揽收' }])],
   )
-  // 同步把订单状态推到 shipped
+  // 同步把订单状态推到 shipped（已是 shipped 则幂等）
   await execute(`UPDATE \`order\` SET status = 'shipped' WHERE id = ?`, [orderId])
 }
 

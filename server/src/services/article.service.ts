@@ -17,17 +17,30 @@ export interface Article {
   published_at: string | null
 }
 
-export async function listArticles(kind?: string, limit = 30): Promise<Article[]> {
-  const where = kind ? 'WHERE status = 1 AND kind = ?' : 'WHERE status = 1'
-  const args = kind ? [kind, limit] : [limit]
+/**
+ * 文章列表。
+ * @param includeAll true=后台管理用，返回所有状态（含已下线，便于重新上线/编辑）；
+ *                   false=App 端用，仅返回 status=1 已上线。
+ */
+export async function listArticles(kind?: string, limit = 30, includeAll = false): Promise<Article[]> {
+  const conds: string[] = []
+  const args: any[] = []
+  if (!includeAll) conds.push('status = 1')
+  if (kind) { conds.push('kind = ?'); args.push(kind) }
+  const where = conds.length ? `WHERE ${conds.join(' AND ')}` : ''
+  args.push(limit)
   return query<Article>(
     `SELECT * FROM article ${where} ORDER BY sort ASC, id DESC LIMIT ?`,
     args,
   )
 }
 
-export async function getArticle(id: number): Promise<Article | null> {
-  return queryOne<Article>('SELECT * FROM article WHERE id = ? AND status = 1', [id])
+/** 文章详情。includeAll=true 后台用（含已下线）；false App 端仅已上线 */
+export async function getArticle(id: number, includeAll = false): Promise<Article | null> {
+  const sql = includeAll
+    ? 'SELECT * FROM article WHERE id = ?'
+    : 'SELECT * FROM article WHERE id = ? AND status = 1'
+  return queryOne<Article>(sql, [id])
 }
 
 export async function createArticle(data: Partial<Article>): Promise<number> {

@@ -63,11 +63,11 @@
       <template v-else-if="tab === 'adjust'">
         <view class="slider-row">
           <view class="slider-head"><text>图片缩放</text><text class="sv">{{ params.density }}%</text></view>
-          <slider :value="params.density" :min="50" :max="300" :disabled="!hasPrint" activeColor="#8C5A3C" block-size="18" @changing="onScale" @change="onScale" />
+          <slider :value="params.density" :min="50" :max="300" :disabled="!hasPrint" activeColor="#8E4F43" block-size="18" @changing="onScale" @change="onScale" />
         </view>
         <view class="slider-row">
           <view class="slider-head"><text>图片旋转</text><text class="sv">{{ params.rotation }}°</text></view>
-          <slider :value="params.rotation" :min="0" :max="360" :disabled="!hasPrint" activeColor="#8C5A3C" block-size="18" @changing="onRotate" @change="onRotate" />
+          <slider :value="params.rotation" :min="0" :max="360" :disabled="!hasPrint" activeColor="#8E4F43" block-size="18" @changing="onRotate" @change="onRotate" />
         </view>
         <view class="seg">
           <view :class="['seg-btn', { active: params.singleMode }]" @tap="params.singleMode = true">单张</view>
@@ -75,7 +75,7 @@
         </view>
         <view v-if="!params.singleMode" class="slider-row">
           <view class="slider-head"><text>平铺密度</text><text class="sv">{{ params.tileDensity }}×</text></view>
-          <slider :value="params.tileDensity" :min="2" :max="8" :disabled="!hasPrint" activeColor="#8C5A3C" block-size="18" @changing="onTile" @change="onTile" />
+          <slider :value="params.tileDensity" :min="2" :max="8" :disabled="!hasPrint" activeColor="#8E4F43" block-size="18" @changing="onTile" @change="onTile" />
         </view>
       </template>
 
@@ -155,6 +155,13 @@
       @shared="onShared"
     />
 
+    <AiGenerateSheet
+      v-if="aiGenOpen"
+      :initial-prompt="aiInitialPrompt"
+      @close="aiGenOpen = false"
+      @generate="onAiGenerate"
+    />
+
     <custom-tab-bar current="editor" />
   </view>
 </template>
@@ -178,6 +185,7 @@ import OrderSheet from '@/components/editor/OrderSheet.vue'
 import PaymentSheet from '@/components/editor/PaymentSheet.vue'
 import VariantSheet from '@/components/editor/VariantSheet.vue'
 import ShareSheet from '@/components/editor/ShareSheet.vue'
+import AiGenerateSheet from '@/components/editor/AiGenerateSheet.vue'
 import type { DesignVariant } from '@/composables/useVariants'
 import { toRegions, fromRegions } from '../../components/editor/designSnapshot'
 
@@ -214,6 +222,9 @@ const orderOpen = ref(false)
 const pendingOrder = ref<PendingOrder | null>(null)
 const variantMode = ref<'derive' | 'family' | null>(null)
 const shareOpen = ref(false)
+const aiGenOpen = ref(false)
+/** AI 生成面板的初始灵感（从「AI 设计」推荐官携带的意图描述，跳转后自动带入） */
+const aiInitialPrompt = ref('')
 /** 当前正在编辑的已存设计 id（从"我的设计"打开时有值，保存走更新而非新建） */
 const currentDesignId = ref<number | null>(null)
 
@@ -280,6 +291,23 @@ async function loadDesignIfRequested() {
 onShow(async () => {
   ensureCatalog()
   await loadDesignIfRequested()
+  // 从「袜版定制」上传页带入的图片 → 直接渲染到袜版
+  const upImg = uni.getStorageSync('aisock_upload_image')
+  if (upImg) {
+    uni.removeStorageSync('aisock_upload_image')
+    printImage.value = upImg
+    patternId.value = null
+    printName.value = '上传花型'
+    tab.value = 'print'
+  }
+  // 从「AI 设计」推荐官携带的意图描述 → 自动打开 AI 生成面板并预填灵感
+  const aiPrompt = uni.getStorageSync('aisock_ai_prompt')
+  if (aiPrompt) {
+    uni.removeStorageSync('aisock_ai_prompt')
+    aiInitialPrompt.value = String(aiPrompt)
+    tab.value = 'print'
+    aiGenOpen.value = true
+  }
   if (userStore.isLogin) {
     try {
       const res = await aiApi.getQuota()
@@ -346,9 +374,13 @@ function onPalette(p: { id: string; name: string; colors: string[] }) {
 
 async function onAiGen() {
   if (!ensureLogin()) return
-  const res = await uni.showModal({ title: 'AI 生成花型', editable: true, placeholderText: '描述想要的花型，如：春日樱花 粉色' })
-  if (!res.confirm || !res.content) return
-  let prompt = res.content.trim()
+  aiInitialPrompt.value = ''
+  aiGenOpen.value = true
+}
+
+/** 由 AI 生成面板提交：意图优化 → 生成 → 刷新额度 */
+async function onAiGenerate(rawPrompt: string) {
+  let prompt = rawPrompt.trim()
   if (!prompt) return
 
   // 意图分析：把模糊指令优化成高质量提示词，让用户确认后再生成
@@ -373,10 +405,11 @@ async function onAiGen() {
     if (url) {
       printImage.value = url
       patternId.value = null
-      printName.value = res.content.trim()
+      printName.value = rawPrompt.trim()
     }
     const q = await aiApi.getQuota()
     quota.remaining = q.data.remaining
+    aiGenOpen.value = false
   } catch {
     /* 拦截器已提示 */
   }
@@ -861,7 +894,7 @@ function goDesigns() {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(180deg, #946d60, #b99d92);
+  background: linear-gradient(135deg, #a4675a, #8e4f43);
   color: #fff;
   font-size: 28rpx;
   font-weight: 700;

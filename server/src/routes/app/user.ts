@@ -15,7 +15,7 @@ export const userRouter = new Hono()
 userRouter.get('/profile', async (c) => {
   const userId = getUserId(c)
   const user = await queryOne<Record<string, unknown>>(
-    'SELECT id, phone, nickname, avatar, ai_quota_daily FROM `user` WHERE id = ?',
+    'SELECT id, phone, nickname, avatar, ai_quota_daily AS aiQuotaDaily FROM `user` WHERE id = ?',
     [userId],
   )
   if (!user) return fail(c, '用户不存在', 404)

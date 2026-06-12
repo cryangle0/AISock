@@ -39,10 +39,22 @@ export async function optimizePrompt(userPrompt: string): Promise<string> {
   const raw = (userPrompt || '').trim()
   if (!raw) return raw
 
-  const apiUrl = process.env.AI_TEXT_API_URL
-  const apiKey = process.env.AI_TEXT_API_KEY
-  const model = process.env.AI_TEXT_MODEL || 'deepseek-chat'
+  // 端点/密钥：优先 AI_TEXT_*，未配置则回退 DashScope 千问（OpenAI 兼容端点）
+  const dashKey = process.env.DASHSCOPE_API_KEY
+  const dashBase = process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com'
+  const apiUrl = process.env.AI_TEXT_API_URL || (dashKey ? `${dashBase}/compatible-mode/v1` : '')
+  const apiKey = process.env.AI_TEXT_API_KEY || dashKey
   if (!apiUrl || !apiKey) return raw
+
+  // 模型：后台 AI 配置 textModel 优先，其次环境变量，最后兜底 qwen-plus
+  let model = process.env.AI_TEXT_MODEL || 'qwen-plus'
+  try {
+    const { resolvePlatformConfig } = await import('./aiConfig.service.js')
+    const cfg = await resolvePlatformConfig('default')
+    if (cfg.textModel) model = cfg.textModel
+  } catch {
+    /* 用环境变量/兜底模型 */
+  }
 
   try {
     const controller = new AbortController()

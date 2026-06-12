@@ -45,7 +45,7 @@ import PlatformConfigForm from './PlatformConfigForm.vue'
 const loading = ref(false)
 const saving = ref(false)
 const builtinDefault = ref<AiPlatformConfig>({
-  text2imgModel: '', img2imgModel: '', promptTemplate: '', aspectRatio: '1:1',
+  provider: 'dashscope', text2imgModel: '', img2imgModel: '', textModel: '', asrModel: '', promptTemplate: '', aspectRatio: '1:1', apiKey: '', apiBaseUrl: '',
 })
 
 // 表单：default 完整，平台覆盖为可空字段
@@ -54,7 +54,7 @@ const form = reactive<{
   miniprogram: Partial<AiPlatformConfig>
   web: Partial<AiPlatformConfig>
 }>({
-  default: { text2imgModel: '', img2imgModel: '', promptTemplate: '', aspectRatio: '1:1' },
+  default: { provider: 'dashscope', text2imgModel: '', img2imgModel: '', textModel: '', asrModel: '', promptTemplate: '', aspectRatio: '1:1', apiKey: '', apiBaseUrl: '' },
   miniprogram: {},
   web: {},
 })
@@ -95,7 +95,7 @@ function pruneEmpty(o: Partial<AiPlatformConfig>): Partial<AiPlatformConfig> {
   const out: Partial<AiPlatformConfig> = {}
   ;(Object.keys(o) as (keyof AiPlatformConfig)[]).forEach((k) => {
     const v = o[k]
-    if (typeof v === 'string' && v.trim()) out[k] = v.trim()
+    if (typeof v === 'string' && v.trim()) (out as Record<string, string>)[k] = v.trim()
   })
   return out
 }
