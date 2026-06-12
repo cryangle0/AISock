@@ -25,6 +25,14 @@ export async function listCategories(): Promise<PatternCategory[]> {
   return query<PatternCategory>('SELECT * FROM pattern_category ORDER BY sort ASC, id ASC')
 }
 
+/** 单个公共花型详情（仅上线状态，访客可读） */
+export async function getPublicPatternById(id: number): Promise<Pattern | null> {
+  return queryOne<Pattern>(
+    'SELECT * FROM pattern WHERE id = ? AND status = 1 AND owner_id IS NULL',
+    [id],
+  )
+}
+
 /** 更新分类（名称/排序） */
 export async function updateCategory(id: number, data: { name?: string; sort?: number }): Promise<void> {
   const fields: string[] = []

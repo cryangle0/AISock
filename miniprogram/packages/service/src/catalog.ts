@@ -22,6 +22,11 @@ export function listPatterns(params: { pageNum?: number; pageSize?: number; cate
   return http.get<PageResult<Pattern>>('/api/v1/app/patterns', params, { showLoading: false })
 }
 
+/** 公共花型详情（访客可读） */
+export function getPattern(id: number) {
+  return http.get<Pattern>(`/api/v1/app/patterns/${id}`, undefined, { showLoading: false })
+}
+
 export function listMyPatterns(params: { pageNum?: number; pageSize?: number }) {
   return http.get<PageResult<Pattern>>('/api/v1/app/patterns/mine', params)
 }

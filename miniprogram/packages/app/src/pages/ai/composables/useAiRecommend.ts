@@ -1,187 +1,142 @@
 /**
  * AI 智能推荐
- * 负责根据用户意图推荐花型、生成推荐理由
+ * 数据源：后端公共花型库（真实 http 图，可直接下单），客户端按场景/风格/意图打分排序。
+ * 失败时回退到已缓存数据或空结果，绝不阻断对话流程。
  */
 import { ref } from 'vue'
+import { catalogApi } from '@aisock/service'
+import type { Pattern } from '@aisock/common/types'
 import type { RecommendCandidate, AiRecommendation } from '../types/chat'
 
-// 花型数据库（实际应该从后端API获取）
-const PATTERN_DATABASE: RecommendCandidate[] = [
-  { id: 'crane', name: '仙鹤', imageUrl: '/static/images/rec-crane.jpg', tags: ['国潮', '优雅', '寓意好'], score: 0 },
-  { id: 'fret', name: '回纹', imageUrl: '/static/images/rec-fret.jpg', tags: ['国潮', '经典', '几何'], score: 0 },
-  { id: 'dragon', name: '祥龙', imageUrl: '/static/images/rec-dragon.jpg', tags: ['国潮', '霸气', '吉祥'], score: 0 },
-  { id: 'lotus', name: '莲纹', imageUrl: '/static/images/rec-crane.jpg', tags: ['国潮', '清雅', '佛系'], score: 0 },
-  { id: 'cloud', name: '祥云', imageUrl: '/static/images/rec-fret.jpg', tags: ['国潮', '飘逸', '仙气'], score: 0 },
-  { id: 'peony', name: '牡丹', imageUrl: '/static/images/rec-dragon.jpg', tags: ['国潮', '富贵', '花卉'], score: 0 },
-  { id: 'plum', name: '梅花', imageUrl: '/static/images/rec-crane.jpg', tags: ['国潮', '清新', '文艺'], score: 0 },
-  { id: 'bamboo', name: '竹纹', imageUrl: '/static/images/rec-fret.jpg', tags: ['国潮', '清雅', '君子'], score: 0 },
-  { id: 'wave', name: '海浪', imageUrl: '/static/images/rec-dragon.jpg', tags: ['自然', '动感', '清爽'], score: 0 },
-  { id: 'cherry', name: '樱花', imageUrl: '/static/images/rec-crane.jpg', tags: ['浪漫', '粉嫩', '少女'], score: 0 },
-]
+/** 场景 → 关键词（用于与花型名/分类名做语义匹配打分） */
+const SCENE_KEYWORDS: Record<string, string[]> = {
+  lover: ['浪漫', '花', '玫瑰', '爱心', '粉', '情侣', '樱'],
+  bff: ['活力', '运动', '清新', '卡通', '彩虹', '萌'],
+  elder: ['经典', '简约', '纯色', '回纹', '祥', '节气', '竹', '梅'],
+  self: ['艺术', '插画', '个性', '国潮', '几何'],
+}
+
+/** 风格名 → 关键词 */
+const STYLE_KEYWORDS: Record<string, string[]> = {
+  浪漫花卉: ['花', '玫瑰', '樱', '牡丹', '浪漫'],
+  爱心情侣: ['爱心', '情侣', '心'],
+  运动活力: ['运动', '活力', '几何'],
+  复古格纹: ['格', '复古', '条纹'],
+  简约纯色: ['纯色', '简约', '米白', '燕麦'],
+  萌趣卡通: ['卡通', '萌', '猫', '熊'],
+  艺术插画: ['插画', '艺术'],
+  国潮纹样: ['国潮', '祥', '龙', '云', '回纹', '观音', '飞天', '节气'],
+}
+
+// 模块级缓存：避免每次推荐重复拉取
+let patternCache: Pattern[] | null = null
+const categoryNameMap = new Map<number, string>()
 
 export function useAiRecommend() {
   const isRecommending = ref(false)
   const lastRecommendation = ref<AiRecommendation | null>(null)
 
-  /**
-   * 计算花型与意图的匹配分数
-   */
-  function calculateScore(
-    pattern: RecommendCandidate,
-    intent: string,
-    scene?: string,
-    styles?: string[],
-  ): number {
-    let score = 0.5 // 基础分
-
-    // 根据场景加分
-    if (scene === 'lover' && pattern.tags?.includes('浪漫')) score += 0.3
-    if (scene === 'bff' && pattern.tags?.includes('清新')) score += 0.2
-    if (scene === 'elder' && pattern.tags?.includes('经典')) score += 0.3
-    if (scene === 'self' && pattern.tags?.includes('文艺')) score += 0.2
-
-    // 根据风格加分
-    if (styles?.includes('国潮纹样') && pattern.tags?.includes('国潮')) score += 0.4
-    if (styles?.includes('浪漫花卉') && pattern.tags?.includes('花卉')) score += 0.4
-    if (styles?.includes('简约纯色') && pattern.tags?.includes('几何')) score += 0.3
-
-    // 根据意图关键词加分
-    const intentLower = intent.toLowerCase()
-    pattern.tags?.forEach(tag => {
-      if (intentLower.includes(tag)) score += 0.2
-    })
-    if (intentLower.includes(pattern.name)) score += 0.5
-
-    return Math.min(score, 1.0)
+  /** 拉取并缓存公共花型 + 分类名 */
+  async function ensurePatterns(): Promise<Pattern[]> {
+    if (patternCache && patternCache.length) return patternCache
+    try {
+      const [patternRes, catRes] = await Promise.all([
+        catalogApi.listPatterns({ pageNum: 1, pageSize: 50 }),
+        catalogApi.listPatternCategories(),
+      ])
+      catRes.data?.forEach((c) => categoryNameMap.set(c.id, c.name))
+      patternCache = patternRes.data?.list ?? []
+    } catch (error) {
+      console.warn('[AI Recommend] load patterns failed:', error)
+      patternCache = patternCache || []
+    }
+    return patternCache
   }
 
-  /**
-   * 智能推荐花型
-   */
-  async function recommend(
-    intent: string,
-    scene?: string,
-    styles?: string[],
-    count: number = 3,
-  ): Promise<AiRecommendation> {
+  /** 计算花型与意图的匹配分数 */
+  function scorePattern(p: Pattern, intent: string, scene?: string, styles?: string[]): number {
+    const haystack = `${p.name} ${categoryNameMap.get(p.category_id ?? -1) || ''}`
+    let score = 0.5
+
+    const keywords = new Set<string>()
+    if (scene && SCENE_KEYWORDS[scene]) SCENE_KEYWORDS[scene].forEach((k) => keywords.add(k))
+    styles?.forEach((s) => STYLE_KEYWORDS[s]?.forEach((k) => keywords.add(k)))
+
+    keywords.forEach((k) => {
+      if (haystack.includes(k)) score += 0.25
+    })
+
+    // 意图原文里的字也参与匹配（用户自由输入）
+    const intentText = (intent || '').toLowerCase()
+    if (intentText && haystack.toLowerCase().includes(intentText)) score += 0.4
+    if (p.name && intentText.includes(p.name)) score += 0.5
+
+    return Math.min(score, 1)
+  }
+
+  /** 花型 → 推荐候选 */
+  function toCandidate(p: Pattern, score = 0): RecommendCandidate {
+    return {
+      id: String(p.id),
+      name: p.name,
+      imageUrl: p.image_url,
+      tags: categoryNameMap.get(p.category_id ?? -1) ? [categoryNameMap.get(p.category_id ?? -1)!] : [],
+      score,
+    }
+  }
+
+  /** 取分数最高的若干花型（排除指定 id），并打散同分以增加多样性 */
+  function pickTop(patterns: Pattern[], intent: string, scene: string | undefined, styles: string[] | undefined, count: number, excludeIds: string[]): RecommendCandidate[] {
+    return patterns
+      .filter((p) => !excludeIds.includes(String(p.id)))
+      .map((p) => ({ p, score: scorePattern(p, intent, scene, styles) + Math.random() * 0.05 }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, count)
+      .map(({ p, score }) => toCandidate(p, score))
+  }
+
+  /** 生成推荐理由 */
+  function buildReasoning(top: RecommendCandidate[], scene?: string): string {
+    const first = top[0]
+    if (!first) return '为你精选了这几款花型～'
+    const sceneHint = scene === 'lover' ? '送爱人很合适' : scene === 'bff' ? '和闺蜜很搭' : scene === 'elder' ? '长辈会喜欢' : scene === 'self' ? '很有个人风格' : '挺适合你'
+    return `「${first.name}」${sceneHint}～为你挑了这几款：`
+  }
+
+  /** 智能推荐 */
+  async function recommend(intent: string, scene?: string, styles?: string[], count = 3): Promise<AiRecommendation> {
     isRecommending.value = true
-
     try {
-      // 模拟网络延迟
-      await new Promise(resolve => setTimeout(resolve, 800))
-
-      // 计算每个花型的匹配分数
-      const scoredPatterns = PATTERN_DATABASE.map(pattern => ({
-        ...pattern,
-        score: calculateScore(pattern, intent, scene, styles),
-      }))
-
-      // 按分数排序，取前 N 个
-      const topPatterns = scoredPatterns
-        .sort((a, b) => (b.score || 0) - (a.score || 0))
-        .slice(0, count)
-
-      // 生成推荐理由
-      const reasoning = generateReasoning(topPatterns, scene, styles)
-
+      const patterns = await ensurePatterns()
+      const candidates = pickTop(patterns, intent, scene, styles, count, [])
       const recommendation: AiRecommendation = {
-        candidates: topPatterns,
-        reasoning,
-        confidence: topPatterns[0]?.score || 0.5,
+        candidates,
+        reasoning: buildReasoning(candidates, scene),
+        confidence: candidates[0]?.score ?? 0.5,
       }
-
       lastRecommendation.value = recommendation
       return recommendation
-
-    } catch (error) {
-      console.error('[AI Recommend] Recommendation failed:', error)
-      
-      // 失败回退：随机选择
-      const fallback = PATTERN_DATABASE
-        .sort(() => Math.random() - 0.5)
-        .slice(0, count)
-
-      return {
-        candidates: fallback,
-        reasoning: '为你精选了这几款经典花型',
-        confidence: 0.5,
-      }
     } finally {
       isRecommending.value = false
     }
   }
 
-  /**
-   * 生成推荐理由
-   */
-  function generateReasoning(
-    patterns: RecommendCandidate[],
-    scene?: string,
-    styles?: string[],
-  ): string {
-    const topPattern = patterns[0]
-    if (!topPattern) return '为你推荐这几款花型'
-
-    const reasons: string[] = []
-
-    // 基于场景
-    if (scene === 'lover') reasons.push('特别适合送爱人')
-    if (scene === 'bff') reasons.push('和闺蜜一起穿最有爱')
-    if (scene === 'elder') reasons.push('长辈会喜欢这种稳重的设计')
-    if (scene === 'self') reasons.push('独特又有品味')
-
-    // 基于风格
-    if (styles?.includes('国潮纹样')) reasons.push('融合传统与现代')
-    if (styles?.includes('浪漫花卉')) reasons.push('温柔又浪漫')
-    if (styles?.includes('运动活力')) reasons.push('清爽有活力')
-
-    // 基于花型特点
-    if (topPattern.tags?.includes('吉祥')) reasons.push('寓意吉祥')
-    if (topPattern.tags?.includes('清雅')) reasons.push('雅致大方')
-
-    return reasons.length > 0 
-      ? `${topPattern.name}${reasons.join('，')}～`
-      : `${topPattern.name}是个不错的选择～`
-  }
-
-  /**
-   * 换一批推荐
-   */
-  async function shuffle(
-    intent: string,
-    scene?: string,
-    styles?: string[],
-    count: number = 3,
-    excludeIds: string[] = [],
-  ): Promise<AiRecommendation> {
-    const available = PATTERN_DATABASE.filter(p => !excludeIds.includes(p.id))
-    
-    if (available.length <= count) {
-      // 可选项不足，重新推荐全部
-      return recommend(intent, scene, styles, count)
+  /** 换一批（排除已展示，可选项不足时回到全量） */
+  async function shuffle(intent: string, scene?: string, styles?: string[], count = 3, excludeIds: string[] = []): Promise<AiRecommendation> {
+    isRecommending.value = true
+    try {
+      const patterns = await ensurePatterns()
+      const remaining = patterns.filter((p) => !excludeIds.includes(String(p.id)))
+      const pool = remaining.length >= count ? remaining : patterns
+      const candidates = pickTop(pool, intent, scene, styles, count, remaining.length >= count ? excludeIds : [])
+      return {
+        candidates,
+        reasoning: '为你换了一批花型～',
+        confidence: candidates[0]?.score ?? 0.5,
+      }
+    } finally {
+      isRecommending.value = false
     }
-
-    // 从剩余选项中推荐
-    const scoredPatterns = available
-      .map(pattern => ({
-        ...pattern,
-        score: calculateScore(pattern, intent, scene, styles),
-      }))
-      .sort((a, b) => (b.score || 0) - (a.score || 0))
-      .slice(0, count)
-
-    return {
-      candidates: scoredPatterns,
-      reasoning: '为你换了一批花型～',
-      confidence: scoredPatterns[0]?.score || 0.5,
-    }
-  }
-
-  /**
-   * 获取推荐详情
-   */
-  function getRecommendationDetail(id: string): RecommendCandidate | undefined {
-    return PATTERN_DATABASE.find(p => p.id === id)
   }
 
   return {
@@ -189,6 +144,5 @@ export function useAiRecommend() {
     lastRecommendation,
     recommend,
     shuffle,
-    getRecommendationDetail,
   }
 }

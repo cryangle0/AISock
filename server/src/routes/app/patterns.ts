@@ -2,9 +2,9 @@
  * App 花型路由：分类 / 公共库（访客）/ 个人库（登录）
  */
 import { Hono } from 'hono'
-import { ok, paginated } from '../../utils/response.js'
+import { ok, paginated, fail } from '../../utils/response.js'
 import { getUserId, getPageQuery } from '../../utils/context.js'
-import { listCategories, listPatterns, createPattern, deletePattern } from '../../services/pattern.service.js'
+import { listCategories, listPatterns, createPattern, deletePattern, getPublicPatternById } from '../../services/pattern.service.js'
 
 export const patternsRouter = new Hono()
 
@@ -47,4 +47,13 @@ patternsRouter.post('/mine', async (c) => {
 patternsRouter.delete('/mine/:id', async (c) => {
   await deletePattern(Number(c.req.param('id')), getUserId(c))
   return ok(c, { deleted: true })
+})
+
+/** 公共花型详情（访客可读）。放在最后，避免与 /categories、/mine 等静态路由冲突 */
+patternsRouter.get('/:id', async (c) => {
+  const id = Number(c.req.param('id'))
+  if (!Number.isInteger(id) || id <= 0) return fail(c, '无效的花型 ID')
+  const pattern = await getPublicPatternById(id)
+  if (!pattern) return fail(c, '花型不存在', 404)
+  return ok(c, pattern)
 })

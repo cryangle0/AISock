@@ -52,36 +52,54 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { navigateTo } from '@aisock/common/utils'
+import { catalogApi } from '@aisock/service'
+import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
 
 const seriesTitle = ref('杭城袜韵')
-const navTitle = ref('袜版定制 · 杭城')
+const navTitle = ref('袜款详情')
 const cover = ref<string | null>('/static/images/detail-hero.jpg')
+const patternId = ref<number | undefined>(undefined)
 const slide = ref(0)
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
-const description = '将杭州城市文化融入袜品设计\n舒适与美学兼具\n传递城市温度与品质生活'
+const description = ref('原创花型设计，舒适与美学兼具\n精准织造，传递品质生活')
 
-const GRID_IMGS = [
+// 设计展示小图：有真实花型图则铺展，否则用静态占位
+const GRID_IMGS = ref<string[]>([
   '/static/images/detail-1.jpg',
   '/static/images/detail-2.jpg',
   '/static/images/detail-3.jpg',
-]
+])
 
-onLoad((q?: Record<string, string>) => {
-  if (q?.title) {
-    const t = decodeURIComponent(q.title)
-    seriesTitle.value = t.replace(/系列$/, '')
-    navTitle.value = t
+onLoad(async (q?: Record<string, string>) => {
+  const id = q?.id ? Number(q.id) : NaN
+  if (!Number.isInteger(id) || id <= 0) {
+    if (q?.title) navTitle.value = decodeURIComponent(q.title)
+    return
+  }
+  try {
+    const res = await catalogApi.getPattern(id)
+    const p = res.data
+    patternId.value = p.id
+    seriesTitle.value = p.name
+    navTitle.value = p.name
+    cover.value = p.image_url
+    GRID_IMGS.value = [p.image_url, p.thumb_url || p.image_url, p.image_url]
+  } catch {
+    /* 取不到则保留默认占位 */
   }
 })
 
 function onBuy() {
-  // 立即购买：直接跳转到购买页面
-  const productName = seriesTitle.value || '袜款'
-  const productCover = cover.value ? `&cover=${encodeURIComponent(cover.value)}` : ''
-  navigateTo(`/pages/purchase/index?name=${encodeURIComponent(productName)}${productCover}`)
+  // 立即购买：携带真实花型封面 + patternId，购买页据此可直接成单
+  navigateTo(purchaseRoute({
+    name: seriesTitle.value || '袜款',
+    cover: cover.value,
+    patternId: patternId.value,
+  }))
 }
 function onCustomize() {
-  // 定制设计：跳转到袜版选择页面（upload），再由upload进入编辑器
+  // 定制设计：把花型图带入袜版选择页（upload）做个性化定制
+  stashCustomizeCover(cover.value)
   navigateTo('/pages/upload/index')
 }
 </script>

@@ -110,6 +110,7 @@ import { navigateTo, switchTab } from '@aisock/common/utils'
 import { MATERIALS } from '@aisock/common'
 import { useUserStore } from '@aisock/composition'
 import { orderApi, designApi } from '@aisock/service'
+import { isRemoteCover } from '@/domain/catalog'
 import { toRegions } from '@/components/editor/designSnapshot'
 import NavBar from '@/components/ui/NavBar.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
@@ -133,6 +134,7 @@ const craftLabel = ref('喷墨')
 
 const designName = ref('定制袜版')
 const designId = ref<number | undefined>(undefined)
+const patternId = ref<number | undefined>(undefined)
 const cover = ref<string | null>('/static/images/purchase-sock.jpg')
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
 
@@ -174,6 +176,7 @@ const orderForm = computed(() => ({
 
 onLoad((q?: Record<string, string>) => {
   if (q?.designId) designId.value = Number(q.designId)
+  if (q?.patternId) patternId.value = Number(q.patternId)
   if (q?.name) designName.value = decodeURIComponent(q.name)
   if (q?.cover) cover.value = decodeURIComponent(q.cover)
 })
@@ -196,27 +199,22 @@ function ensureLogin(): boolean {
   return true
 }
 
-/** 是否为可用作设计封面的真实远程图（上传得到的 http URL） */
-function isRemoteCover(): boolean {
-  return !!cover.value && /^https?:/i.test(cover.value)
-}
-
 /**
  * 确保有可下单的 designId：
  * - 已带 designId（编辑器/我的设计进入）→ 直接用
- * - 带真实上传图 → 据此建一个设计，拿到 designId（让「上传→购买」闭环可成单）
+ * - 带真实上传图 → 据此建一个设计，拿到 designId（让「上传/详情/推荐→购买」闭环可成单）
  * - 否则返回 null（交由 guideCustomize 引导先定制，避免无设计成单失败）
  */
 async function ensureDesignId(): Promise<number | null> {
   if (designId.value) return designId.value
-  if (!isRemoteCover()) return null
+  if (!isRemoteCover(cover.value)) return null
   try {
     const res = await designApi.createDesign({
       name: designName.value,
       coverUrl: cover.value as string,
       regions: toRegions({
         sockTypeId: 'crew',
-        patternId: null,
+        patternId: patternId.value ? String(patternId.value) : null,
         printImage: cover.value,
         printName: designName.value,
         params: { density: 100, rotation: 0, singleMode: true, tileDensity: 3 },
@@ -240,7 +238,7 @@ function guideCustomize() {
     cancelText: '再看看',
     success: (r) => {
       if (!r.confirm) return
-      if (isRemoteCover()) uni.setStorageSync('aisock_upload_image', cover.value)
+      if (isRemoteCover(cover.value)) uni.setStorageSync('aisock_upload_image', cover.value)
       navigateTo('/pages/upload/index')
     },
   })

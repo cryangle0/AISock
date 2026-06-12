@@ -64,8 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, ref } from 'vue'
 import { navigateTo } from '@aisock/common/utils'
+import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
 import NavBar from '@/components/ui/NavBar.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import GiftGrid, { type GiftItem } from '@/components/ai/GiftGrid.vue'
@@ -245,15 +246,25 @@ async function onShuffle() {
 
 // ========== 跳转逻辑 ==========
 
+/** 当前推荐花型转为可下单商品（推荐候选 id 即后端花型 id） */
+function currentProduct() {
+  const pid = Number(recMain.value.id)
+  return {
+    name: recMain.value.name || '推荐花型',
+    cover: recMain.value.url,
+    patternId: Number.isInteger(pid) && pid > 0 ? pid : undefined,
+  }
+}
+
 /** 袜版选择：带上推荐图，跳转到 upload 页面选择袜版 */
 function goPickSock() {
-  if (recMain.value.url) uni.setStorageSync('aisock_upload_image', recMain.value.url)
+  stashCustomizeCover(recMain.value.url)
   navigateTo('/pages/upload/index')
 }
 
 /** 一键换色：带上推荐图，进入编辑器做改色/微调 */
 function goRecolor() {
-  if (recMain.value.url) uni.setStorageSync('aisock_upload_image', recMain.value.url)
+  stashCustomizeCover(recMain.value.url)
   navigateTo('/pages/editor/index')
 }
 
@@ -267,10 +278,9 @@ function goCustomize() {
   navigateTo('/pages/editor/index')
 }
 
-/** 一键下单：先跳到袜版选择页，再由upload进入购买流程 */
+/** 一键下单：携带真实花型封面直达购买页，可直接成单 */
 function goPurchase() {
-  if (recMain.value.url) uni.setStorageSync('aisock_upload_image', recMain.value.url)
-  navigateTo('/pages/upload/index?from=ai')
+  navigateTo(purchaseRoute(currentProduct()))
 }
 </script>
 
