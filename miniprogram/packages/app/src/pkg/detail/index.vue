@@ -57,7 +57,7 @@ import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
 
 const seriesTitle = ref('杭城袜韵')
 const navTitle = ref('袜款详情')
-const cover = ref<string | null>('/static/images/detail-hero.jpg')
+const cover = ref<string | null>('/pkg/static/images/detail-hero.jpg')
 const patternId = ref<number | undefined>(undefined)
 const slide = ref(0)
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
@@ -65,9 +65,9 @@ const description = ref('原创花型设计，舒适与美学兼具\n精准织�
 
 // 设计展示小图：有真实花型图则铺展，否则用静态占位
 const GRID_IMGS = ref<string[]>([
-  '/static/images/detail-1.jpg',
-  '/static/images/detail-2.jpg',
-  '/static/images/detail-3.jpg',
+  '/pkg/static/images/detail-1.jpg',
+  '/pkg/static/images/detail-2.jpg',
+  '/pkg/static/images/detail-3.jpg',
 ])
 
 onLoad(async (q?: Record<string, string>) => {

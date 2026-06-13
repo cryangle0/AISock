@@ -116,7 +116,7 @@ import { STORAGE_KEYS } from '@aisock/common/constants'
 import { useUserStore } from '@aisock/composition'
 import { orderApi, designApi } from '@aisock/service'
 import { isRemoteCover } from '@/domain/catalog'
-import { toRegions } from '@/components/editor/designSnapshot'
+import { toRegions } from '@/pkg/components/editor/designSnapshot'
 import NavBar from '@/components/ui/NavBar.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import PaymentSheet from '@/components/editor/PaymentSheet.vue'
@@ -140,7 +140,7 @@ const craftLabel = ref('喷墨')
 const designName = ref('定制袜版')
 const designId = ref<number | undefined>(undefined)
 const patternId = ref<number | undefined>(undefined)
-const cover = ref<string | null>('/static/images/purchase-sock.jpg')
+const cover = ref<string | null>('/pkg/static/images/purchase-sock.jpg')
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
 
 const quantity = ref(1)

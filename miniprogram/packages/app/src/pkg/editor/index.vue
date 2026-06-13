@@ -175,10 +175,10 @@ import {
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
 import { aiApi, designApi, uploadApi } from '@aisock/service'
-import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
-import { paletteToColors } from '@/composables/usePalette'
-import { useShare } from '@/composables/useShare'
-import { exportDesignToAlbum } from '@/composables/useExport'
+import { useCatalog, type EditorPattern } from '@/pkg/composables/useCatalog'
+import { paletteToColors } from '@/pkg/composables/usePalette'
+import { useShare } from '@/pkg/composables/useShare'
+import { exportDesignToAlbum } from '@/pkg/composables/useExport'
 import SockCanvas from '@/components/editor/SockCanvas.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import OrderSheet from '@/components/editor/OrderSheet.vue'
@@ -187,7 +187,7 @@ import VariantSheet from '@/components/editor/VariantSheet.vue'
 import ShareSheet from '@/components/editor/ShareSheet.vue'
 import AiGenerateSheet from '@/components/editor/AiGenerateSheet.vue'
 import type { DesignVariant } from '@/composables/useVariants'
-import { toRegions, fromRegions } from '../../components/editor/designSnapshot'
+import { toRegions, fromRegions } from '@/pkg/components/editor/designSnapshot'
 
 const userStore = useUserStore()
 const { socks: sockTypes, patterns, defaultSockId, ensureLoaded: ensureCatalog } = useCatalog()

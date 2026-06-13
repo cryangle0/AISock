@@ -2,7 +2,7 @@
  * 设计快照序列化 —— 把编辑器完整状态打包成 regions JSON 存库，
  * 以及从库里的 regions 还原回编辑器状态。保证"保存 → 再打开继续编辑"无损。
  */
-import type { SockColors, SockParams } from './sockShape'
+import type { SockColors, SockParams } from '@/components/editor/sockShape'
 
 export interface DesignSnapshot {
   sockTypeId: string

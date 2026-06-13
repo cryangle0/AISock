@@ -61,7 +61,7 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { catalogApi, uploadApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
-import { useCatalog } from '@/composables/useCatalog'
+import { useCatalog } from '@/pkg/composables/useCatalog'
 import PatternThumb from '@/components/PatternThumb.vue'
 import NavBar from '@/components/ui/NavBar.vue'
 
