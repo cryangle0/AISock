@@ -23,9 +23,9 @@
             <image class="tb-img" :src="HERO_IMG" mode="aspectFill" />
             <view class="topic-banner-scrim" />
             <view class="tb-titlebar">
-              <view class="tb-ornament"><view class="tb-line" /><view class="tb-diamond" /></view>
+              <view class="tb-ornament"><view class="tb-line" /><AppIcon name="chevron-right" :size="24" color="#ffffff" /></view>
               <text class="tb-title">{{ activeTabName }}</text>
-              <view class="tb-ornament"><view class="tb-diamond" /><view class="tb-line" /></view>
+              <view class="tb-ornament"><AppIcon name="chevron-left" :size="24" color="#ffffff" /><view class="tb-line" /></view>
             </view>
           </view>
         </view>
@@ -148,30 +148,33 @@ onShow(async () => {
 }
 .hero-img {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* 背景图比渐变遮罩短一截：底部 72rpx 为纯渐变区，使渐变越过背景图底部 */
+  bottom: 72rpx;
   z-index: 0;
-  width: 100%;
-  height: 100%;
 }
 .hero-mask {
   position: absolute;
   inset: 0;
   z-index: 1;
-  /* 主题（敦煌棕）渐变色叠加在大图上：顶部棕色保白字清晰 + 透出丛林大图 + 底部渐隐到米色 */
+  /* 敦煌棕主题渐变，顶部更深、色调更明显；暖色一直延伸到底部 72rpx 越过背景图后再渐隐到米色 */
   background: linear-gradient(
     180deg,
-    rgba(142, 79, 67, 0.62) 0%,
-    rgba(142, 79, 67, 0.42) 20%,
-    rgba(164, 103, 90, 0.3) 44%,
-    rgba(142, 79, 67, 0.3) 72%,
-    rgba(196, 150, 120, 0.42) 90%,
+    rgba(142, 79, 67, 0.97) 0%,
+    rgba(142, 79, 67, 0.88) 14%,
+    rgba(142, 79, 67, 0.52) 34%,
+    rgba(150, 90, 76, 0.42) 58%,
+    rgba(160, 100, 84, 0.48) 80%,
+    rgba(190, 140, 112, 0.56) 92%,
     #f7f3ea 100%
   );
 }
 .hero-fg {
   position: relative;
   z-index: 2;
-  padding-bottom: 32rpx;
+  padding-bottom: 72rpx;
 }
 .topic-tabs {
   position: relative;
