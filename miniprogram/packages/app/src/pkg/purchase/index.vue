@@ -209,7 +209,7 @@ function selectCraft(c: { label: string; value: string }) {
 function ensureLogin(): boolean {
   if (!userStore.isLogin) {
     // 记录回跳地址：登录成功后回到本页（保留已选工艺/尺码所需的入参），不丢购买上下文
-    uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, `/pages/purchase/index${rawQuery ? `?${rawQuery}` : ''}`)
+    uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, `/pkg/purchase/index${rawQuery ? `?${rawQuery}` : ''}`)
     uni.showToast({ title: '请先登录', icon: 'none' })
     setTimeout(() => uni.reLaunch({ url: '/pages/login/index' }), 600)
     return false
@@ -257,7 +257,7 @@ function guideCustomize() {
     success: (r) => {
       if (!r.confirm) return
       if (isRemoteCover(cover.value)) uni.setStorageSync('aisock_upload_image', cover.value)
-      navigateTo('/pages/upload/index')
+      navigateTo('/pkg/upload/index')
     },
   })
 }
@@ -304,7 +304,7 @@ async function onNext() {
 function onPaid() {
   payOpen.value = false
   uni.showToast({ title: '支付成功', icon: 'success' })
-  setTimeout(() => navigateTo('/pages/orders/index'), 800)
+  setTimeout(() => navigateTo('/pkg/orders/index'), 800)
 }
 </script>
 

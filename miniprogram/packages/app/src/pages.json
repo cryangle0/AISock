@@ -9,10 +9,6 @@
       "style": { "navigationStyle": "custom" }
     },
     {
-      "path": "pages/editor/index",
-      "style": { "navigationBarTitleText": "AI 设计" }
-    },
-    {
       "path": "pages/ai/index",
       "style": { "navigationStyle": "custom" }
     },
@@ -27,40 +23,29 @@
     {
       "path": "pages/login/index",
       "style": { "navigationStyle": "custom" }
-    },
-    {
-      "path": "pages/detail/index",
-      "style": { "navigationStyle": "custom" }
-    },
-    {
-      "path": "pages/purchase/index",
-      "style": { "navigationStyle": "custom" }
-    },
-    {
-      "path": "pages/upload/index",
-      "style": { "navigationStyle": "custom" }
-    },
-    {
-      "path": "pages/designs/index",
-      "style": { "navigationBarTitleText": "我的设计" }
-    },
-    {
-      "path": "pages/orders/index",
-      "style": { "navigationBarTitleText": "订单管理" }
-    },
-    {
-      "path": "pages/order-detail/index",
-      "style": { "navigationBarTitleText": "订单详情" }
-    },
-    {
-      "path": "pages/assets/index",
-      "style": { "navigationBarTitleText": "素材库" }
-    },
-    {
-      "path": "pages/set-password/index",
-      "style": { "navigationBarTitleText": "登录密码" }
     }
   ],
+  "subPackages": [
+    {
+      "root": "pkg",
+      "pages": [
+        { "path": "editor/index", "style": { "navigationBarTitleText": "AI 设计" } },
+        { "path": "detail/index", "style": { "navigationStyle": "custom" } },
+        { "path": "purchase/index", "style": { "navigationStyle": "custom" } },
+        { "path": "upload/index", "style": { "navigationStyle": "custom" } },
+        { "path": "designs/index", "style": { "navigationBarTitleText": "我的设计" } },
+        { "path": "orders/index", "style": { "navigationBarTitleText": "订单管理" } },
+        { "path": "order-detail/index", "style": { "navigationBarTitleText": "订单详情" } },
+        { "path": "assets/index", "style": { "navigationBarTitleText": "素材库" } },
+        { "path": "set-password/index", "style": { "navigationBarTitleText": "登录密码" } }
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/home/index": { "network": "all", "packages": ["pkg"] },
+    "pages/feed/index": { "network": "all", "packages": ["pkg"] },
+    "pages/ai/index": { "network": "all", "packages": ["pkg"] }
+  },
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "爱花型",

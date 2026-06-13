@@ -14,6 +14,7 @@
         class="bar-voice"
         :class="{ rec: recording }"
         @touchstart="start"
+        @touchmove="move"
         @touchend="stop"
         @touchcancel="cancel"
       >
@@ -31,12 +32,16 @@
         <AppIcon name="send" :size="34" color="#ffffff" />
       </view>
     </view>
+
+    <!-- 录音浮层（敦煌主题：声纹法相 + 声波律动 + 上滑取消） -->
+    <VoiceRecordOverlay :visible="recording" :elapsed="elapsed" :will-cancel="willCancel" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
+import VoiceRecordOverlay from '@/components/ai/VoiceRecordOverlay.vue'
 import { useVoiceInput } from '@aisock/composition'
 
 export interface Cat { id: string; name: string; icon: string }
@@ -45,7 +50,7 @@ const emit = defineEmits<{ send: [text: string]; cat: [c: Cat] }>()
 
 const text = ref('')
 // 按住说话 → 识别文本追加进输入框，用户可二次编辑后发送
-const { recording, start, stop, cancel } = useVoiceInput((t) => {
+const { recording, elapsed, willCancel, start, move, stop, cancel } = useVoiceInput((t) => {
   text.value = text.value ? `${text.value} ${t}` : t
 })
 function onSend() {

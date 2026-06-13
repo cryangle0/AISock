@@ -264,13 +264,13 @@ function currentProduct() {
 /** 袜版选择：带上推荐图，跳转到 upload 页面选择袜版 */
 function goPickSock() {
   stashCustomizeCover(recMain.value.url)
-  navigateTo('/pages/upload/index')
+  navigateTo('/pkg/upload/index')
 }
 
 /** 一键换色：带上推荐图，进入编辑器做改色/微调 */
 function goRecolor() {
   stashCustomizeCover(recMain.value.url)
-  navigateTo('/pages/editor/index')
+  navigateTo('/pkg/editor/index')
 }
 
 /** 去定制：把推荐官收集到的意图带入编辑器 */
@@ -280,7 +280,7 @@ function goCustomize() {
   if (context.value.intent) parts.push(context.value.intent)
   const prompt = parts.join('，')
   if (prompt) uni.setStorageSync('aisock_ai_prompt', prompt)
-  navigateTo('/pages/editor/index')
+  navigateTo('/pkg/editor/index')
 }
 
 /** 一键下单：携带真实花型封面直达购买页，可直接成单 */

@@ -1,13 +1,13 @@
 <template>
   <view :class="['chat-message', message.role, { error: message.status === 'error' }]">
     <!-- AI 消息显示头像 -->
-    <view v-if="message.role === 'ai'" class="message-avatar">
+    <view v-if="message.role === 'ai'" class="message-avatar" :class="{ thinking: message.typing }">
       <image class="avatar-img" src="/static/images/mascot.png" mode="aspectFill" />
     </view>
 
     <!-- 消息气泡 -->
-    <view :class="['message-bubble', message.role]">
-      <!-- 正在输入指示器 -->
+    <view :class="['message-bubble', message.role, { typing: message.typing }]">
+      <!-- 正在输入指示器：敦煌墨点律动 -->
       <view v-if="message.typing" class="typing-indicator">
         <view class="typing-dot" />
         <view class="typing-dot" />
@@ -81,6 +81,14 @@ defineEmits<{
   box-sizing: border-box;
   flex-shrink: 0;
 }
+/* 思考中：头像泛起暖金光晕脉动 */
+.message-avatar.thinking {
+  animation: avatar-think 1.8s ease-in-out infinite;
+}
+@keyframes avatar-think {
+  0%, 100% { box-shadow: 0 0 0 rgba(222, 195, 138, 0); }
+  50% { box-shadow: 0 0 16rpx rgba(222, 195, 138, 0.7); }
+}
 
 .avatar-img {
   width: 100%;
@@ -121,39 +129,40 @@ defineEmits<{
   white-space: pre-wrap;
 }
 
-/* 正在输入指示器 */
+/* 正在输入指示器：敦煌墨点律动 */
 .typing-indicator {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 4rpx 2rpx;
+  gap: 10rpx;
+  padding: 8rpx 4rpx;
 }
 
 .typing-dot {
-  width: 12rpx;
-  height: 12rpx;
+  width: 14rpx;
+  height: 14rpx;
   border-radius: 50%;
-  background: $mp-primary;
-  opacity: 0.4;
-  animation: typingBlink 1.2s infinite ease-in-out;
+  /* 沙金→敦煌棕的矿物质感墨点 */
+  background: linear-gradient(160deg, #e7c896 0%, #b8895a 50%, #8e4f43 100%);
+  box-shadow: 0 1rpx 3rpx rgba(142, 79, 67, 0.3);
+  animation: typingBlink 1.3s infinite ease-in-out;
 }
 
 .typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
+  animation-delay: 0.18s;
 }
 
 .typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
+  animation-delay: 0.36s;
 }
 
 @keyframes typingBlink {
-  0%, 60%, 100% {
-    opacity: 0.3;
-    transform: translateY(0);
+  0%, 70%, 100% {
+    opacity: 0.35;
+    transform: translateY(0) scale(0.82);
   }
-  30% {
+  35% {
     opacity: 1;
-    transform: translateY(-4rpx);
+    transform: translateY(-8rpx) scale(1);
   }
 }
 

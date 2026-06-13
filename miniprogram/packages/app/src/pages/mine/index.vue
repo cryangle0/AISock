@@ -95,10 +95,10 @@ function requireLogin(cb: () => void) {
 }
 
 const goLogin = () => reLaunch('/pages/login/index')
-const goDesigns = () => requireLogin(() => navigateTo('/pages/designs/index'))
-const goOrders = () => requireLogin(() => navigateTo('/pages/orders/index'))
-const goAssets = () => navigateTo('/pages/assets/index')
-const onSetPassword = () => requireLogin(() => navigateTo('/pages/set-password/index'))
+const goDesigns = () => requireLogin(() => navigateTo('/pkg/designs/index'))
+const goOrders = () => requireLogin(() => navigateTo('/pkg/orders/index'))
+const goAssets = () => navigateTo('/pkg/assets/index')
+const onSetPassword = () => requireLogin(() => navigateTo('/pkg/set-password/index'))
 
 function onSettings() {
   uni.showActionSheet({

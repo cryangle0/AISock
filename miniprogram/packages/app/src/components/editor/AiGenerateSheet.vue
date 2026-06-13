@@ -40,12 +40,13 @@
           class="vb-mic"
           :class="{ rec: recording }"
           @touchstart="start"
+          @touchmove="move"
           @touchend="stop"
           @touchcancel="cancel"
         >
           <AppIcon name="voice" :size="34" :color="recording ? '#8e4f43' : '#8a8378'" />
         </view>
-        <text class="vb-hint">{{ recording ? '松开识别…' : '按住说话，自动转文字' }}</text>
+        <text class="vb-hint">{{ recording ? '松开识别 · 上滑取消' : '按住说话，自动转文字' }}</text>
       </view>
 
       <!-- 生成按钮 -->
@@ -54,12 +55,16 @@
         <text class="gen-text">立即生成灵感图案</text>
       </view>
     </view>
+
+    <!-- 录音浮层（敦煌主题） -->
+    <VoiceRecordOverlay :visible="recording" :elapsed="elapsed" :will-cancel="willCancel" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
+import VoiceRecordOverlay from '@/components/ai/VoiceRecordOverlay.vue'
 import { useVoiceInput } from '@aisock/composition'
 
 const props = defineProps<{ initialPrompt?: string }>()
@@ -71,7 +76,7 @@ const activeTag = ref('')
 const prompt = ref((props.initialPrompt || '').slice(0, 200))
 
 // 按住说话 → 识别文本追加到提示词
-const { recording, start, stop, cancel } = useVoiceInput((t) => {
+const { recording, elapsed, willCancel, start, move, stop, cancel } = useVoiceInput((t) => {
   prompt.value = (prompt.value ? `${prompt.value} ${t}` : t).slice(0, 200)
 })
 

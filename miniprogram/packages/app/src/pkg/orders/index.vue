@@ -126,7 +126,7 @@ async function onCancel(o: Order) {
 }
 
 function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
+  uni.navigateTo({ url: `/pkg/order-detail/index?id=${id}` })
 }
 </script>
 

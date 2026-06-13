@@ -19,7 +19,7 @@
     <view v-if="scope === 'public'" class="asset-grid">
       <view v-for="p in visiblePublic" :key="p.key" class="asset-card">
         <view class="thumb">
-          <image v-if="p.kind === 'image'" :src="p.imageUrl" mode="aspectFill" class="thumb-img" />
+          <image v-if="p.kind === 'image'" :src="p.imageUrl" mode="aspectFill" class="thumb-img" lazy-load />
           <PatternThumb v-else :pattern-id="p.patternId!" />
         </view>
         <text class="asset-name">{{ p.name }}</text>
@@ -39,7 +39,7 @@
       </view>
       <view v-else class="asset-grid">
         <view v-for="m in visibleMine" :key="m.id" class="asset-card">
-          <view class="thumb"><image :src="m.url" mode="aspectFill" class="thumb-img" /></view>
+          <view class="thumb"><image :src="m.url" mode="aspectFill" class="thumb-img" lazy-load /></view>
           <text class="asset-name">{{ m.name }}</text>
           <view class="tags"><text class="tag mine">我的</text></view>
           <view class="remove" @tap="onRemove(m.id)">🗑</view>

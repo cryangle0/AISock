@@ -100,7 +100,7 @@ function onBuy() {
 function onCustomize() {
   // 定制设计：把花型图带入袜版选择页（upload）做个性化定制
   stashCustomizeCover(cover.value)
-  navigateTo('/pages/upload/index')
+  navigateTo('/pkg/upload/index')
 }
 </script>
 

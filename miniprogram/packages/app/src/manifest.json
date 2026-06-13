@@ -11,6 +11,7 @@
       "es6": true,
       "minified": true
     },
+    "lazyCodeLoading": "requiredComponents",
     "permission": {
       "scope.writePhotosAlbum": {
         "desc": "用于将你设计的袜版导出保存到相册"

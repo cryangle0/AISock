@@ -42,7 +42,7 @@
             @tap="goDetail(p)"
           >
             <view class="p-cover">
-              <image class="p-img" :src="p.cover" mode="aspectFill" />
+              <image class="p-img" :src="p.cover" mode="aspectFill" lazy-load />
             </view>
             <view class="p-meta">
               <text class="p-name">{{ p.name }}</text>

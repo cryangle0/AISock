@@ -47,12 +47,12 @@ export function purchaseRoute(target: PurchaseTarget): string {
   const params = [`name=${encodeURIComponent(target.name)}`]
   if (target.cover) params.push(`cover=${encodeURIComponent(target.cover)}`)
   if (target.patternId) params.push(`patternId=${target.patternId}`)
-  return `/pages/purchase/index?${params.join('&')}`
+  return `/pkg/purchase/index?${params.join('&')}`
 }
 
 /** 详情页路由（按花型 ID 打开真实商品详情） */
 export function detailRoute(patternId: number): string {
-  return `/pages/detail/index?id=${patternId}`
+  return `/pkg/detail/index?id=${patternId}`
 }
 
 /** 携带封面进入「定制」流程的本地存储 key（与 upload/editor 约定一致） */

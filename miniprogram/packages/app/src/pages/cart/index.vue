@@ -56,7 +56,7 @@ onShow(async () => {
 const statusText = (s: string) => ORDER_STATUS_TEXT[s] || s
 const goLogin = () => reLaunch('/pages/login/index')
 const goEditor = () => switchTab('/pages/ai/index')
-const goOrderDetail = (id: number) => navigateTo(`/pages/order-detail/index?id=${id}`)
+const goOrderDetail = (id: number) => navigateTo(`/pkg/order-detail/index?id=${id}`)
 </script>
 
 <style scoped lang="scss">

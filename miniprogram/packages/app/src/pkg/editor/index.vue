@@ -262,7 +262,7 @@ const hasPrint = computed(() => !!printImage.value || !!patternId.value)
 // 注册微信分享（好友 / 朋友圈）：带当前设计名 + 封面，分享路径自动带 inviterId 打通邀励
 useShare(() => ({
   title: printName.value ? `我用爱花型设计了「${printName.value}」袜款，快来同款创作` : '爱花型 · AI 袜版定制，一键设计你的专属袜款',
-  path: '/pages/editor/index',
+  path: '/pkg/editor/index',
   imageUrl: printImage.value || undefined,
 }))
 
@@ -605,11 +605,11 @@ async function onOrderSubmit(data: OrderSubmit) {
 function onPaid(payment: { orderNo: string; real: boolean }) {
   pendingOrder.value = null
   uni.showToast({ title: payment.real ? '支付成功' : '支付成功（演示）', icon: 'success' })
-  setTimeout(() => navigateTo('/pages/orders/index'), 800)
+  setTimeout(() => navigateTo('/pkg/orders/index'), 800)
 }
 function goDesigns() {
   if (!ensureLogin()) return
-  navigateTo('/pages/designs/index')
+  navigateTo('/pkg/designs/index')
 }
 </script>
 

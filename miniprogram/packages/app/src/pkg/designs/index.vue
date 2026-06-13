@@ -15,7 +15,7 @@
       <view class="grid">
         <view v-for="d in filtered" :key="d.id" class="card">
           <view class="cover" @tap="editDesign(d.id)">
-            <image v-if="d.cover_url" :src="d.cover_url" mode="aspectFill" class="cover-img" />
+            <image v-if="d.cover_url" :src="d.cover_url" mode="aspectFill" class="cover-img" lazy-load />
             <view v-else class="cover-empty">🧦</view>
           </view>
           <view class="meta">
@@ -65,9 +65,9 @@ async function onDelete(id: number) {
 /** 编辑器现为普通页，用 storage 传递待编辑 designId */
 function editDesign(id: number) {
   uni.setStorageSync('aisock_edit_design_id', id)
-  navigateTo('/pages/editor/index')
+  navigateTo('/pkg/editor/index')
 }
-const goEditor = () => navigateTo('/pages/editor/index')
+const goEditor = () => navigateTo('/pkg/editor/index')
 </script>
 
 <style scoped lang="scss">

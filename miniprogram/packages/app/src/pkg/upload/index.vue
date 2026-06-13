@@ -110,7 +110,7 @@ onLoad((q?: Record<string, string>) => {
 function ensureLogin(): boolean {
   if (!userStore.isLogin) {
     // 记录回跳，登录后回到上传页继续
-    uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, '/pages/upload/index')
+    uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, '/pkg/upload/index')
     uni.showToast({ title: '请先登录', icon: 'none' })
     setTimeout(() => uni.reLaunch({ url: '/pages/login/index' }), 600)
     return false
@@ -152,24 +152,24 @@ function goGenerate() {
 }
 function goDesigns() {
   if (!ensureLogin()) return
-  navigateTo('/pages/designs/index')
+  navigateTo('/pkg/designs/index')
 }
 
 function onNext() {
   // 如果从AI助手来，跳到购买页；否则跳到编辑器
   if (fromAI.value) {
     const cover = printImage.value ? `&cover=${encodeURIComponent(printImage.value)}` : ''
-    navigateTo(`/pages/purchase/index?name=${encodeURIComponent('推荐花型 袜款')}${cover}`)
+    navigateTo(`/pkg/purchase/index?name=${encodeURIComponent('推荐花型 袜款')}${cover}`)
   } else {
     // 把已上传图片带入编辑器渲染到袜版
     if (printImage.value) uni.setStorageSync('aisock_upload_image', printImage.value)
-    navigateTo('/pages/editor/index')
+    navigateTo('/pkg/editor/index')
   }
 }
 function onAddCart() {
   if (!ensureLogin()) return
   const cover = printImage.value ? `&cover=${encodeURIComponent(printImage.value)}` : ''
-  navigateTo(`/pages/purchase/index?name=${encodeURIComponent('上传花型 袜款')}${cover}`)
+  navigateTo(`/pkg/purchase/index?name=${encodeURIComponent('上传花型 袜款')}${cover}`)
 }
 </script>
 

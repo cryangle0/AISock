@@ -31,8 +31,16 @@
     </scroll-view>
 
     <custom-tab-bar current="home" />
+
+    <!-- 诗意启动页（冷启动仅首次，敦煌晨光主题，自动淡出） -->
+    <LaunchSplash v-if="showSplash" @done="showSplash = false" />
   </view>
 </template>
+
+<script lang="ts">
+// 模块级标记：整个小程序进程仅冷启动首次展示启动页（tab 切换/返回首页不再重现）
+let splashShown = false
+</script>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
@@ -41,9 +49,14 @@ import { switchTab, navigateTo } from '@aisock/common/utils'
 import { configApi, type ConfigItem } from '@aisock/service'
 import NavBar from '@/components/ui/NavBar.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import LaunchSplash from '@/components/LaunchSplash.vue'
 import HomeBanner from '@/components/home/HomeBanner.vue'
 import ThemeCard from '@/components/home/ThemeCard.vue'
 import ShowcaseCarousel from '@/components/home/ShowcaseCarousel.vue'
+
+// 启动页仅本次小程序进程冷启动展示一次：模块级标记，tab 来回切换不再重现
+const showSplash = ref(!splashShown)
+splashShown = true
 
 /**
  * 首页运营配置（主题随心订 / 案例 carousel）。
@@ -111,7 +124,7 @@ function go(link?: string) {
 }
 const onHero = () => switchTab('/pages/feed/index')
 const onTheme = (t: ConfigItem) => go(t.link || '/pages/feed/index')
-const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pages/editor/index')
+const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/index')
 </script>
 
 <style scoped lang="scss">
