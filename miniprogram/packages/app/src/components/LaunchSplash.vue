@@ -10,13 +10,10 @@
 
     <!-- 中央品牌 -->
     <view class="brand">
-      <!-- 印玺光环 + 莲花九瓣 -->
+      <!-- 光环底衬 + 小程序 Logo -->
       <view class="seal">
         <view class="halo" />
-        <view class="lotus">
-          <view v-for="n in 9" :key="n" class="petal" :style="petalStyle(n)" />
-          <view class="core" />
-        </view>
+        <image class="logo-img" src="/static/logo.png" mode="aspectFit" />
       </view>
 
       <text class="name">爱花型</text>
@@ -68,11 +65,6 @@ function moteStyle(n: number) {
     animationDelay: `${delay}s`,
     animationDuration: `${dur}s`,
   }
-}
-
-// 莲花九瓣：环形均布
-function petalStyle(n: number) {
-  return { transform: `rotate(${(n - 1) * 40}deg) translateY(-46rpx)` }
 }
 </script>
 
@@ -139,11 +131,11 @@ function petalStyle(n: number) {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 印玺 + 莲花 */
+/* 印玺光环 + Logo */
 .seal {
   position: relative;
-  width: 200rpx;
-  height: 200rpx;
+  width: 240rpx;
+  height: 240rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,33 +153,13 @@ function petalStyle(n: number) {
   0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
 }
-.lotus {
+.logo-img {
   position: relative;
-  width: 120rpx;
-  height: 120rpx;
-}
-.petal {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 26rpx;
-  height: 62rpx;
-  margin: -31rpx 0 0 -13rpx;
-  border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
-  background: linear-gradient(180deg, rgba(255, 248, 232, 0.95) 0%, rgba(222, 195, 138, 0.85) 100%);
-  transform-origin: 50% 100%;
-  box-shadow: 0 0 8rpx rgba(142, 79, 67, 0.18);
-}
-.core {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 44rpx;
-  height: 44rpx;
-  margin: -22rpx 0 0 -22rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 38%, #fff4dc 0%, #d9a777 60%, #a4675a 100%);
-  box-shadow: 0 0 16rpx rgba(255, 240, 210, 0.7);
+  z-index: 1;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 28rpx rgba(86, 44, 30, 0.34);
 }
 
 .name {
