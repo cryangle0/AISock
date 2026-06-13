@@ -45,10 +45,16 @@ export async function getSiteConfig(): Promise<SiteConfig> {
   return { ...BUILTIN_SITE, ...(saved || {}) }
 }
 
-/** 保存站点配置（后台写入） */
+/** 保存站点配置（后台写入）。空串视为「未配置」，不覆盖内置默认
+ *  （logoUrl/faviconUrl 例外：空串就是「用内置图」的合法语义） */
 export async function saveSiteConfig(config: Partial<SiteConfig>): Promise<void> {
-  // 合并到完整结构后存库，保证读取端字段齐全
-  const merged = { ...BUILTIN_SITE, ...(config || {}) }
+  const merged = { ...BUILTIN_SITE }
+  ;(Object.keys(BUILTIN_SITE) as (keyof SiteConfig)[]).forEach((k) => {
+    const v = config?.[k]
+    if (typeof v === 'string' && (v.trim() || k === 'logoUrl' || k === 'faviconUrl')) {
+      merged[k] = v.trim()
+    }
+  })
   await upsertConfig({
     configKey: SITE_CONFIG_KEY,
     title: '站点品牌配置',

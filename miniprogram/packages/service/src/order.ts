@@ -35,6 +35,11 @@ export function updateOrder(id: number, patch: { remark?: string; address?: stri
   return http.put(`/api/v1/app/orders/${id}`, patch)
 }
 
+/** 取消订单（仅待付款可取消） */
+export function cancelOrder(id: number) {
+  return http.post<{ cancelled: boolean }>(`/api/v1/app/orders/${id}/cancel`)
+}
+
 // ── 订单附件（设计稿 / 图片 / 文件，下单后可补传）──
 export interface OrderAttachment {
   id: number

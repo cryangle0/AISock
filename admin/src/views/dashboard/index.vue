@@ -1,7 +1,7 @@
 <template>
   <div>
     <a-row :gutter="16">
-      <a-col v-for="card in cards" :key="card.label" :span="6">
+      <a-col v-for="card in cards" :key="card.label" flex="1">
         <a-card class="stat-card" :bordered="false">
           <div class="stat-label">{{ card.label }}</div>
           <div class="stat-value">{{ card.value }}</div>
@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onActivated, ref } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
@@ -58,7 +58,8 @@ const trendOption = computed(() => {
   }
 })
 
-onMounted(async () => {
+// keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
+onActivated(async () => {
   try {
     const [ov, tr] = await Promise.all([getOverview(), getOrderTrend()])
     overview.value = ov.data

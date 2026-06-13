@@ -76,9 +76,17 @@ const ph = computed<AiPlatformConfig>(() => ({
   asrModel: props.placeholder?.asrModel || '如 qwen3-asr-flash',
   promptTemplate: props.placeholder?.promptTemplate || '袜款印花图案，{prompt}，平铺无缝',
   aspectRatio: props.placeholder?.aspectRatio || '1:1',
-  apiKey: props.placeholder?.apiKey || '留空用环境变量，如 sk-xxxxxx',
+  // 密钥脱敏：placeholder 不受 input-password 掩码保护，绝不能把默认平台真实 key 明文当占位符
+  apiKey: maskKey(props.placeholder?.apiKey) || '留空用环境变量，如 sk-xxxxxx',
   apiBaseUrl: props.placeholder?.apiBaseUrl || '如 https://dashscope.aliyuncs.com',
 }))
+
+/** 密钥脱敏展示：保留前 4 后 4 位 */
+function maskKey(key?: string): string {
+  if (!key) return ''
+  if (key.length <= 8) return '****'
+  return `${key.slice(0, 4)}****${key.slice(-4)}（沿用默认）`
+}
 </script>
 
 <style scoped>

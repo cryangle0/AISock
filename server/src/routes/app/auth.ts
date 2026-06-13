@@ -4,7 +4,7 @@
 import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
-import { sendSmsCode, smsLogin, wechatLogin, logout, passwordLogin } from '../../services/auth.service.js'
+import { sendSmsCode, smsLogin, wechatLogin, logout, passwordLogin, bindWechat } from '../../services/auth.service.js'
 
 export const authRouter = new Hono()
 
@@ -75,6 +75,17 @@ authRouter.post('/wechat-login', async (c) => {
     await ensureInvitation(inviterId, user.id)
   }
   return ok(c, { token, user: toPublicUser(user) })
+})
+
+/** 绑定微信（需登录）：手机号/密码登录用户支付前补授权 openid（uni.login 的 code 换取） */
+authRouter.post('/bind-wechat', async (c) => {
+  const { code } = await c.req.json<{ code?: string }>()
+  if (!code) return fail(c, '缺少 code')
+  const { code2session } = await import('../../services/wechat.service.js')
+  const sess = await code2session(code)
+  if (!sess.openid) return fail(c, '微信授权失败，请重试')
+  await bindWechat(getUserId(c), sess.openid, sess.unionid)
+  return ok(c, { bound: true })
 })
 
 /** 注销 */

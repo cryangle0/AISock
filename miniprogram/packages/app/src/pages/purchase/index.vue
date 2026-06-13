@@ -64,24 +64,28 @@
           </view>
         </view>
 
-        <!-- 阶梯价 -->
+        <!-- 价格明细（服务端实时计价，与下单实收一致） -->
         <view class="card">
           <view class="card-title-row">
-            <text class="card-title">阶梯价</text>
-            <text class="card-sub">数量越多，单价越低</text>
+            <text class="card-title">价格明细</text>
+            <text class="card-sub">下单按此实时计价</text>
           </view>
           <view class="tier">
             <view class="tier-head">
-              <text class="tier-c1">数量区间</text>
-              <text class="tier-c2">单价（元/双）</text>
+              <text class="tier-c1">项目</text>
+              <text class="tier-c2">金额</text>
             </view>
-            <view
-              v-for="(t, i) in tiers"
-              :key="i"
-              :class="['tier-row', { hit: t.hit }]"
-            >
-              <text class="tier-c1">{{ t.range }}</text>
-              <text class="tier-c2">¥{{ t.price }}</text>
+            <view class="tier-row">
+              <text class="tier-c1">单价（{{ activeMaterial.label }} · {{ craftLabel }}）</text>
+              <text class="tier-c2">{{ unitPrice == null ? '--' : `¥${unitPrice}` }}</text>
+            </view>
+            <view class="tier-row">
+              <text class="tier-c1">数量</text>
+              <text class="tier-c2">× {{ quantity }}</text>
+            </view>
+            <view class="tier-row hit">
+              <text class="tier-c1">合计</text>
+              <text class="tier-c2">{{ totalPrice == null ? '--' : `¥${totalPrice}` }}</text>
             </view>
           </view>
         </view>
@@ -104,10 +108,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { navigateTo, switchTab } from '@aisock/common/utils'
 import { MATERIALS } from '@aisock/common'
+import { STORAGE_KEYS } from '@aisock/common/constants'
 import { useUserStore } from '@aisock/composition'
 import { orderApi, designApi } from '@aisock/service'
 import { isRemoteCover } from '@/domain/catalog'
@@ -146,19 +151,26 @@ const sockTypeName = ref('中筒袜')
 
 const activeMaterial = computed(() => materials.find((m) => m.value === material.value) || materials[0])
 
-// 阶梯价（展示用，与 Figma 一致；命中行高亮）
-const TIERS = [
-  { min: 1, max: 9, price: 998, range: '1 – 9' },
-  { min: 10, max: 49, price: 768, range: '10 – 49' },
-  { min: 50, max: Infinity, price: 598, range: '≥ 50' },
-]
-const tiers = computed(() =>
-  TIERS.map((t) => ({ ...t, hit: quantity.value >= t.min && quantity.value <= t.max })),
-)
-const displayPrice = computed(() => {
-  const t = TIERS.find((x) => quantity.value >= x.min && quantity.value <= x.max) || TIERS[0]
-  return t.price
-})
+// 价格：服务端权威试算（材质 + 工艺 + 数量），与下单实收完全一致，杜绝展示价与实收价两套口径
+const unitPrice = ref<number | null>(null)
+const totalPrice = ref<number | null>(null)
+let quoteSeq = 0
+async function refreshQuote() {
+  const seq = ++quoteSeq
+  try {
+    const r = await orderApi.quotePrice({ material: material.value, craft: craft.value, quantity: quantity.value })
+    if (seq !== quoteSeq) return // 仅采纳最后一次请求结果
+    unitPrice.value = r.data.unitPrice
+    totalPrice.value = r.data.total
+  } catch {
+    if (seq === quoteSeq) {
+      unitPrice.value = null
+      totalPrice.value = null
+    }
+  }
+}
+watch([material, craft, quantity], refreshQuote, { immediate: true })
+const displayPrice = computed(() => (unitPrice.value == null ? '--' : unitPrice.value))
 
 const payOpen = ref(false)
 const orderForm = computed(() => ({
@@ -174,7 +186,11 @@ const orderForm = computed(() => ({
   designId: designId.value,
 }))
 
+let rawQuery = ''
+
 onLoad((q?: Record<string, string>) => {
+  // 保留原始（已编码）query，登录拦截后可原样回跳
+  rawQuery = Object.entries(q || {}).map(([k, v]) => `${k}=${v}`).join('&')
   if (q?.designId) designId.value = Number(q.designId)
   if (q?.patternId) patternId.value = Number(q.patternId)
   if (q?.name) designName.value = decodeURIComponent(q.name)
@@ -192,8 +208,10 @@ function selectCraft(c: { label: string; value: string }) {
 
 function ensureLogin(): boolean {
   if (!userStore.isLogin) {
+    // 记录回跳地址：登录成功后回到本页（保留已选工艺/尺码所需的入参），不丢购买上下文
+    uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, `/pages/purchase/index${rawQuery ? `?${rawQuery}` : ''}`)
     uni.showToast({ title: '请先登录', icon: 'none' })
-    setTimeout(() => switchTab('/pages/mine/index'), 600)
+    setTimeout(() => uni.reLaunch({ url: '/pages/login/index' }), 600)
     return false
   }
   return true
@@ -244,14 +262,17 @@ function guideCustomize() {
   })
 }
 
+const addingCart = ref(false)
 async function onAddCart() {
+  if (addingCart.value) return
   if (!ensureLogin()) return
-  const did = await ensureDesignId()
-  if (!did) {
-    guideCustomize()
-    return
-  }
+  addingCart.value = true
   try {
+    const did = await ensureDesignId()
+    if (!did) {
+      guideCustomize()
+      return
+    }
     await orderApi.createOrder({
       designId: did,
       designName: designName.value,
@@ -265,6 +286,8 @@ async function onAddCart() {
     setTimeout(() => switchTab('/pages/cart/index'), 800)
   } catch {
     /* 拦截器已提示 */
+  } finally {
+    addingCart.value = false
   }
 }
 

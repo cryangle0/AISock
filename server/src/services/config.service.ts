@@ -30,10 +30,14 @@ function parseValue(row: AppConfig): AppConfig {
   return row
 }
 
-/** 后台：全部配置项（含停用） */
+/** 结构化配置 key（AI 模型 / 站点品牌）：有专属管理页，不在「小程序配置」通用列表中暴露，
+ *  避免被当成数组型功能区配置误编辑 / 误停用（停用会导致线上 AI 配置静默失效） */
+const STRUCTURED_KEYS = new Set(['ai_generation', 'site_config'])
+
+/** 后台：全部配置项（含停用；不含有专属管理页的结构化配置） */
 export async function listConfigs(): Promise<AppConfig[]> {
   const rows = await query<AppConfig>('SELECT * FROM app_config ORDER BY config_key ASC')
-  return rows.map(parseValue)
+  return rows.filter((r) => !STRUCTURED_KEYS.has(r.config_key)).map(parseValue)
 }
 
 /** 后台：单个配置项 */

@@ -44,7 +44,11 @@ async function fetchList() {
   loading.value = true
   try {
     const res = await listConfigs()
-    configs.value = [...res.data].sort((a, b) => orderRank(a.config_key) - orderRank(b.config_key))
+    // 仅渲染数组型配置（主题/功能区/案例）。ai_generation / site_config 等对象型配置
+    // 有专属管理页，在这里编辑会按数组逻辑破坏其结构（服务端也已过滤，双保险）
+    configs.value = [...res.data]
+      .filter((c) => Array.isArray(c.value))
+      .sort((a, b) => orderRank(a.config_key) - orderRank(b.config_key))
   } finally {
     loading.value = false
   }

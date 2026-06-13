@@ -34,7 +34,8 @@ export interface SaveDesignInput {
 
 /**
  * 规范化封面：dataURL（base64 快照）转存 OSS 取短 URL；
- * 普通 URL 原样保留；超长（>500）且非 dataURL 的脏值丢弃，避免撑爆 varchar(512)。
+ * 仅保留 http(s) 的普通 URL —— wxfile:// 等客户端临时路径在服务端不可访问，
+ * 落库后封面必然失效，直接丢弃；超长（>500）脏值同样丢弃，避免撑爆 varchar(512)。
  */
 async function normalizeCover(coverUrl?: string): Promise<string | null> {
   if (!coverUrl) return null
@@ -42,6 +43,7 @@ async function normalizeCover(coverUrl?: string): Promise<string | null> {
     const url = await persistDataUrl(coverUrl, 'cover')
     return url || null
   }
+  if (!/^https?:\/\//i.test(coverUrl) && !coverUrl.startsWith('/')) return null
   if (coverUrl.length > 500) return null
   return coverUrl
 }

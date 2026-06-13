@@ -27,9 +27,14 @@
         </view>
         <view class="order-foot">
           <text class="order-qty">数量 {{ o.quantity }}</text>
-          <button v-if="o.status === 'pending'" class="pay-btn" :disabled="paying === o.id" @tap.stop="onPay(o)">
-            {{ paying === o.id ? '支付中…' : '去支付' }}
-          </button>
+          <view v-if="o.status === 'pending'" class="foot-btns">
+            <button class="cancel-btn" :disabled="cancelling === o.id" @tap.stop="onCancel(o)">
+              {{ cancelling === o.id ? '取消中…' : '取消' }}
+            </button>
+            <button class="pay-btn" :disabled="paying === o.id" @tap.stop="onPay(o)">
+              {{ paying === o.id ? '支付中…' : '去支付' }}
+            </button>
+          </view>
         </view>
       </view>
     </view>
@@ -47,13 +52,16 @@ import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
 const statusTabs = [
   { key: '', label: '全部' },
   { key: 'pending', label: '待支付' },
+  { key: 'paid', label: '待生产' },
   { key: 'producing', label: '生产中' },
+  { key: 'shipped', label: '已发货' },
   { key: 'done', label: '已完成' },
 ]
 
 const activeStatus = ref('')
 const list = ref<Order[]>([])
 const paying = ref<number | null>(null)
+const cancelling = ref<number | null>(null)
 
 async function fetchList() {
   try {
@@ -99,6 +107,23 @@ async function onPay(o: Order) {
 }
 
 const statusText = (s: string) => ORDER_STATUS_TEXT[s] || s
+
+/** 取消待支付订单 */
+async function onCancel(o: Order) {
+  if (cancelling.value) return
+  const r = await uni.showModal({ title: '取消订单', content: '确定取消该订单吗？取消后不可恢复。' })
+  if (!r.confirm) return
+  cancelling.value = o.id
+  try {
+    await orderApi.cancelOrder(o.id)
+    uni.showToast({ title: '订单已取消', icon: 'none' })
+    fetchList()
+  } catch {
+    /* 拦截器已提示 */
+  } finally {
+    cancelling.value = null
+  }
+}
 
 function goDetail(id: number) {
   uni.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
@@ -187,6 +212,23 @@ function goDetail(id: number) {
 .order-qty {
   font-size: 22rpx;
   color: $mp-text-muted;
+}
+.foot-btns {
+  display: flex;
+  gap: 12rpx;
+}
+.cancel-btn {
+  background: $mp-bg-card;
+  color: $mp-text-secondary;
+  border: 1rpx solid $mp-border;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 54rpx;
+  height: 56rpx;
+  padding: 0 28rpx;
+}
+.cancel-btn[disabled] {
+  opacity: 0.6;
 }
 .pay-btn {
   background: $mp-primary;

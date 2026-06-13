@@ -42,7 +42,7 @@
       />
     </div>
 
-    <a-modal v-model:visible="modalVisible" title="录入运单" @ok="onUpsert" @cancel="modalVisible = false">
+    <a-modal v-model:visible="modalVisible" title="录入运单" :on-before-ok="onUpsert" @cancel="modalVisible = false">
       <a-form :model="form" layout="vertical">
         <a-form-item label="订单 ID"><a-input-number v-model="form.orderId" :min="1" style="width:100%" /></a-form-item>
         <a-form-item label="承运商">
@@ -54,7 +54,7 @@
       </a-form>
     </a-modal>
 
-    <a-modal v-model:visible="traceVisible" title="追加物流轨迹" @ok="onTrace" @cancel="traceVisible = false">
+    <a-modal v-model:visible="traceVisible" title="追加物流轨迹" :on-before-ok="onTrace" @cancel="traceVisible = false">
       <a-form :model="traceForm" layout="vertical">
         <a-form-item label="轨迹描述"><a-input v-model="traceForm.desc" placeholder="如：已到达分拨中心" /></a-form-item>
         <a-form-item label="更新状态">
@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onActivated, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listShipments, upsertShipment, appendTrace, type Shipment } from '@/api/monitoring'
 
@@ -119,15 +119,20 @@ function openUpsertModal() {
   form.trackingNo = ''
   modalVisible.value = true
 }
-async function onUpsert() {
+async function onUpsert(): Promise<boolean> {
   if (!form.orderId || !form.trackingNo) {
     Message.warning('订单 ID 和运单号必填')
-    return
+    return false
   }
-  await upsertShipment({ orderId: form.orderId, carrier: form.carrier, trackingNo: form.trackingNo })
-  Message.success('已录入')
-  modalVisible.value = false
+  try {
+    await upsertShipment({ orderId: form.orderId, carrier: form.carrier, trackingNo: form.trackingNo })
+    Message.success('已录入')
+  } catch {
+    // 如「订单未支付不可发货」：保持弹窗打开，表单不丢失
+    return false
+  }
   fetchList()
+  return true
 }
 function openTrace(r: Shipment) {
   traceForm.orderId = r.order_id
@@ -135,15 +140,20 @@ function openTrace(r: Shipment) {
   traceForm.status = ''
   traceVisible.value = true
 }
-async function onTrace() {
+async function onTrace(): Promise<boolean> {
   if (!traceForm.desc) {
     Message.warning('轨迹描述必填')
-    return
+    return false
   }
-  await appendTrace(traceForm.orderId, traceForm.desc, traceForm.status || undefined)
-  Message.success('已追加')
-  traceVisible.value = false
+  try {
+    await appendTrace(traceForm.orderId, traceForm.desc, traceForm.status || undefined)
+    Message.success('已追加')
+  } catch {
+    return false
+  }
   fetchList()
+  return true
 }
-onMounted(fetchList)
+// keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
+onActivated(fetchList)
 </script>

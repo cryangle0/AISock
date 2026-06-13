@@ -96,8 +96,6 @@
             登录
           </a-button>
         </a-form>
-
-        <p class="lp-tip">默认账号：admin / admin123</p>
       </div>
 
       <div class="lp-copy">爱花型袜业 · 2026</div>
@@ -226,7 +224,7 @@ onBeforeUnmount(() => {
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const form = reactive({ username: 'admin', password: '' })
+const form = reactive({ username: '', password: '' })
 const loading = ref(false)
 
 async function onSubmit() {
@@ -424,12 +422,6 @@ async function onSubmit() {
   font-size: 13px;
   color: #998975;
   margin-bottom: 24px;
-}
-.lp-tip {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 12px;
-  color: #b8a892;
 }
 .lp-copy {
   position: absolute;

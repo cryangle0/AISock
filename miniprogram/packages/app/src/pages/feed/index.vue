@@ -91,7 +91,7 @@ async function loadCategories() {
   }
 }
 
-async function loadProducts() {
+async function loadProducts(): Promise<boolean> {
   loading.value = true
   try {
     const res = await catalogApi.listPatterns({
@@ -100,8 +100,10 @@ async function loadProducts() {
       categoryId: activeId.value || undefined,
     })
     products.value = (res.data?.list ?? []).map(patternToProduct)
+    return true
   } catch {
     products.value = []
+    return false
   } finally {
     loading.value = false
   }
@@ -119,9 +121,9 @@ function goDetail(p: BuyableProduct) {
 
 onShow(async () => {
   if (loaded) return
-  loaded = true
   await loadCategories()
-  await loadProducts()
+  // 首载失败不置 loaded：下次进入页面自动重试，避免空态永久驻留
+  loaded = await loadProducts()
 })
 </script>
 

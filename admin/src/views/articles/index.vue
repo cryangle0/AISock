@@ -53,7 +53,7 @@
       />
     </div>
 
-    <a-modal v-model:visible="modalVisible" :title="editing ? '编辑' : '新增'" @ok="onSubmit" @cancel="modalVisible = false">
+    <a-modal v-model:visible="modalVisible" :title="editing ? '编辑' : '新增'" :on-before-ok="onSubmit" @cancel="modalVisible = false">
       <a-form :model="form" layout="vertical">
         <a-form-item label="标题"><a-input v-model="form.title" /></a-form-item>
         <a-form-item label="标签"><a-input v-model="form.tag" /></a-form-item>
@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onActivated, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listArticles, createArticle, updateArticle, deleteArticle, type Article } from '@/api/articles'
 
@@ -135,25 +135,31 @@ function openEdit(r: Article) {
   })
   modalVisible.value = true
 }
-async function onSubmit() {
+async function onSubmit(): Promise<boolean> {
   if (!form.title) {
     Message.warning('标题必填')
-    return
+    return false
   }
-  if (editing.value) {
-    await updateArticle(editing.value.id, form)
-    Message.success('已更新')
-  } else {
-    await createArticle({ ...form, kind: kind.value })
-    Message.success('已创建')
+  try {
+    if (editing.value) {
+      await updateArticle(editing.value.id, form)
+      Message.success('已更新')
+    } else {
+      await createArticle({ ...form, kind: kind.value })
+      Message.success('已创建')
+    }
+  } catch {
+    // 接口报错时保持弹窗打开，表单不丢失（错误提示由拦截器统一处理）
+    return false
   }
-  modalVisible.value = false
   fetchList()
+  return true
 }
 async function onDelete(id: number) {
   await deleteArticle(id)
   Message.success('已删除')
   fetchList()
 }
-onMounted(fetchList)
+// keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
+onActivated(fetchList)
 </script>

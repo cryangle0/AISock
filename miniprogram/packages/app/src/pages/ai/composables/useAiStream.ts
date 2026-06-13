@@ -26,9 +26,12 @@ export function useAiStream(options: StreamOptions = {}) {
   
   let streamTimer: ReturnType<typeof setInterval> | null = null
   let timeoutTimer: ReturnType<typeof setTimeout> | null = null
+  let pauseTimer: ReturnType<typeof setTimeout> | null = null
+  // 当前进行中 simulateStream 的 resolve：cleanup 时一并结算，避免 stop/卸载后调用方 await 永久挂起
+  let activeSettle: (() => void) | null = null
 
   /**
-   * 清理定时器
+   * 清理定时器（并结算挂起的 simulateStream Promise）
    */
   function cleanup() {
     if (streamTimer) {
@@ -39,8 +42,17 @@ export function useAiStream(options: StreamOptions = {}) {
       clearTimeout(timeoutTimer)
       timeoutTimer = null
     }
+    if (pauseTimer) {
+      clearTimeout(pauseTimer)
+      pauseTimer = null
+    }
     isStreaming.value = false
     currentStreamId.value = null
+    if (activeSettle) {
+      const settle = activeSettle
+      activeSettle = null
+      settle()
+    }
   }
 
   /**
@@ -55,26 +67,27 @@ export function useAiStream(options: StreamOptions = {}) {
     fullText: string,
     onScroll?: () => void,
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       cleanup()
-      
+
       isStreaming.value = true
       currentStreamId.value = message.id
       message.typing = true
       message.status = 'streaming'
       message.content = ''
+      activeSettle = resolve
 
       // 超时保护
       timeoutTimer = setTimeout(() => {
-        cleanup()
         message.typing = false
         message.status = 'error'
         message.error = '响应超时'
-        reject(new Error('Stream timeout'))
+        cleanup()
       }, timeout)
 
-      // 思考停顿
-      setTimeout(() => {
+      // 思考停顿（句柄受 cleanup 管理：停止/卸载时不会再启动打字机）
+      pauseTimer = setTimeout(() => {
+        pauseTimer = null
         message.typing = false
         let charIndex = 0
 
@@ -82,16 +95,15 @@ export function useAiStream(options: StreamOptions = {}) {
           if (charIndex < fullText.length) {
             charIndex++
             message.content = fullText.slice(0, charIndex)
-            
+
             // 定期触发滚动
             if (charIndex % scrollInterval === 0 && onScroll) {
               onScroll()
             }
           } else {
-            cleanup()
             message.status = 'done'
+            cleanup()
             if (onScroll) onScroll()
-            resolve()
           }
         }, charDelay)
       }, 480) // 思考停顿
@@ -167,9 +179,9 @@ export function useAiStream(options: StreamOptions = {}) {
    * 创建「推送式」流写入器，用于真实流式对话（onChunkReceived 回调驱动）。
    * - 首段到达时收起"正在输入"动画
    * - 滚动按段节流，避免频繁抖动
-   * - 空闲超时保护：长时间无新增则判定失败
+   * - 空闲超时保护：长时间无新增则判定失败，并通过 onTimeout 通知调用方中断底层请求
    */
-  function createWriter(message: ChatMessage, onScroll?: () => void) {
+  function createWriter(message: ChatMessage, onScroll?: () => void, onTimeout?: () => void) {
     cleanup()
     isStreaming.value = true
     currentStreamId.value = message.id
@@ -188,6 +200,8 @@ export function useAiStream(options: StreamOptions = {}) {
         message.typing = false
         message.status = 'error'
         message.error = '响应超时'
+        // 通知调用方中断网络请求，释放 isProcessing，否则「重试」按钮是死路
+        if (onTimeout) onTimeout()
       }, timeout)
     }
     armIdleTimer()

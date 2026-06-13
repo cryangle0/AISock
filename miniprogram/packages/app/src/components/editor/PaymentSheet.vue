@@ -50,7 +50,8 @@
     <template v-if="phase === 'select'" #footer>
       <view class="footer-row">
         <button class="cta secondary" @tap="$emit('cancel')">取消</button>
-        <button class="cta primary" @tap="startPay">立即支付 ¥ {{ total.toFixed(2) }}</button>
+        <button v-if="quoteFailed" class="cta primary" @tap="refreshQuote">价格获取失败，点击重试</button>
+        <button v-else class="cta primary" :disabled="total <= 0" @tap="startPay">立即支付 ¥ {{ total.toFixed(2) }}</button>
       </view>
     </template>
   </BottomSheet>
@@ -91,8 +92,9 @@ const orderNo = ref('')
 const unit = ref(0)
 const fee = ref(0)
 const total = ref(0)
+const quoteFailed = ref(false)
 
-watchEffect(async () => {
+async function refreshQuote() {
   try {
     const res = await orderApi.quotePrice({
       material: props.order.materialValue,
@@ -102,9 +104,15 @@ watchEffect(async () => {
     unit.value = res.data.basePrice
     fee.value = res.data.craftFee
     total.value = res.data.total
+    quoteFailed.value = false
   } catch {
-    /* 试算失败时金额留 0，下单时仍以服务端为准 */
+    // 试算失败：禁用支付按钮并提供重试，避免「合计 ¥0 仍可支付」误导用户
+    quoteFailed.value = true
   }
+}
+
+watchEffect(() => {
+  void refreshQuote()
 })
 
 const subtitle = computed(

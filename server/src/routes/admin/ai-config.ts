@@ -3,12 +3,16 @@
  */
 import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
+import { requireRole } from '../../middleware/auth.js'
 import {
   getAiConfig, saveAiConfig, BUILTIN_DEFAULT,
   type AiGenerationConfig,
 } from '../../services/aiConfig.service.js'
 
 export const adminAiConfigRouter = new Hono()
+
+// 配置含明文 apiKey，读写均限管理员角色
+adminAiConfigRouter.use('*', requireRole('admin'))
 
 /** 读取当前配置 + 内置默认（供前端展示占位/重置） */
 adminAiConfigRouter.get('/', async (c) => {

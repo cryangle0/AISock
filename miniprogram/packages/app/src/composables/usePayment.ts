@@ -7,7 +7,7 @@
  *
  * 设计原则：单一职责、可复用（编辑器下单 / 订单列表补付 共用）、对调用方屏蔽真假支付差异。
  */
-import { orderApi } from '@aisock/service'
+import { orderApi, authApi } from '@aisock/service'
 import type { CreateOrderInput, PrepayResult } from '@aisock/service'
 
 export interface PayResult {
@@ -37,9 +37,36 @@ function requestWxPayment(jsApi: JsApiParams): Promise<boolean> {
   })
 }
 
+/** 静默补绑微信 openid（手机号/密码登录用户首次支付时触发）。成功返回 true */
+async function bindWechatSilently(): Promise<boolean> {
+  try {
+    const code = await new Promise<string>((resolve, reject) => {
+      uni.login({
+        provider: 'weixin',
+        success: (res) => (res.code ? resolve(res.code) : reject(new Error('no code'))),
+        fail: () => reject(new Error('login fail')),
+      })
+    })
+    await authApi.bindWechat(code)
+    return true
+  } catch {
+    return false
+  }
+}
+
 /** 对一个已存在的待支付订单发起支付（预下单 → 微信支付 / mock 落库） */
 export async function payOrderById(orderId: number, orderNo = ''): Promise<PayResult> {
-  const pre = await orderApi.prepay(orderId)
+  let pre: Awaited<ReturnType<typeof orderApi.prepay>>
+  try {
+    pre = await orderApi.prepay(orderId)
+  } catch (err) {
+    // 428 = 账号缺 openid（手机号/密码登录）：静默 uni.login 补绑后重试一次，打通真实支付
+    if ((err as { code?: number })?.code === 428 && (await bindWechatSilently())) {
+      pre = await orderApi.prepay(orderId)
+    } else {
+      throw err
+    }
+  }
   const { outTradeNo, jsApi, real } = pre.data
 
   if (real && jsApi) {
@@ -57,6 +84,9 @@ export async function createOrderAndPay(input: CreateOrderInput): Promise<PayRes
   return payOrderById(created.data.id, created.data.orderNo)
 }
 
+/** 支付完成后的订单状态（paid 及其后续生产/物流状态均视为已支付） */
+const PAID_STATUSES = new Set(['paid', 'producing', 'shipped', 'done'])
+
 /**
  * 轮询订单是否已支付（真实微信支付为异步回调落库，需确认最终状态）。
  * @param orderId 订单 id
@@ -73,7 +103,10 @@ export async function pollOrderPaid(
     await new Promise((r) => setTimeout(r, interval))
     try {
       const res = await orderApi.getOrder(orderId)
-      if (res.data && res.data.status !== 'pending') return true
+      const status = res.data?.status
+      // 仅「已支付及之后」算成功；订单被取消时立即终止轮询（不能误报支付成功）
+      if (status && PAID_STATUSES.has(status)) return true
+      if (status === 'cancelled') return false
     } catch {
       /* 忽略单次失败，继续轮询 */
     }

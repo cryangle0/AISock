@@ -30,21 +30,32 @@ export async function transcribeAudio(audioUrl: string): Promise<string> {
   const base = cfg.apiBaseUrl || process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com'
   const model = cfg.asrModel || 'qwen3-asr-flash'
 
-  const resp = await fetch(`${base}/api/v1/services/aigc/multimodal-generation/generation`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model,
-      input: {
-        messages: [
-          { role: 'system', content: [{ text: '' }] },
-          { role: 'user', content: [{ audio: audioUrl }] },
-        ],
-      },
-      // 开启语种识别 + 逆文本规整（数字/标点更自然）
-      parameters: { asr_options: { enable_lid: true, enable_itn: true } },
-    }),
-  })
+  // 30s 超时：DashScope 偶发挂起时不要占住请求连接
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 30_000)
+  let resp: Response
+  try {
+    resp = await fetch(`${base}/api/v1/services/aigc/multimodal-generation/generation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model,
+        input: {
+          messages: [
+            { role: 'system', content: [{ text: '' }] },
+            { role: 'user', content: [{ audio: audioUrl }] },
+          ],
+        },
+        // 开启语种识别 + 逆文本规整（数字/标点更自然）
+        parameters: { asr_options: { enable_lid: true, enable_itn: true } },
+      }),
+      signal: controller.signal,
+    })
+  } catch (err) {
+    throw Object.assign(new Error('语音识别超时，请重试'), { status: 504, cause: err })
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!resp.ok) {
     throw Object.assign(new Error(`语音识别接口返回 ${resp.status}`), { status: 502 })

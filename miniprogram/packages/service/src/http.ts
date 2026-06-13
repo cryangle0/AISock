@@ -43,6 +43,21 @@ class Http {
     this.isRedirecting = true
     uni.removeStorageSync(STORAGE_KEYS.TOKEN)
     uni.removeStorageSync(STORAGE_KEYS.USER_INFO)
+    // 通知 Pinia store 清空内存登录态，避免 isLogin 与 storage 脱节后守卫误放行
+    uni.$emit('auth:expired')
+    // 记录回跳地址：登录成功后回到当前页（含 query），不丢失用户操作上下文
+    try {
+      const pages = getCurrentPages()
+      const top = pages[pages.length - 1] as unknown as { route?: string; options?: Record<string, string> } | undefined
+      if (top?.route && !top.route.includes('pages/login/')) {
+        const qs = Object.entries(top.options || {})
+          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+          .join('&')
+        uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, `/${top.route}${qs ? `?${qs}` : ''}`)
+      }
+    } catch {
+      /* 取不到页面栈时直接跳登录 */
+    }
     uni.reLaunch({
       url: '/pages/login/index',
       complete: () => setTimeout(() => { this.isRedirecting = false }, 1500),

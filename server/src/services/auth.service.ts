@@ -153,6 +153,29 @@ export async function wechatLogin(
   return { token, user }
 }
 
+/**
+ * 把微信 openid 绑定到当前登录账号（手机号/密码登录用户支付前补授权用）。
+ * openid 已属于「无手机号的临时账号」时自动合并其数据进当前账号；属于正常账号时拒绝。
+ */
+export async function bindWechat(userId: number, openid: string, unionid?: string): Promise<void> {
+  const me = await queryOne<UserRow>('SELECT * FROM `user` WHERE id = ?', [userId])
+  if (!me) throw Object.assign(new Error('用户不存在'), { status: 404 })
+  if (me.openid) {
+    if (me.openid === openid) return
+    throw Object.assign(new Error('当前账号已绑定其他微信'), { status: 400 })
+  }
+  const owner = await queryOne<UserRow>('SELECT * FROM `user` WHERE openid = ?', [openid])
+  if (owner && owner.id !== userId) {
+    if (owner.phone) throw Object.assign(new Error('该微信已绑定其他账号'), { status: 400 })
+    await maybeMergeOpenidAccount(owner.id, userId)
+    return
+  }
+  await execute(
+    'UPDATE `user` SET openid = ?, unionid = COALESCE(unionid, ?) WHERE id = ?',
+    [openid, unionid ?? null, userId],
+  )
+}
+
 /** 密码强度校验：6-32 位，至少含字母和数字 */
 function assertPasswordStrength(pwd: string): void {
   if (!pwd || pwd.length < 6 || pwd.length > 32) {

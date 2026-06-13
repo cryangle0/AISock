@@ -401,15 +401,18 @@ async function onAiGenerate(rawPrompt: string) {
 
   try {
     const r = await aiApi.generate({ type: 'text2img', prompt })
-    const url = r.data.result_urls?.[0]
+    const url = r.data.status !== 'failed' ? r.data.result_urls?.[0] : undefined
     if (url) {
       printImage.value = url
       patternId.value = null
       printName.value = rawPrompt.trim()
+      aiGenOpen.value = false
+    } else {
+      // 任务落库为 failed 时 HTTP 仍是 200，需显式提示，且不关闭面板（保留用户输入便于重试）
+      uni.showToast({ title: r.data.error || '生成失败，请稍后重试', icon: 'none' })
     }
     const q = await aiApi.getQuota()
     quota.remaining = q.data.remaining
-    aiGenOpen.value = false
   } catch {
     /* 拦截器已提示 */
   }
@@ -426,10 +429,12 @@ async function onAiRecolor() {
   if (!res.confirm || !res.content?.trim()) return
   try {
     const r = await aiApi.remixImage(printImage.value, res.content.trim())
-    const url = r.data.result_urls?.[0]
+    const url = r.data.status !== 'failed' ? r.data.result_urls?.[0] : undefined
     if (url) {
       printImage.value = url
       patternId.value = null
+    } else {
+      uni.showToast({ title: r.data.error || '改色失败，请稍后重试', icon: 'none' })
     }
     const q = await aiApi.getQuota()
     quota.remaining = q.data.remaining

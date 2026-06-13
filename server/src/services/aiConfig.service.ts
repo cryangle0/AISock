@@ -71,11 +71,17 @@ export async function saveAiConfig(config: AiGenerationConfig): Promise<void> {
 
 /**
  * 解析某平台的生效参数：平台覆盖 > default > 内置默认。
- * 任一字段缺失都逐级回退，永不返回空值。
+ * 任一字段缺失/空串都逐级回退，永不返回空值（apiKey/apiBaseUrl 允许空 = 用环境变量）。
  */
 export async function resolvePlatformConfig(platform: AiPlatform): Promise<AiPlatformConfig> {
   const cfg = await getAiConfig()
-  const base = { ...BUILTIN_DEFAULT, ...(cfg.default || {}) }
+  const base = { ...BUILTIN_DEFAULT }
+  ;(Object.keys(BUILTIN_DEFAULT) as (keyof AiPlatformConfig)[]).forEach((k) => {
+    const v = cfg.default?.[k]
+    if (typeof v === 'string' && (v.trim() || k === 'apiKey' || k === 'apiBaseUrl')) {
+      ;(base as Record<string, string>)[k] = v.trim()
+    }
+  })
   if (platform === 'default') return base
   const override = cfg[platform] || {}
   return {
@@ -98,9 +104,16 @@ export function renderPrompt(template: string, userPrompt: string): string {
   return `${template}，${p}`
 }
 
-/** 规范化：保证 default 各字段齐全，去除平台覆盖里的空字符串 */
+/** 规范化：保证 default 各字段齐全（空串不覆盖内置默认），去除平台覆盖里的空字符串。
+ *  apiKey/apiBaseUrl 例外 —— 空串本身就是「用服务器环境变量」的合法语义。 */
 function normalize(config: AiGenerationConfig): AiGenerationConfig {
-  const def = { ...BUILTIN_DEFAULT, ...(config.default || {}) }
+  const def = { ...BUILTIN_DEFAULT }
+  ;(Object.keys(BUILTIN_DEFAULT) as (keyof AiPlatformConfig)[]).forEach((k) => {
+    const v = config.default?.[k]
+    if (typeof v === 'string' && (v.trim() || k === 'apiKey' || k === 'apiBaseUrl')) {
+      ;(def as Record<string, string>)[k] = v.trim()
+    }
+  })
   const clean = (o?: Partial<AiPlatformConfig>): Partial<AiPlatformConfig> | undefined => {
     if (!o) return undefined
     const out: Partial<AiPlatformConfig> = {}

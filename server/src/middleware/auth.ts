@@ -54,11 +54,11 @@ export function requireRole(...roles: string[]) {
   }
 }
 
-/** 校验用户是否被禁用（status!=1）。仅在 cache-miss 时调用，性能开销可忽略。
- *  被禁用则删除其会话并清缓存，旧 token 立即失效。 */
+/** 校验账号是否被禁用（status!=1）。仅在 cache-miss 时调用，性能开销可忽略。
+ *  被禁用则删除其会话并清缓存，旧 token 立即失效（user 与 admin 均生效）。 */
 async function ensureUserActive(token: string, userId: number, type: string): Promise<boolean> {
-  if (type !== 'user') return true // admin 账号不在此表
-  const u = await queryOne<{ status: number }>('SELECT status FROM `user` WHERE id = ?', [userId])
+  const table = type === 'admin' ? 'admin_account' : 'user'
+  const u = await queryOne<{ status: number }>(`SELECT status FROM \`${table}\` WHERE id = ?`, [userId])
   if (!u || u.status !== 1) {
     await getRedis().del(CacheKey.TOKEN + token)
     invalidateTokenCache(token)
@@ -83,6 +83,8 @@ const AUTH_WHITELIST = new Set<string>([
   '/api/v1/app/feed/faq',
   '/api/v1/app/config/home', // 小程序首页运营配置（访客可读）
   '/api/v1/app/site-config', // 站点品牌配置（访客可读）
+  '/api/v1/app/orders/pricing', // 价目表（访客可看价）
+  '/api/v1/app/orders/quote', // 价格试算（纯计算无副作用，访客可看价）
   '/api/v1/app/qr-login/create', // PC 扫码登录：创建会话（公开）
   '/api/v1/app/qr-login/poll', // PC 扫码登录：轮询（公开）
   '/api/v1/app/pay/notify', // 微信支付回调（验签替代鉴权）
@@ -150,6 +152,11 @@ export async function requireAuth(c: Context, next: Next) {
   const isAdminArea = path.startsWith('/api/v1/admin/')
   if (isAdminArea && tokenType !== 'admin') {
     return fail(c, '无权访问管理后台', 403)
+  }
+  // 反向隔离：admin token 不能冒用 app 区接口（adminId 与 user.id 是两个独立 id 空间，
+  // 否则 admin id=N 会被当成 user id=N 操作其设计/订单）
+  if (!isAdminArea && path.startsWith('/api/v1/app/') && tokenType !== 'user') {
+    return fail(c, '请使用用户账号访问', 403)
   }
 
   if (cacheGet(token)) {

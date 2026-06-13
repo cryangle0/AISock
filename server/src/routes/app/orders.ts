@@ -5,7 +5,7 @@ import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import {
-  listOrders, getOrder, createOrder, updateOrder, orderStats,
+  listOrders, getOrder, createOrder, updateOrder, cancelOrder, orderStats,
   listAttachments, addAttachment, removeAttachment,
   type OrderStatus,
 } from '../../services/order.service.js'
@@ -33,7 +33,9 @@ ordersRouter.get('/stats', async (c) => {
 })
 
 ordersRouter.get('/:id', async (c) => {
-  const o = await getOrder(Number(c.req.param('id')), getUserId(c))
+  const id = Number(c.req.param('id'))
+  if (!Number.isInteger(id) || id <= 0) return fail(c, '无效的订单 ID')
+  const o = await getOrder(id, getUserId(c))
   if (!o) return fail(c, '订单不存在', 404)
   return ok(c, o)
 })
@@ -52,6 +54,14 @@ ordersRouter.put('/:id', async (c) => {
   const body = await c.req.json()
   await updateOrder(Number(c.req.param('id')), getUserId(c), body)
   return ok(c, { updated: true })
+})
+
+/** 用户取消订单（仅待付款） */
+ordersRouter.post('/:id/cancel', async (c) => {
+  const id = Number(c.req.param('id'))
+  if (!Number.isInteger(id) || id <= 0) return fail(c, '无效的订单 ID')
+  await cancelOrder(id, getUserId(c))
+  return ok(c, { cancelled: true })
 })
 
 // ── 订单附件：列表 / 补传 / 删除（仅待付款/已付款且属本人可改）──

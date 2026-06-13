@@ -5,6 +5,7 @@ import { Hono } from 'hono'
 import bcrypt from 'bcryptjs'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
+import { assertRateLimit } from '../../utils/rate-limit.js'
 import { queryOne, execute } from '../../db.js'
 import { issueToken, logout } from '../../services/auth.service.js'
 
@@ -22,6 +23,10 @@ interface AdminRow {
 adminAuthRouter.post('/login', async (c) => {
   const { username, password } = await c.req.json<{ username?: string; password?: string }>()
   if (!username || !password) return fail(c, '用户名和密码不能为空')
+
+  // 防暴力破解：登录接口公网可达且无验证码，按 IP+用户名 限频（10 次 / 10 分钟）
+  const ip = c.req.header('x-real-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  await assertRateLimit('admin-login', `${ip}:${username}`, 10, 600, '尝试次数过多，请 10 分钟后再试')
 
   const admin = await queryOne<AdminRow>('SELECT * FROM admin_account WHERE username = ?', [username])
   if (!admin) return fail(c, '用户名或密码错误', 401)

@@ -17,6 +17,7 @@
             <a-option value="success">成功</a-option>
             <a-option value="failed">失败</a-option>
             <a-option value="running">进行中</a-option>
+            <a-option value="pending">排队中</a-option>
           </a-select>
         </a-space>
       </template>
@@ -42,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onActivated, ref } from 'vue'
 import { listAiTasks, aiTaskStats, type AiTask } from '@/api/monitoring'
 
 const stats = ref<Record<string, number>>({})
@@ -91,7 +92,8 @@ function onPageSize(size: number) {
   pageNum.value = 1
   fetchAll()
 }
-onMounted(fetchAll)
+// keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
+onActivated(fetchAll)
 </script>
 
 <style scoped lang="less">

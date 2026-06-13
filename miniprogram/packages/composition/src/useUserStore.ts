@@ -10,6 +10,12 @@ export const useUserStore = defineStore('user', () => {
 
   const isLogin = computed(() => !!token.value)
 
+  // http 层 401 清 storage 后同步清内存态，避免 isLogin 守卫拿着幽灵登录态误放行
+  uni.$on('auth:expired', () => {
+    token.value = ''
+    userInfo.value = null
+  })
+
   function persist() {
     uni.setStorageSync(STORAGE_KEYS.TOKEN, token.value)
     uni.setStorageSync(STORAGE_KEYS.USER_INFO, userInfo.value)

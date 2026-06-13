@@ -74,6 +74,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { navigateTo, switchTab } from '@aisock/common/utils'
+import { STORAGE_KEYS } from '@aisock/common/constants'
 import { uploadApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import NavBar from '@/components/ui/NavBar.vue'
@@ -108,8 +109,10 @@ onLoad((q?: Record<string, string>) => {
 
 function ensureLogin(): boolean {
   if (!userStore.isLogin) {
+    // 记录回跳，登录后回到上传页继续
+    uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, '/pages/upload/index')
     uni.showToast({ title: '请先登录', icon: 'none' })
-    setTimeout(() => switchTab('/pages/mine/index'), 600)
+    setTimeout(() => uni.reLaunch({ url: '/pages/login/index' }), 600)
     return false
   }
   return true
@@ -123,13 +126,14 @@ function onChoose() {
       const path = res.tempFilePaths?.[0]
       if (!path) return
       printImage.value = path // 先本地预览
-      // 上传换永久 URL（失败则保留本地预览）
+      // 上传换永久 URL；失败必须清掉本地临时路径，否则 wxfile:// 流入编辑器落库后封面/印花必然失效
       try {
         uni.showLoading({ title: '上传中…', mask: true })
         const up = await uploadApi.uploadFile(path)
         printImage.value = up.url
       } catch {
-        /* 保留本地预览 */
+        printImage.value = null
+        uni.showToast({ title: '上传失败，请重试', icon: 'none' })
       } finally {
         uni.hideLoading()
       }

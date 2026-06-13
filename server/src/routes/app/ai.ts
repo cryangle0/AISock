@@ -5,6 +5,7 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
+import { assertRateLimit } from '../../utils/rate-limit.js'
 import { queryOne } from '../../db.js'
 import {
   createTask, listTasks, getRemainingQuota, computeDailyLimit,
@@ -55,6 +56,7 @@ aiRouter.get('/tasks', async (c) => {
 aiRouter.post('/optimize-prompt', async (c) => {
   const { prompt } = await c.req.json<{ prompt?: string }>()
   if (!prompt?.trim()) return fail(c, '提示词不能为空')
+  await assertRateLimit('ai-optimize', getUserId(c), 10, 60)
   const { optimizePrompt } = await import('../../services/aiText.service.js')
   const optimized = await optimizePrompt(prompt)
   return ok(c, { original: prompt, optimized })
@@ -74,6 +76,9 @@ aiRouter.post('/chat', async (c) => {
     platform?: string
   }>().catch(() => ({} as Record<string, never>))
 
+  // 文本对话不走生图配额，但消耗上游 token：按用户限频，防恶意刷接口烧费用
+  await assertRateLimit('ai-chat', getUserId(c), 20, 60, '聊得太快啦，歇一会儿再来～')
+
   const messages = (Array.isArray(body.messages) ? body.messages : [])
     .filter((m) => m && typeof m.content === 'string' && m.content.trim())
     .map((m) => ({
@@ -85,9 +90,8 @@ aiRouter.post('/chat', async (c) => {
 
   // 禁用 nginx 缓冲，保证 token 实时下发
   c.header('X-Accel-Buffering', 'no')
-  c.header('Cache-Control', 'no-cache, no-transform')
 
-  return streamSSE(c, async (stream) => {
+  const res = streamSSE(c, async (stream) => {
     if (!messages.length) {
       await stream.writeSSE({ data: JSON.stringify({ error: 'EMPTY_MESSAGES' }) })
       return
@@ -95,7 +99,8 @@ aiRouter.post('/chat', async (c) => {
     try {
       const { streamChat } = await import('../../services/aiChat.service.js')
       let produced = false
-      for await (const delta of streamChat(messages, { scene: body.scene, styles: body.styles }, platform)) {
+      // 客户端断开时（c.req.raw.signal）及时中止上游请求，避免白白消耗 token
+      for await (const delta of streamChat(messages, { scene: body.scene, styles: body.styles }, platform, c.req.raw.signal)) {
         produced = true
         await stream.writeSSE({ data: JSON.stringify({ delta }) })
       }
@@ -108,6 +113,9 @@ aiRouter.post('/chat', async (c) => {
       await stream.writeSSE({ data: JSON.stringify({ error: (e as Error)?.message || 'AI_ERROR' }) })
     }
   })
+  // streamSSE 内部会把 Cache-Control 写成 no-cache，这里补 no-transform 防中间代理缓冲/压缩
+  res.headers.set('Cache-Control', 'no-cache, no-transform')
+  return res
 })
 
 /** 款式衍生（1/2/4 套配色方案配方） */
@@ -125,6 +133,7 @@ aiRouter.post('/family', async (c) => {
 aiRouter.post('/asr', async (c) => {
   const { audioUrl } = await c.req.json<{ audioUrl?: string }>()
   if (!audioUrl) return fail(c, '缺少音频地址')
+  await assertRateLimit('ai-asr', getUserId(c), 10, 60)
   const { transcribeAudio } = await import('../../services/asr.service.js')
   const text = await transcribeAudio(audioUrl)
   return ok(c, { text })

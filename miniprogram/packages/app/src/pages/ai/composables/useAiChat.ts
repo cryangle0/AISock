@@ -4,6 +4,7 @@
  */
 import { ref, computed, onUnmounted } from 'vue'
 import { aiApi, type StreamChatTurn, type StreamChatHandle } from '@aisock/service'
+import { STORAGE_KEYS } from '@aisock/common/constants'
 import { useAiStream } from './useAiStream'
 import type { ChatMessage, ChatContext, AiReplyOptions } from '../types/chat'
 
@@ -82,11 +83,17 @@ export function useAiChat() {
    */
   function streamRealReply(userInput: string, onScroll?: () => void): Promise<void> {
     const aiMessage = addAiMessage()
-    const writer = createWriter(aiMessage, onScroll)
+    // 空闲超时 → 中断底层请求（触发 onAbort 收尾并释放 isProcessing），避免「重试」死路
+    const writer = createWriter(aiMessage, onScroll, () => {
+      activeHandle?.abort()
+    })
 
     return new Promise<void>((resolve) => {
+      let finished = false
+
       // 收尾：产出过内容则正常完成，否则回退本地文案
       const finalize = async () => {
+        finished = true
         activeHandle = null
         // 页面已卸载：不再触碰动画/DOM
         if (disposed) {
@@ -106,7 +113,41 @@ export function useAiChat() {
         resolve()
       }
 
-      activeHandle = aiApi.streamChat(
+      // 主动中断 / 超时中断：保留已产出内容，但不回退本地兜底文案
+      const finalizeAborted = () => {
+        finished = true
+        activeHandle = null
+        if (disposed) {
+          resolve()
+          return
+        }
+        if (writer.hasContent()) {
+          writer.done()
+          context.value.history.push(aiMessage)
+        } else if (aiMessage.status !== 'error') {
+          aiMessage.typing = false
+          aiMessage.status = 'error'
+          aiMessage.error = aiMessage.error || '已停止'
+        }
+        resolve()
+      }
+
+      // 未登录 / 登录过期：明确提示并引导登录，而不是伪装成正常回复
+      const finalizeUnauthorized = () => {
+        finished = true
+        activeHandle = null
+        if (!disposed) {
+          writer.fail(new Error('请先登录，登录后即可与推荐官畅聊'))
+          uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, '/pages/ai/index')
+          uni.showToast({ title: '请先登录', icon: 'none' })
+          setTimeout(() => {
+            uni.navigateTo({ url: '/pages/login/index' })
+          }, 600)
+        }
+        resolve()
+      }
+
+      const handle = aiApi.streamChat(
         {
           messages: buildApiMessages(),
           scene: context.value.scene,
@@ -116,11 +157,18 @@ export function useAiChat() {
           onDelta: (t) => writer.push(t),
           onDone: () => { void finalize() },
           onError: (err) => {
+            if (err?.name === 'UNAUTHORIZED') {
+              finalizeUnauthorized()
+              return
+            }
             console.warn('[AI Chat] stream error, fallback to local:', err?.message)
             void finalize()
           },
+          onAbort: () => finalizeAborted(),
         },
       )
+      // CHUNK_UNSUPPORTED 等同步错误可能在返回前就已收尾，避免残留已结束的句柄
+      if (!finished) activeHandle = handle
     })
   }
 
@@ -232,6 +280,9 @@ export function useAiChat() {
   ): Promise<void> {
     if (!content.trim()) return
 
+    // 闸门前置：回复进行中不插入「悬空」用户消息（入口处已 toast 提示）
+    if (isProcessing.value) return
+
     // 记住本次回复策略，供失败重试复用
     lastReplyOptions.value = options || {}
 
@@ -269,6 +320,10 @@ export function useAiChat() {
    * 重试最后一条消息
    */
   async function retryLastMessage(onScroll?: () => void): Promise<void> {
+    if (isProcessing.value) {
+      uni.showToast({ title: '正在回复中，请稍候', icon: 'none' })
+      return
+    }
     const lastUserMsg = [...messages.value].reverse().find(msg => msg.role === 'user')
     if (!lastUserMsg) return
 

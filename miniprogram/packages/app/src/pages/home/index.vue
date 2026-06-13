@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { switchTab, navigateTo } from '@aisock/common/utils'
 import { configApi, type ConfigItem } from '@aisock/service'
 import NavBar from '@/components/ui/NavBar.vue'
@@ -82,7 +82,7 @@ const heroBanner = computed<ConfigItem>(() => ({
   cover: '/static/images/hero-dunhuang.jpg',
 }))
 
-onShow(async () => {
+async function loadHomeConfig() {
   try {
     const res = await configApi.getHomeConfig()
     const { themes: t, cases: c } = res.data || {}
@@ -91,6 +91,14 @@ onShow(async () => {
   } catch {
     /* 保留本地兜底 */
   }
+}
+
+onShow(loadHomeConfig)
+
+// pages.json 开了 enablePullDownRefresh，必须收回动画，否则下拉后一直转圈
+onPullDownRefresh(async () => {
+  await loadHomeConfig()
+  uni.stopPullDownRefresh()
 })
 
 const TAB_PATHS = new Set([

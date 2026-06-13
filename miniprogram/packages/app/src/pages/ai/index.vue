@@ -147,25 +147,27 @@ async function onGift(g: GiftItem) {
 
 /** 确认风格选择 */
 async function onStylesConfirm(ids: string[]) {
+  if (isProcessing.value) return
   showStyles.value = false
-  
+
   const names = styles.filter((s) => ids.includes(s.id)).map((s) => s.name)
   const userMessage = names.length ? `我喜欢：${names.join('、')}` : '需要推荐'
-  
+
   // 更新上下文：存风格「名称」（推荐与文案逻辑均按名称匹配）
   setStyles(names)
-  
+
   // 发送用户选择并获取 AI 回复（结构化选择，无需消耗 AI 配额）
   await sendMessage(userMessage, scrollBottom)
-  
+
   // 调用智能推荐
   await loadRecommendations()
 }
 
 /** 跳过风格选择 */
 async function onStylesSkip() {
+  if (isProcessing.value) return
   showStyles.value = false
-  
+
   await sendMessage('直接推荐吧', scrollBottom)
   await loadRecommendations()
 }
@@ -193,18 +195,21 @@ async function loadRecommendations() {
       context.value.styles,
       3,
     )
-    
+
     candidates.value = recommendation.candidates.map(c => ({
       id: c.id,
       name: c.name,
       bg: 'linear-gradient(135deg,#CFE0D6,#7FA890)',
       url: c.imageUrl,
     }))
-    
-    if (candidates.value.length > 0) {
-      recMain.value = candidates.value[0]
+
+    // 没有可下单的真实花型时不展示空推荐卡（占位图无法成单）
+    if (!candidates.value.length) {
+      uni.showToast({ title: '暂无匹配花型，去逛逛花型库吧', icon: 'none' })
+      return
     }
-    
+    recMain.value = candidates.value[0]
+
     showRecommend.value = true
     scrollBottom()
   } catch (error) {

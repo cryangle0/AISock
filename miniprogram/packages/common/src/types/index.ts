@@ -64,6 +64,8 @@ export interface Order {
   total_amount: number
   status: string
   created_at: string
+  /** 关联设计封面（服务端 LEFT JOIN design 带回） */
+  cover_url?: string | null
 }
 
 export interface AiTask {
@@ -72,5 +74,7 @@ export interface AiTask {
   prompt: string | null
   result_urls: string[] | null
   status: string
+  /** status === 'failed' 时的失败原因（服务端落库，HTTP 仍为 200） */
+  error?: string | null
   created_at: string
 }

@@ -24,8 +24,10 @@ export interface StreamChatHandlers {
   onDelta: (text: string) => void
   /** 正常结束 */
   onDone: () => void
-  /** 失败（网络 / 上游 / 不支持分块） */
+  /** 失败（网络 / 上游 / 鉴权 / 不支持分块）。err.name === 'UNAUTHORIZED' 表示未登录/登录过期 */
   onError: (err: Error) => void
+  /** 主动中断（abort()）时回调；未提供时中断按 onDone 收尾 */
+  onAbort?: () => void
 }
 
 export interface StreamChatHandle {
@@ -65,6 +67,9 @@ export function streamChat(payload: StreamChatPayload, handlers: StreamChatHandl
 
   // SSE 文本缓冲：按空行（\n\n）分隔事件
   let textBuf = ''
+  // 是否解析到过任何 SSE 事件：401/5xx 时服务端返回纯 JSON（无 data: 行），
+  // 不会产生事件，complete 时据此识别为错误而非「正常结束」
+  let sawEvent = false
   function consume(text: string) {
     if (!text) return
     textBuf += text
@@ -78,6 +83,7 @@ export function streamChat(payload: StreamChatPayload, handlers: StreamChatHandl
       if (!data) continue
       try {
         const evt = JSON.parse(data) as { delta?: string; done?: boolean; error?: string }
+        sawEvent = true
         if (evt.error) {
           settle(() => handlers.onError(new Error(evt.error)))
         } else if (evt.done) {
@@ -89,6 +95,29 @@ export function streamChat(payload: StreamChatPayload, handlers: StreamChatHandl
         /* 不完整 / 心跳，忽略 */
       }
     }
+  }
+
+  /** complete 收尾：未见任何 SSE 事件时尝试把缓冲当 JSON 错误体解析（401/5xx） */
+  function settleOnComplete() {
+    settle(() => {
+      if (sawEvent) {
+        handlers.onDone()
+        return
+      }
+      const raw = textBuf.trim()
+      if (raw.startsWith('{')) {
+        try {
+          const body = JSON.parse(raw) as { code?: number; message?: string }
+          const err = new Error(body.message || '请求失败')
+          if (body.code === 10001) err.name = 'UNAUTHORIZED'
+          handlers.onError(err)
+          return
+        } catch {
+          /* 非 JSON，按正常结束处理 */
+        }
+      }
+      handlers.onDone()
+    })
   }
 
   const chunkedRequest = uni.request as unknown as (
@@ -107,8 +136,8 @@ export function streamChat(payload: StreamChatPayload, handlers: StreamChatHandl
     },
     data: payload,
     fail: (e: { errMsg?: string }) => settle(() => handlers.onError(new Error(e?.errMsg || '网络请求失败'))),
-    // 请求整体结束兜底：若服务端未显式下发 done 事件，也保证收尾
-    complete: () => settle(handlers.onDone),
+    // 请求整体结束兜底：若服务端未显式下发 done 事件，也保证收尾（非 SSE 的错误体在此识别）
+    complete: () => settleOnComplete(),
   })
 
   if (task && typeof task.onChunkReceived === 'function') {
@@ -131,7 +160,8 @@ export function streamChat(payload: StreamChatPayload, handlers: StreamChatHandl
       } catch {
         /* ignore */
       }
-      settle(handlers.onDone)
+      // 主动中断走 onAbort（上层据此跳过「无内容→本地兜底文案」的收尾），未提供时按完成处理
+      settle(() => (handlers.onAbort ? handlers.onAbort() : handlers.onDone()))
     },
   }
 }

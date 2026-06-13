@@ -27,6 +27,11 @@ export function logout() {
   return http.post('/api/v1/app/auth/logout', {}, { silent: true })
 }
 
+/** 绑定微信 openid（手机号/密码登录用户支付前补授权；code 来自 uni.login） */
+export function bindWechat(code: string) {
+  return http.post<{ bound: boolean }>('/api/v1/app/auth/bind-wechat', { code }, { silent: true, showLoading: false })
+}
+
 // ── PC 扫码登录（小程序侧）──
 /** 标记已扫码（可选，用于 Web 端展示「已扫码」态） */
 export function qrScanned(sceneId: string) {

@@ -34,6 +34,12 @@ payRouter.post('/prepay', async (c) => {
     'SELECT openid FROM `user` WHERE id = ?',
     [order.user_id],
   )
+  // 具备真实支付能力时，无 openid（手机号/密码登录）不能下真实单，也不允许降级 mock；
+  // 返回 428 让前端静默 uni.login → /auth/bind-wechat 补绑后重试，避免支付死路
+  const { canRealPay } = await import('../../services/wxpay/signer.js')
+  if (!userRow?.openid && canRealPay()) {
+    return fail(c, '支付需要微信授权，请重试', 428)
+  }
   const openid = userRow?.openid || `dev_${order.user_id}`
   const amountFen = Math.round(Number(order.total_amount) * 100)
   const result = await createPrepay(orderId, amountFen, openid, order.design_name || '袜款定制')

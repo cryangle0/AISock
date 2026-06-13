@@ -56,7 +56,7 @@
       />
     </div>
 
-    <a-modal v-model:visible="modalVisible" :title="editing ? '编辑花型' : '新增花型'" @ok="onSubmit" @cancel="modalVisible = false">
+    <a-modal v-model:visible="modalVisible" :title="editing ? '编辑花型' : '新增花型'" :on-before-ok="onSubmit" @cancel="modalVisible = false">
       <a-form :model="form" layout="vertical">
         <a-form-item label="名称"><a-input v-model="form.name" /></a-form-item>
         <a-form-item label="分类">
@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onActivated, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import {
   listPatterns, listCategories, createPattern, updatePattern, deletePattern,
@@ -169,23 +169,28 @@ function openEdit(p: Pattern) {
   modalVisible.value = true
 }
 
-async function onSubmit() {
+async function onSubmit(): Promise<boolean> {
   if (!form.name || !form.imageUrl) {
     Message.warning('名称和图片 URL 必填')
-    return
+    return false
   }
-  if (editing.value) {
-    await updatePattern(editing.value.id, {
-      name: form.name, imageUrl: form.imageUrl, thumbUrl: form.thumbUrl, categoryId: form.categoryId ?? null,
-    })
-    Message.success('已更新')
-  } else {
-    await createPattern(form)
-    Message.success('已创建')
+  try {
+    if (editing.value) {
+      await updatePattern(editing.value.id, {
+        name: form.name, imageUrl: form.imageUrl, thumbUrl: form.thumbUrl, categoryId: form.categoryId ?? null,
+      })
+      Message.success('已更新')
+    } else {
+      await createPattern(form)
+      Message.success('已创建')
+    }
+  } catch {
+    // 接口报错时保持弹窗打开，表单不丢失（错误提示由拦截器统一处理）
+    return false
   }
-  modalVisible.value = false
   resetForm()
   fetchList()
+  return true
 }
 
 async function onDelete(id: number) {
@@ -228,7 +233,8 @@ async function refreshCategories() {
   categories.value = cats.data
 }
 
-onMounted(async () => {
+// keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
+onActivated(async () => {
   const cats = await listCategories()
   categories.value = cats.data
   fetchList()

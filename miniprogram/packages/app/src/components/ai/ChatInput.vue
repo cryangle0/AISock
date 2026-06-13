@@ -40,7 +40,7 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import { useVoiceInput } from '@aisock/composition'
 
 export interface Cat { id: string; name: string; icon: string }
-defineProps<{ cats: Cat[] }>()
+const props = defineProps<{ cats: Cat[]; disabled?: boolean }>()
 const emit = defineEmits<{ send: [text: string]; cat: [c: Cat] }>()
 
 const text = ref('')
@@ -49,6 +49,11 @@ const { recording, start, stop, cancel } = useVoiceInput((t) => {
   text.value = text.value ? `${text.value} ${t}` : t
 })
 function onSend() {
+  // AI 回复进行中不发送也不清空，避免用户输入被静默丢弃
+  if (props.disabled) {
+    uni.showToast({ title: '推荐官回复中，稍等一下哦', icon: 'none' })
+    return
+  }
   const t = text.value.trim()
   if (!t) return
   emit('send', t)

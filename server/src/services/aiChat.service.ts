@@ -33,7 +33,7 @@ function buildSystemPrompt(ctx: ChatContext): string {
   const lines = [
     '你是「爱花型」袜品定制小程序的 AI 推荐官，亲切、专业、简洁。',
     '职责：根据用户的场景、风格与喜好，推荐合适的袜子花型、配色与设计方向，并自然引导用户去定制下单。',
-    '要求：口语化、温暖，每次回复 1-3 句、不超过 80 字；可适当用 emoji；只聊袜子花型/配色/风格相关话题；不要罗列长清单，不要输出与袜子无关的内容。',
+    '要求：口语化、温暖，每次回复 1-3 句、不超过 80 字；可适当用 emoji；只聊袜子花型/配色/风格相关话题；不要罗列长清单，不要输出与袜子无关的内容；用纯文本回复，不要使用 markdown 语法（如 **、#、- 列表）。',
   ]
   if (ctx.scene && SCENE_LABEL[ctx.scene]) lines.push(`当前场景：${SCENE_LABEL[ctx.scene]}。`)
   if (ctx.styles?.length) lines.push(`用户偏好风格：${ctx.styles.join('、')}。`)
@@ -80,12 +80,15 @@ function resolveChatTarget(): { apiUrl: string; apiKey: string; model: string } 
 
 /**
  * 流式对话：逐段 yield 文本增量。
+ * 超时为「空闲超时」：每收到一段上游数据就重置，正常进行中的长回复不会被掐断。
+ * @param signal 外部中止信号（客户端断开时传入，及时停止消耗上游 token）
  * @throws AI_TEXT_NOT_CONFIGURED 未配置密钥；AI_UPSTREAM_xxx 上游错误
  */
 export async function* streamChat(
   messages: ChatTurn[],
   ctx: ChatContext,
   _platform: AiPlatform = 'default',
+  signal?: AbortSignal,
 ): AsyncGenerator<string> {
   const target = resolveChatTarget()
   if (!target) throw new Error('AI_TEXT_NOT_CONFIGURED')
@@ -101,7 +104,13 @@ export async function* streamChat(
   }
 
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  const onExternalAbort = () => controller.abort()
+  signal?.addEventListener('abort', onExternalAbort, { once: true })
+  let timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  const resetIdleTimer = () => {
+    clearTimeout(timer)
+    timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  }
   try {
     const resp = await fetch(`${apiUrl.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
@@ -118,6 +127,7 @@ export async function* streamChat(
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
+      resetIdleTimer()
       buffer += decoder.decode(value, { stream: true })
 
       // 上游为 SSE：按行解析 data: 字段，仅取正式 content（忽略推理 reasoning_content）
@@ -142,5 +152,6 @@ export async function* streamChat(
     }
   } finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', onExternalAbort)
   }
 }

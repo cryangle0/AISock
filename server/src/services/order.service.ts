@@ -25,6 +25,8 @@ export interface Order {
   pay_method: string | null
   paid_at: string | null
   created_at: string
+  /** 关联设计的封面（LEFT JOIN design 带回，便于列表/详情展示） */
+  cover_url?: string | null
 }
 
 function genOrderNo(): string {
@@ -36,17 +38,23 @@ function genOrderNo(): string {
 }
 
 export async function listOrders(userId: number, status?: OrderStatus): Promise<Order[]> {
+  // 带回设计封面，订单列表/详情可展示设计稿缩略图
+  const base = `SELECT o.*, d.cover_url FROM \`order\` o LEFT JOIN design d ON d.id = o.design_id`
   if (status) {
     return query<Order>(
-      'SELECT * FROM `order` WHERE user_id = ? AND status = ? ORDER BY id DESC',
+      `${base} WHERE o.user_id = ? AND o.status = ? ORDER BY o.id DESC`,
       [userId, status],
     )
   }
-  return query<Order>('SELECT * FROM `order` WHERE user_id = ? ORDER BY id DESC', [userId])
+  return query<Order>(`${base} WHERE o.user_id = ? ORDER BY o.id DESC`, [userId])
 }
 
 export async function getOrder(id: number, userId: number): Promise<Order | null> {
-  return queryOne<Order>('SELECT * FROM `order` WHERE id = ? AND user_id = ?', [id, userId])
+  return queryOne<Order>(
+    `SELECT o.*, d.cover_url FROM \`order\` o LEFT JOIN design d ON d.id = o.design_id
+     WHERE o.id = ? AND o.user_id = ?`,
+    [id, userId],
+  )
 }
 
 export interface CreateOrderInput {
@@ -64,20 +72,40 @@ export interface CreateOrderInput {
 }
 
 export async function createOrder(userId: number, input: CreateOrderInput): Promise<{ id: number; orderNo: string }> {
-  const orderNo = genOrderNo()
   // 服务端权威计价：单价/总价按 材质 + 工艺 + 数量 计算，不信任前端传值
   const price = computePrice({ material: input.material, craft: input.craft, quantity: input.quantity })
-  const r = await execute(
-    `INSERT INTO \`order\`
+  const args = (orderNo: string) => [
+    orderNo, userId, input.designId ?? null, input.designName ?? null, input.sockModelId ?? null,
+    input.sizes ? JSON.stringify(input.sizes) : null, price.quantity, price.unitPrice, price.total,
+    input.material ?? null, input.craft ?? null, input.address ?? null, input.remark ?? null,
+  ]
+  const sql = `INSERT INTO \`order\`
       (order_no, user_id, design_id, design_name, sock_model_id, sizes, quantity, unit_price, total_amount, material, craft, address, remark, status)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending')`,
-    [
-      orderNo, userId, input.designId ?? null, input.designName ?? null, input.sockModelId ?? null,
-      input.sizes ? JSON.stringify(input.sizes) : null, price.quantity, price.unitPrice, price.total,
-      input.material ?? null, input.craft ?? null, input.address ?? null, input.remark ?? null,
-    ],
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending')`
+  let orderNo = genOrderNo()
+  try {
+    const r = await execute(sql, args(orderNo))
+    return { id: r.insertId, orderNo }
+  } catch (err: any) {
+    // 同日 6 位随机数小概率撞 uk_order_no：换号重试一次
+    if (err?.code !== 'ER_DUP_ENTRY') throw err
+    orderNo = genOrderNo()
+    const r = await execute(sql, args(orderNo))
+    return { id: r.insertId, orderNo }
+  }
+}
+
+/** 用户取消订单：仅「待付款」可取消（已付款后须走客服/管理端） */
+export async function cancelOrder(id: number, userId: number): Promise<void> {
+  const order = await getOrder(id, userId)
+  if (!order) throw Object.assign(new Error('订单不存在'), { status: 404 })
+  if (order.status !== 'pending') {
+    throw Object.assign(new Error('仅待付款订单可取消'), { status: 400 })
+  }
+  await execute(
+    `UPDATE \`order\` SET status = 'cancelled' WHERE id = ? AND user_id = ? AND status = 'pending'`,
+    [id, userId],
   )
-  return { id: r.insertId, orderNo }
 }
 
 export async function orderStats(userId: number): Promise<Record<string, number>> {

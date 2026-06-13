@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onActivated, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listUsers, updateUserStatus, updateUserQuota, type AdminUser } from '@/api/users'
 
@@ -92,7 +92,8 @@ async function onChangeQuota(record: AdminUser, quota: number) {
   Message.success('配额已更新')
 }
 
-onMounted(fetchList)
+// keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
+onActivated(fetchList)
 </script>
 
 <style scoped lang="less">

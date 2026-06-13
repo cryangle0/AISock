@@ -12,15 +12,6 @@ export interface AiTask {
   created_at: string
 }
 
-export interface DesignRow {
-  id: number
-  user_id: number
-  user_phone: string | null
-  name: string
-  cover_url: string | null
-  created_at: string
-}
-
 export interface Shipment {
   id: number
   order_id: number
@@ -35,9 +26,6 @@ export function listAiTasks(params: { pageNum?: number; pageSize?: number; statu
 }
 export function aiTaskStats() {
   return axios.get<Record<string, number>>('/api/v1/admin/ai-tasks/stats')
-}
-export function listDesigns(params: { pageNum?: number; pageSize?: number }) {
-  return axios.get<PageResult<DesignRow>>('/api/v1/admin/ai-tasks/designs', { params })
 }
 
 export function listShipments() {

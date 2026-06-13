@@ -26,8 +26,8 @@
         <view v-else class="design-empty">无预览图</view>
       </view>
       <view class="row"><text>设计名称</text><text>{{ order.design_name || '袜款设计' }}</text></view>
-      <view class="row"><text>材质</text><text>{{ order.material || '棉' }}</text></view>
-      <view class="row"><text>工艺</text><text>{{ order.craft || 'UV 印花' }}</text></view>
+      <view class="row"><text>材质</text><text>{{ materialLabel }}</text></view>
+      <view class="row"><text>工艺</text><text>{{ craftLabel }}</text></view>
     </view>
 
     <!-- 尺码分布 -->
@@ -87,7 +87,8 @@
 
     <!-- 操作 -->
     <view class="footer">
-      <button class="cta secondary" @tap="onContactSupport">联系客服</button>
+      <button v-if="isPending" class="cta secondary" :disabled="cancelling" @tap="onCancel">{{ cancelling ? '取消中…' : '取消订单' }}</button>
+      <button v-else class="cta secondary" @tap="onContactSupport">联系客服</button>
       <button v-if="isPending" class="cta primary" :disabled="paying" @tap="onPay">{{ paying ? '支付中…' : '去支付' }}</button>
       <button v-else class="cta primary" @tap="goBack">返回列表</button>
     </view>
@@ -105,6 +106,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { orderApi } from '@aisock/service'
 import { navigateBack } from '@aisock/common/utils'
 import { SUPPORT_PHONE } from '@aisock/common/constants'
+import { MATERIALS, CRAFTS } from '@aisock/common'
 import type { Order } from '@aisock/common/types'
 import OrderAttachments from '@/components/order/OrderAttachments.vue'
 import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
@@ -119,6 +121,17 @@ const editing = ref(false)
 const draftNote = ref('')
 const draftAddress = ref('')
 const paying = ref(false)
+const cancelling = ref(false)
+
+// 落库的是枚举 key（cotton/uv 等），展示时映射为用户文案
+const materialLabel = computed(() => {
+  const v = order.value?.material
+  return MATERIALS.find((m) => m.value === v)?.label || v || '棉'
+})
+const craftLabel = computed(() => {
+  const v = order.value?.craft
+  return CRAFTS.find((c) => c.value === v)?.label || v || 'UV 印花'
+})
 
 // 待支付（未进入生产流程）：步骤条不点亮任一节点，单独引导支付
 const isPending = computed(() => order.value?.status === 'pending')
@@ -169,6 +182,23 @@ async function onPay() {
     uni.showToast({ title: e?.message || '支付失败，请重试', icon: 'none' })
   } finally {
     paying.value = false
+  }
+}
+
+/** 取消订单（仅待付款）：确认后调服务端，状态机校验本人 + pending */
+async function onCancel() {
+  if (!order.value || cancelling.value) return
+  const r = await uni.showModal({ title: '取消订单', content: '确定取消该订单吗？取消后不可恢复。' })
+  if (!r.confirm) return
+  cancelling.value = true
+  try {
+    await orderApi.cancelOrder(order.value.id)
+    uni.showToast({ title: '订单已取消', icon: 'none' })
+    await reload()
+  } catch {
+    /* 拦截器已提示 */
+  } finally {
+    cancelling.value = false
   }
 }
 
