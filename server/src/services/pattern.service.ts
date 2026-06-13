@@ -18,6 +18,7 @@ export interface Pattern {
 export interface PatternCategory {
   id: number
   name: string
+  description: string | null
   sort: number
 }
 
@@ -33,11 +34,12 @@ export async function getPublicPatternById(id: number): Promise<Pattern | null> 
   )
 }
 
-/** 更新分类（名称/排序） */
-export async function updateCategory(id: number, data: { name?: string; sort?: number }): Promise<void> {
+/** 更新分类（名称/描述/排序） */
+export async function updateCategory(id: number, data: { name?: string; description?: string | null; sort?: number }): Promise<void> {
   const fields: string[] = []
   const args: any[] = []
   if (data.name !== undefined) { fields.push('name = ?'); args.push(data.name) }
+  if (data.description !== undefined) { fields.push('description = ?'); args.push(data.description) }
   if (data.sort !== undefined) { fields.push('sort = ?'); args.push(data.sort) }
   if (!fields.length) return
   args.push(id)

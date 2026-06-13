@@ -70,27 +70,46 @@
     </a-modal>
 
     <a-modal v-model:visible="categoryModalVisible" title="分类管理" :footer="false" @cancel="categoryModalVisible = false">
-      <a-list :bordered="false" :max-height="320">
+      <a-list :bordered="false" :max-height="400">
         <a-list-item v-for="cat in categories" :key="cat.id">
-          <a-space>
-            <a-input v-model="cat.name" :style="{ width: '150px' }" />
-            <a-input-number v-model="cat.sort" :min="0" :style="{ width: '90px' }" placeholder="排序" />
-            <a-button size="mini" type="primary" @click="onSaveCategory(cat)">保存</a-button>
-            <a-popconfirm content="删除该分类？其下花型将变为未分类" @ok="onDeleteCategory(cat.id)">
-              <a-button size="mini" status="danger">删除</a-button>
-            </a-popconfirm>
+          <a-space direction="vertical" fill :size="6">
+            <a-space>
+              <a-input v-model="cat.name" :style="{ width: '150px' }" placeholder="分类名" />
+              <a-input-number v-model="cat.sort" :min="0" :style="{ width: '90px' }" placeholder="排序" />
+              <a-button size="mini" type="primary" @click="onSaveCategory(cat)">保存</a-button>
+              <a-popconfirm content="删除该分类？其下花型将变为未分类" @ok="onDeleteCategory(cat.id)">
+                <a-button size="mini" status="danger">删除</a-button>
+              </a-popconfirm>
+            </a-space>
+            <a-textarea
+              :model-value="cat.description ?? ''"
+              @update:model-value="(v: string) => (cat.description = v)"
+              :max-length="255"
+              :auto-size="{ minRows: 1, maxRows: 3 }"
+              placeholder="风格描述（发现页该分类下展示，可空）"
+              :style="{ width: '420px' }"
+            />
           </a-space>
         </a-list-item>
         <template #empty><a-empty description="暂无分类" /></template>
       </a-list>
       <a-divider :margin="12" />
-      <a-space>
-        <a-input v-model="categoryForm.name" placeholder="新分类名，如 节气 / 国潮" :style="{ width: '150px' }" />
-        <a-input-number v-model="categoryForm.sort" :min="0" :style="{ width: '90px' }" placeholder="排序" />
-        <a-button type="primary" @click="onCreateCategory">
-          <template #icon><icon-plus /></template>
-          新增分类
-        </a-button>
+      <a-space direction="vertical" :size="8">
+        <a-space>
+          <a-input v-model="categoryForm.name" placeholder="新分类名，如 节气 / 国潮" :style="{ width: '150px' }" />
+          <a-input-number v-model="categoryForm.sort" :min="0" :style="{ width: '90px' }" placeholder="排序" />
+          <a-button type="primary" @click="onCreateCategory">
+            <template #icon><icon-plus /></template>
+            新增分类
+          </a-button>
+        </a-space>
+        <a-textarea
+          v-model="categoryForm.description"
+          :max-length="255"
+          :auto-size="{ minRows: 1, maxRows: 3 }"
+          placeholder="风格描述（可空）"
+          :style="{ width: '420px' }"
+        />
       </a-space>
     </a-modal>
   </div>
@@ -119,7 +138,7 @@ const form = reactive<{ name: string; imageUrl: string; thumbUrl: string; catego
   name: '', imageUrl: '', thumbUrl: '', categoryId: undefined,
 })
 const categoryModalVisible = ref(false)
-const categoryForm = reactive<{ name: string; sort: number }>({ name: '', sort: 0 })
+const categoryForm = reactive<{ name: string; description: string; sort: number }>({ name: '', description: '', sort: 0 })
 
 async function fetchList() {
   loading.value = true
@@ -204,9 +223,9 @@ async function onCreateCategory() {
     Message.warning('分类名必填')
     return
   }
-  await createCategory({ name: categoryForm.name.trim(), sort: categoryForm.sort })
+  await createCategory({ name: categoryForm.name.trim(), description: categoryForm.description.trim() || undefined, sort: categoryForm.sort })
   Message.success('分类已创建')
-  Object.assign(categoryForm, { name: '', sort: 0 })
+  Object.assign(categoryForm, { name: '', description: '', sort: 0 })
   await refreshCategories()
 }
 
@@ -215,7 +234,7 @@ async function onSaveCategory(cat: PatternCategory) {
     Message.warning('分类名不能为空')
     return
   }
-  await updateCategory(cat.id, { name: cat.name.trim(), sort: cat.sort })
+  await updateCategory(cat.id, { name: cat.name.trim(), description: (cat.description ?? '').trim() || null, sort: cat.sort })
   Message.success('已保存')
   await refreshCategories()
 }

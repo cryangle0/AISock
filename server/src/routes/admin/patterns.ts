@@ -14,15 +14,15 @@ adminPatternsRouter.get('/categories', async (c) => {
 })
 
 adminPatternsRouter.post('/categories', async (c) => {
-  const { name, sort } = await c.req.json<{ name?: string; sort?: number }>()
+  const { name, description, sort } = await c.req.json<{ name?: string; description?: string; sort?: number }>()
   if (!name) return fail(c, '分类名不能为空')
-  const r = await execute('INSERT INTO pattern_category (name, sort) VALUES (?, ?)', [name, sort ?? 0])
+  const r = await execute('INSERT INTO pattern_category (name, description, sort) VALUES (?, ?, ?)', [name, description ?? null, sort ?? 0])
   return ok(c, { id: r.insertId })
 })
 
 adminPatternsRouter.put('/categories/:id', async (c) => {
-  const { name, sort } = await c.req.json<{ name?: string; sort?: number }>()
-  await updateCategory(Number(c.req.param('id')), { name, sort })
+  const { name, description, sort } = await c.req.json<{ name?: string; description?: string | null; sort?: number }>()
+  await updateCategory(Number(c.req.param('id')), { name, description, sort })
   return ok(c, { updated: true })
 })
 

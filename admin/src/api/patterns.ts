@@ -13,6 +13,7 @@ export interface Pattern {
 export interface PatternCategory {
   id: number
   name: string
+  description: string | null
   sort: number
 }
 
@@ -28,11 +29,11 @@ export function listCategories() {
   return axios.get<PatternCategory[]>('/api/v1/admin/patterns/categories')
 }
 
-export function createCategory(data: { name: string; sort?: number }) {
+export function createCategory(data: { name: string; description?: string; sort?: number }) {
   return axios.post<{ id: number }>('/api/v1/admin/patterns/categories', data)
 }
 
-export function updateCategory(id: number, data: { name?: string; sort?: number }) {
+export function updateCategory(id: number, data: { name?: string; description?: string | null; sort?: number }) {
   return axios.put(`/api/v1/admin/patterns/categories/${id}`, data)
 }
 

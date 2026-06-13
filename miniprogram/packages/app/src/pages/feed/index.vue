@@ -32,6 +32,9 @@
       </view>
 
       <view class="feed-body">
+        <!-- 该分类的风格描述（后台「分类管理」可配，对齐设计稿 Topic Description） -->
+        <view v-if="activeTabDesc" class="topic-desc">{{ activeTabDesc }}</view>
+
         <!-- 真实花型商品网格 -->
         <view v-if="loading" class="state">加载中…</view>
         <view v-else-if="!products.length" class="state">该分类暂无花型，换一个看看～</view>
@@ -73,11 +76,13 @@ import CustomTabBar from '@/components/CustomTabBar.vue'
 
 const HERO_IMG = '/static/images/feed-hero.jpg'
 
-interface Tab { id: number; name: string }
+interface Tab { id: number; name: string; desc?: string }
 const ALL_TAB: Tab = { id: 0, name: '全部' }
 const tabs = ref<Tab[]>([ALL_TAB])
 const activeId = ref(0)
-const activeTabName = computed(() => tabs.value.find((t) => t.id === activeId.value)?.name || '全部')
+const activeTab = computed(() => tabs.value.find((t) => t.id === activeId.value))
+const activeTabName = computed(() => activeTab.value?.name || '全部')
+const activeTabDesc = computed(() => activeTab.value?.desc?.trim() || '')
 
 const products = ref<BuyableProduct[]>([])
 const loading = ref(false)
@@ -86,7 +91,7 @@ let loaded = false
 async function loadCategories() {
   try {
     const res = await catalogApi.listPatternCategories()
-    if (res.data?.length) tabs.value = [ALL_TAB, ...res.data.map((c) => ({ id: c.id, name: c.name }))]
+    if (res.data?.length) tabs.value = [ALL_TAB, ...res.data.map((c) => ({ id: c.id, name: c.name, desc: c.description ?? '' }))]
   } catch {
     /* 保留全部 tab */
   }
@@ -207,6 +212,17 @@ onShow(async () => {
 
 .feed-body {
   padding: 32rpx 32rpx calc(180rpx + env(safe-area-inset-bottom));
+}
+
+/* 分类风格描述：居中衬线、暖褐色，多行（对齐设计稿 Topic Description） */
+.topic-desc {
+  margin: 0 8rpx 8rpx;
+  text-align: center;
+  font-size: 26rpx;
+  line-height: 1.85;
+  color: $mp-text-secondary;
+  font-family: $mp-font-serif;
+  white-space: pre-wrap;
 }
 
 /* 主题 Banner 卡片：顶部圆角 + 上/左/右描边，底部不要边框（向下开口、融入背景） */

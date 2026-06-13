@@ -45,6 +45,7 @@ export interface Pattern {
 export interface PatternCategory {
   id: number
   name: string
+  description?: string | null
 }
 
 export interface Design {
