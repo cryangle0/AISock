@@ -18,11 +18,15 @@
               <view v-if="t.id === activeId" class="topic-underline" />
             </view>
           </scroll-view>
-          <!-- 「分类」标题并入顶部背景：与 hero 同一张图连续，无断层 -->
-          <view class="hero-banner">
-            <view class="tb-ornament"><view class="tb-line" /><view class="tb-diamond" /></view>
-            <text class="tb-title">{{ activeTabName }}</text>
-            <view class="tb-ornament"><view class="tb-diamond" /><view class="tb-line" /></view>
+          <!-- 主题 Banner 卡片：圆角边框 + 主题大图 + 居中分类名，叠在 hero 丛林背景上（对齐设计稿 Section-Banner Card radius=12px） -->
+          <view class="topic-banner">
+            <image class="tb-img" :src="HERO_IMG" mode="aspectFill" />
+            <view class="topic-banner-scrim" />
+            <view class="tb-titlebar">
+              <view class="tb-ornament"><view class="tb-line" /><view class="tb-diamond" /></view>
+              <text class="tb-title">{{ activeTabName }}</text>
+              <view class="tb-ornament"><view class="tb-diamond" /><view class="tb-line" /></view>
+            </view>
           </view>
         </view>
       </view>
@@ -153,29 +157,27 @@ onShow(async () => {
   position: absolute;
   inset: 0;
   z-index: 1;
-  /* 顶部为状态栏/「发现」加深保证白字清晰，中段透出丛林大图，
-     接近「分类」标题处再加深，最底部才渐隐到米色衔接下方网格 */
+  /* 顶部加深保证「发现」/tab 白字清晰，中段透出丛林大图，最底部渐隐到米色衔接下方网格 */
   background: linear-gradient(
     180deg,
     rgba(40, 26, 18, 0.5) 0%,
-    rgba(58, 40, 28, 0.34) 20%,
-    rgba(96, 74, 52, 0.2) 46%,
-    rgba(74, 50, 34, 0.36) 70%,
-    rgba(110, 82, 58, 0.5) 84%,
-    rgba(240, 235, 226, 0.86) 96%,
+    rgba(58, 40, 28, 0.34) 18%,
+    rgba(96, 74, 52, 0.18) 42%,
+    rgba(90, 66, 46, 0.22) 74%,
+    rgba(200, 178, 158, 0.45) 90%,
     #f7f3ea 100%
   );
 }
 .hero-fg {
   position: relative;
   z-index: 2;
-  padding-bottom: 12rpx;
+  padding-bottom: 32rpx;
 }
 .topic-tabs {
   position: relative;
   z-index: 2;
   white-space: nowrap;
-  padding: 8rpx 24rpx 20rpx;
+  padding: 8rpx 24rpx 16rpx;
 }
 .topic {
   display: inline-flex;
@@ -204,15 +206,39 @@ onShow(async () => {
   padding: 32rpx 32rpx calc(180rpx + env(safe-area-inset-bottom));
 }
 
-/* 「分类」标题：并入 hero 底部，居中的暖金描边 + 衬线大字 */
-.hero-banner {
+/* 主题 Banner 卡片：圆角边框 + 主题大图，叠在 hero 丛林背景上（侧边露出 hero 大图） */
+.topic-banner {
   position: relative;
-  z-index: 2;
+  margin: 8rpx 32rpx 0;
+  height: 300rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  border: 2rpx solid rgba(255, 248, 236, 0.6);
+  box-shadow: 0 10rpx 28rpx rgba(60, 40, 28, 0.28);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.tb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.topic-banner-scrim {
+  position: absolute;
+  inset: 0;
+  /* 底部加深，保证分类名白字清晰 */
+  background: linear-gradient(180deg, rgba(43, 31, 20, 0.12) 0%, rgba(43, 31, 20, 0.18) 50%, rgba(43, 31, 20, 0.5) 100%);
+}
+.tb-titlebar {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20rpx;
-  padding: 16rpx 0 36rpx;
+  padding-bottom: 34rpx;
 }
 .tb-ornament {
   position: relative;
