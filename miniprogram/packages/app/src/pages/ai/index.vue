@@ -1,6 +1,6 @@
 <template>
   <view class="ai">
-    <NavBar brand title="爱花型 AI" variant="solid" />
+    <NavBar brand title="爱花型 AI" variant="transparent" />
 
     <scroll-view
       class="ai-scroll"
@@ -297,7 +297,15 @@ function goPurchase() {
   box-sizing: border-box;
   /* 预留底部自定义 tabBar 高度（96rpx + 安全区），避免输入框被 tabBar 遮住 */
   padding-bottom: calc(96rpx + env(safe-area-inset-bottom));
-  background: $mp-bg-warm;
+  /* 顶部敦煌棕主题渐变（与首页/发现一致）：深棕顶 → 约 540rpx 渐隐到暖米底 */
+  background: linear-gradient(
+    180deg,
+    #8e4f43 0rpx,
+    #9c5a4d 150rpx,
+    #b67c6a 300rpx,
+    rgba(199, 159, 138, 0.5) 420rpx,
+    #fdf9f1 540rpx
+  );
   display: flex;
   flex-direction: column;
 }
@@ -309,16 +317,17 @@ function goPurchase() {
   padding: 24rpx 32rpx 24rpx;
 }
 
-/* 吉祥物 */
+/* 吉祥物（居中，对齐设计稿渲染图） */
 .mascot {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 28rpx;
+  padding-top: 16rpx;
 }
 .mascot-avatar {
-  width: 120rpx;
-  height: 120rpx;
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
   background: $mp-header-gradient;
   padding: 6rpx;
@@ -332,17 +341,19 @@ function goPurchase() {
   background: #fff;
 }
 .mascot-title {
-  margin-top: 18rpx;
+  margin-top: 22rpx;
   font-size: 36rpx;
   font-weight: 700;
   color: $mp-text-strong;
   font-family: $mp-font-serif;
+  text-align: center;
 }
 .mascot-sub {
   margin-top: 8rpx;
   font-size: 24rpx;
   color: $mp-text-muted;
   font-family: $mp-font-serif;
+  text-align: center;
 }
 
 /* 对话 */
