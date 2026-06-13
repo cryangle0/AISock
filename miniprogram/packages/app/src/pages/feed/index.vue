@@ -35,25 +35,29 @@
         <!-- 该分类的风格描述（后台「分类管理」可配，对齐设计稿 Topic Description） -->
         <view v-if="activeTabDesc" class="topic-desc">{{ activeTabDesc }}</view>
 
-        <!-- 真实花型商品网格 -->
+        <!-- 真实花型记录：严格还原设计稿横向卡（左模特 + 中系列名/查看详情 + 右成对袜子，卡底为淡化花型图） -->
         <view v-if="loading" class="state">加载中…</view>
         <view v-else-if="!products.length" class="state">该分类暂无花型，换一个看看～</view>
-        <view v-else class="p-grid">
+        <view v-else class="rec-list">
           <view
-            v-for="p in products"
+            v-for="(p, i) in products"
             :key="p.patternId"
-            class="p-card"
+            class="rec-card"
             @tap="goDetail(p)"
           >
-            <view class="p-cover">
-              <image class="p-img" :src="p.cover" mode="aspectFill" lazy-load />
-            </view>
-            <view class="p-meta">
-              <text class="p-name">{{ p.name }}</text>
-              <view class="p-link">
-                <text class="p-link-text">查看详情</text>
-                <AppIcon name="chevron-right" :size="20" color="#8e4f43" />
+            <image class="rec-bg" :src="p.cover" mode="aspectFill" lazy-load />
+            <view class="rec-bg-veil" />
+            <image class="rec-model" :src="i % 2 === 0 ? DISCOVER_IMG.modelA : DISCOVER_IMG.modelB" mode="widthFix" />
+            <view class="rec-info">
+              <text class="rec-name">{{ p.name }}</text>
+              <view class="rec-link">
+                <text class="rec-link-text">查看详情</text>
+                <AppIcon name="chevron-right" :size="22" color="#2a2724" />
               </view>
+            </view>
+            <view class="rec-socks">
+              <image class="rec-sock" :src="i % 2 === 0 ? DISCOVER_IMG.sockA : DISCOVER_IMG.sockB" mode="heightFix" />
+              <image class="rec-sock" :src="i % 2 === 0 ? DISCOVER_IMG.sockA : DISCOVER_IMG.sockB" mode="heightFix" />
             </view>
           </view>
         </view>
@@ -75,6 +79,14 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 
 const HERO_IMG = '/static/images/feed-hero.jpg'
+
+// 发现页记录卡的设计稿切图（模特照 / 成对袜子样机），按 index 交替
+const DISCOVER_IMG = {
+  modelA: '/static/discover/model-a.png',
+  modelB: '/static/discover/model-b.png',
+  sockA: '/static/discover/sock-a.png',
+  sockB: '/static/discover/sock-b.png',
+}
 
 interface Tab { id: number; name: string; desc?: string }
 const ALL_TAB: Tab = { id: 0, name: '全部' }
@@ -297,50 +309,87 @@ onShow(async () => {
   font-family: $mp-font-serif;
 }
 
-/* 花型商品网格 */
-.p-grid {
-  margin-top: 28rpx;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24rpx;
+/* 记录卡：横向白卡（左模特 + 中系列名/查看详情 + 右成对袜子），严格还原设计稿 */
+.rec-list {
+  margin-top: 24rpx;
+  /* 顶部留白：让首张卡的模特上出血不被裁切 */
+  padding-top: 20rpx;
 }
-.p-card {
-  background: $mp-bg-card;
-  border-radius: $mp-radius-md;
-  overflow: hidden;
-  box-shadow: $mp-shadow-sm;
+.rec-card {
+  position: relative;
+  height: 200rpx;
+  margin-bottom: 44rpx;
+  border-radius: 24rpx;
+  background: #faf6ef;
+  box-shadow: 0 8rpx 24rpx rgba(94, 60, 30, 0.1);
 }
-.p-cover {
-  width: 100%;
-  height: 320rpx;
-  background: $mp-bg-inset;
-}
-.p-img {
+/* 卡底：淡化的真实花型图（对齐设计稿 faint product-image 底纹） */
+.rec-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  border-radius: 24rpx;
 }
-.p-meta {
-  padding: 18rpx 20rpx 20rpx;
+.rec-bg-veil {
+  position: absolute;
+  inset: 0;
+  border-radius: 24rpx;
+  background: rgba(250, 246, 239, 0.82);
 }
-.p-name {
-  display: block;
+/* 左侧模特照：底对齐、上出血到卡外 */
+.rec-model {
+  position: absolute;
+  left: 20rpx;
+  bottom: 0;
+  width: 128rpx;
+  z-index: 2;
+}
+/* 中间系列名 + 查看详情：居中（避让左右） */
+.rec-info {
+  position: absolute;
+  left: 168rpx;
+  right: 172rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+.rec-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: $mp-text-strong;
+  color: #2a2724;
   font-family: $mp-font-serif;
+  text-align: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
-.p-link {
-  margin-top: 10rpx;
+.rec-link {
   display: flex;
   align-items: center;
-  gap: 2rpx;
+  gap: 4rpx;
 }
-.p-link-text {
-  font-size: 22rpx;
-  color: $mp-primary;
+.rec-link-text {
+  font-size: 24rpx;
+  color: #2a2724;
   font-family: $mp-font-serif;
+}
+/* 右侧成对袜子样机：底对齐、上出血 */
+.rec-socks {
+  position: absolute;
+  right: 20rpx;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 6rpx;
+}
+.rec-sock {
+  height: 224rpx;
 }
 </style>
