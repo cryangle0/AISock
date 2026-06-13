@@ -157,14 +157,14 @@ onShow(async () => {
   position: absolute;
   inset: 0;
   z-index: 1;
-  /* 顶部加深保证「发现」/tab 白字清晰，中段透出丛林大图，最底部渐隐到米色衔接下方网格 */
+  /* 主题（敦煌棕）渐变色叠加在大图上：顶部棕色保白字清晰 + 透出丛林大图 + 底部渐隐到米色 */
   background: linear-gradient(
     180deg,
-    rgba(40, 26, 18, 0.5) 0%,
-    rgba(58, 40, 28, 0.34) 18%,
-    rgba(96, 74, 52, 0.18) 42%,
-    rgba(90, 66, 46, 0.22) 74%,
-    rgba(200, 178, 158, 0.45) 90%,
+    rgba(142, 79, 67, 0.62) 0%,
+    rgba(142, 79, 67, 0.42) 20%,
+    rgba(164, 103, 90, 0.3) 44%,
+    rgba(142, 79, 67, 0.3) 72%,
+    rgba(196, 150, 120, 0.42) 90%,
     #f7f3ea 100%
   );
 }
@@ -206,15 +206,16 @@ onShow(async () => {
   padding: 32rpx 32rpx calc(180rpx + env(safe-area-inset-bottom));
 }
 
-/* 主题 Banner 卡片：圆角边框 + 主题大图，叠在 hero 丛林背景上（侧边露出 hero 大图） */
+/* 主题 Banner 卡片：顶部圆角 + 上/左/右描边，底部不要边框（向下开口、融入背景） */
 .topic-banner {
   position: relative;
   margin: 8rpx 32rpx 0;
   height: 300rpx;
-  border-radius: 24rpx;
+  border-radius: 24rpx 24rpx 0 0;
   overflow: hidden;
   border: 2rpx solid rgba(255, 248, 236, 0.6);
-  box-shadow: 0 10rpx 28rpx rgba(60, 40, 28, 0.28);
+  border-bottom: none;
+  box-shadow: 0 10rpx 28rpx rgba(60, 40, 28, 0.22);
   display: flex;
   align-items: flex-end;
   justify-content: center;
