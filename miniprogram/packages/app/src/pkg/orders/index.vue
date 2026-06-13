@@ -1,5 +1,7 @@
 <template>
   <view class="orders">
+    <NavBar title="订单管理" show-back variant="solid" />
+    <scroll-view class="orders-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <view class="tabs">
       <text
         v-for="t in statusTabs"
@@ -38,6 +40,7 @@
         </view>
       </view>
     </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -48,6 +51,7 @@ import { orderApi } from '@aisock/service'
 import { ORDER_STATUS_TEXT } from '@aisock/common/constants'
 import type { Order } from '@aisock/common/types'
 import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
+import NavBar from '@/components/ui/NavBar.vue'
 
 const statusTabs = [
   { key: '', label: '全部' },
@@ -134,7 +138,14 @@ function goDetail(id: number) {
 @import '@aisock/common/styles/variables.scss';
 
 .orders {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.orders-scroll {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
   padding: 24rpx 32rpx;
 }
 .tabs {

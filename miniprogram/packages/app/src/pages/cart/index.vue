@@ -1,5 +1,6 @@
 <template>
   <view class="cart">
+    <NavBar brand title="购物车" variant="solid" />
     <scroll-view class="cart-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
       <view v-if="!userStore.isLogin" class="empty">
         <text class="empty-icon">🛒</text>
@@ -40,6 +41,7 @@ import { ORDER_STATUS_TEXT } from '@aisock/common/constants'
 import { switchTab, navigateTo, reLaunch } from '@aisock/common/utils'
 import type { Order } from '@aisock/common/types'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import NavBar from '@/components/ui/NavBar.vue'
 const userStore = useUserStore()
 const orders = ref<Order[]>([])
 
@@ -64,9 +66,12 @@ const goOrderDetail = (id: number) => navigateTo(`/pkg/order-detail/index?id=${i
 
 .cart {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 .cart-scroll {
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   box-sizing: border-box;
   padding: 32rpx 32rpx 140rpx;
 }

@@ -132,9 +132,10 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/inde
 
 .home {
   height: 100vh;
-  /* 顶部暖棕渐变向下延伸、柔和过渡到米色页底（对齐 Figma：Frame 15 ~246px 线性渐变） */
+  /* 顶部暖棕渐变向下延伸，包裹住下方 banner 后再柔和过渡到米色页底
+     （banner 底约在 ~500rpx：导航栏~176 + 留白24 + banner 300，故渐变拉到 ~560rpx 之后才透明） */
   background:
-    linear-gradient(180deg, #a4675a 0%, #b07c6c 14%, rgba(176, 124, 108, 0) 470rpx),
+    linear-gradient(180deg, #a4675a 0%, #b07c6c 22%, rgba(176, 124, 108, 0.5) 430rpx, rgba(176, 124, 108, 0) 560rpx),
     $mp-bg;
   display: flex;
   flex-direction: column;

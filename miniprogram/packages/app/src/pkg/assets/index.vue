@@ -1,5 +1,7 @@
 <template>
   <view class="assets">
+    <NavBar title="素材库" show-back variant="solid" />
+    <scroll-view class="assets-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <view class="search-bar">
       <text class="search-icon">🔍</text>
       <input v-model="query" placeholder="搜索花型 / 标签" />
@@ -46,6 +48,7 @@
         </view>
       </view>
     </template>
+    </scroll-view>
 
     <view v-if="scope === 'mine' && mine.length > 0" class="fab-wrap">
       <button class="upload-fab" @tap="onUpload">＋ 上传素材</button>
@@ -60,6 +63,7 @@ import { catalogApi, uploadApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import { useCatalog } from '@/composables/useCatalog'
 import PatternThumb from '@/components/PatternThumb.vue'
+import NavBar from '@/components/ui/NavBar.vue'
 
 const userStore = useUserStore()
 const { patterns: publicItems, ensureLoaded: ensureCatalog } = useCatalog()
@@ -123,7 +127,14 @@ async function onRemove(id: number) {
 @import '@aisock/common/styles/variables.scss';
 
 .assets {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.assets-scroll {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
   padding: 24rpx 32rpx 120rpx;
 }
 .search-bar {

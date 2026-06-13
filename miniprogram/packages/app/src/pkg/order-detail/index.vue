@@ -1,5 +1,8 @@
 <template>
-  <view class="od" v-if="order">
+  <view class="od-page">
+    <NavBar title="订单详情" show-back variant="solid" />
+    <scroll-view class="od-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
+    <view class="od" v-if="order">
     <!-- 待支付提示 -->
     <view v-if="isPending" class="pay-banner">
       <text class="pay-banner-text">订单待支付，完成支付后进入生产排期</text>
@@ -98,6 +101,8 @@
     <text>订单不存在</text>
     <button class="cta primary" @tap="goBack">返回列表</button>
   </view>
+    </scroll-view>
+  </view>
 </template>
 
 <script setup lang="ts">
@@ -110,6 +115,7 @@ import { MATERIALS, CRAFTS } from '@aisock/common'
 import type { Order } from '@aisock/common/types'
 import OrderAttachments from '@/components/order/OrderAttachments.vue'
 import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
+import NavBar from '@/components/ui/NavBar.vue'
 
 const statusFlow = ['paid', 'producing', 'shipped', 'done']
 const statusText: Record<string, string> = { paid: '待生产', producing: '生产中', shipped: '已发货', done: '已完成' }
@@ -247,8 +253,16 @@ function onContactSupport() {
 <style scoped lang="scss">
 @import '@aisock/common/styles/variables.scss';
 
+.od-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.od-scroll {
+  flex: 1;
+  min-height: 0;
+}
 .od {
-  min-height: 100vh;
   padding: 24rpx 32rpx 40rpx;
 }
 .pay-banner {
@@ -479,7 +493,7 @@ function onContactSupport() {
   color: #fff;
 }
 .empty {
-  min-height: 100vh;
+  min-height: 70vh;
   display: flex;
   flex-direction: column;
   align-items: center;

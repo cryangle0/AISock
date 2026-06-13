@@ -124,20 +124,20 @@ function onTap(item: Tab) {
 .fab {
   position: absolute;
   left: 50%;
-  top: -16rpx;
+  top: -30rpx;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .fab-ring {
-  width: 72rpx;
-  height: 72rpx;
+  width: 104rpx;
+  height: 104rpx;
   border-radius: 50%;
   background: $mp-header-gradient;
-  padding: 4rpx;
+  padding: 5rpx;
   box-sizing: border-box;
-  box-shadow: 0 8rpx 20rpx rgba(142, 79, 67, 0.4), 0 0 0 6rpx #fff;
+  box-shadow: 0 10rpx 24rpx rgba(142, 79, 67, 0.45), 0 0 0 7rpx #fff;
   transition: transform 0.2s ease;
 }
 .fab.active .fab-ring {

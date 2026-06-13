@@ -1,5 +1,6 @@
 <template>
   <view class="mine">
+    <NavBar brand title="我的" variant="solid" />
     <scroll-view class="mine-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
       <view class="user-card">
         <view class="avatar">{{ avatarText }}</view>
@@ -59,6 +60,7 @@ import { useUserStore } from '@aisock/composition'
 import { userApi } from '@aisock/service'
 import { maskPhone, navigateTo, reLaunch } from '@aisock/common/utils'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import NavBar from '@/components/ui/NavBar.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 
 const userStore = useUserStore()
@@ -127,9 +129,12 @@ async function onLogout() {
 
 .mine {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 .mine-scroll {
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   box-sizing: border-box;
   padding: 32rpx 32rpx 140rpx;
 }

@@ -1,5 +1,7 @@
 <template>
   <view class="sp">
+    <NavBar title="登录密码" show-back variant="solid" />
+    <scroll-view class="sp-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <view class="tip">
       {{ hasPassword ? '修改后可用「手机号 + 新密码」登录' : '设置后可用「手机号 + 密码」快捷登录' }}
     </view>
@@ -22,6 +24,7 @@
         {{ submitting ? '提交中…' : '保存' }}
       </button>
     </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -31,6 +34,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { userApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
 import { navigateBack } from '@aisock/common/utils'
+import NavBar from '@/components/ui/NavBar.vue'
 
 const userStore = useUserStore()
 const hasPassword = ref(false)
@@ -77,7 +81,14 @@ async function onSubmit() {
 @import '@aisock/common/styles/variables.scss';
 
 .sp {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.sp-scroll {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
   padding: 40rpx 48rpx;
 }
 .tip {

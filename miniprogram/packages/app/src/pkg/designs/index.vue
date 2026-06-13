@@ -1,5 +1,7 @@
 <template>
   <view class="designs">
+    <NavBar title="我的设计" show-back variant="solid" />
+    <scroll-view class="designs-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <view v-if="list.length === 0" class="empty">
       <text class="empty-icon">🧦</text>
       <text class="empty-text">暂无设计稿</text>
@@ -31,6 +33,7 @@
 
       <view v-if="filtered.length === 0" class="empty-mini">没有匹配的设计</view>
     </template>
+    </scroll-view>
   </view>
 </template>
 
@@ -40,6 +43,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { designApi } from '@aisock/service'
 import { navigateTo } from '@aisock/common/utils'
 import type { Design } from '@aisock/common/types'
+import NavBar from '@/components/ui/NavBar.vue'
 
 const list = ref<Design[]>([])
 const query = ref('')
@@ -74,7 +78,14 @@ const goEditor = () => navigateTo('/pkg/editor/index')
 @import '@aisock/common/styles/variables.scss';
 
 .designs {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.designs-scroll {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
   padding: 24rpx 32rpx;
 }
 .empty {
