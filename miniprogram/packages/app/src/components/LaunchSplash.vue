@@ -1,13 +1,11 @@
 <template>
   <view v-if="show" class="splash" :class="{ leaving }" @tap="dismiss">
-    <!-- 敦煌晨光底：暖棕夜色向沙金天光过渡 -->
-    <view class="sky" />
-    <!-- 矿物光晕（似洞窟烛照） -->
+    <!-- 矿物柔光（静态，似洞窟烛照，不做缩放动画避免真机抖动） -->
     <view class="glow" />
 
-    <!-- 浮金尘（敦煌壁画的剥落金箔感） -->
+    <!-- 浮金尘：缓慢上浮、柔和不闪灭 -->
     <view class="dust">
-      <view v-for="n in 9" :key="n" class="mote" :style="moteStyle(n)" />
+      <view v-for="n in 6" :key="n" class="mote" :style="moteStyle(n)" />
     </view>
 
     <!-- 中央品牌 -->
@@ -48,20 +46,20 @@ function dismiss() {
   setTimeout(() => {
     show.value = false
     emit('done')
-  }, 620)
+  }, 640)
 }
 
 onMounted(() => {
-  setTimeout(dismiss, props.duration ?? 1900)
+  setTimeout(dismiss, props.duration ?? 2000)
 })
 
-// 浮金尘：错落分布、各自飘浮
+// 浮金尘：错落分布，各自缓慢上浮（长时长 + 稳定不透明，避免闪灭）
 function moteStyle(n: number) {
-  const left = (n * 37) % 92 + 4
-  const top = (n * 53) % 80 + 8
-  const size = 4 + (n % 3) * 3
-  const delay = (n % 5) * 0.4
-  const dur = 3.4 + (n % 4) * 0.7
+  const left = (n * 61) % 84 + 8
+  const top = (n * 43) % 64 + 18
+  const size = 5 + (n % 3) * 3
+  const delay = (n % 3) * 0.5
+  const dur = 6 + (n % 3) * 1.5
   return {
     left: `${left}%`,
     top: `${top}%`,
@@ -81,6 +79,7 @@ function petalStyle(n: number) {
 <style scoped lang="scss">
 @import '@aisock/common/styles/variables.scss';
 
+/* 根元素自带不透明晨光底色 → 首帧即铺满，不依赖子元素、不露出底层页面（杜绝闪烁） */
 .splash {
   position: fixed;
   inset: 0;
@@ -89,55 +88,44 @@ function petalStyle(n: number) {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  background: linear-gradient(180deg, #f3dcae 0%, #d9a777 32%, #a4675a 64%, #6f4334 100%);
+  transition: opacity 0.64s ease, transform 0.64s ease;
 }
 .splash.leaving {
   opacity: 0;
-  transform: translateY(-24rpx);
+  transform: translateY(-20rpx);
 }
 
-/* 晨光天幕：上沙金、下暖棕，模拟敦煌日出 */
-.sky {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, #f3dcae 0%, #d9a777 32%, #a4675a 64%, #6f4334 100%);
-}
+/* 静态柔光（无缩放动画） */
 .glow {
   position: absolute;
   left: 50%;
-  top: 42%;
-  width: 760rpx;
-  height: 760rpx;
-  margin: -380rpx 0 0 -380rpx;
+  top: 40%;
+  width: 680rpx;
+  height: 680rpx;
+  margin: -340rpx 0 0 -340rpx;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 244, 214, 0.85) 0%, rgba(247, 222, 170, 0.32) 40%, transparent 70%);
-  animation: glow-breathe 3.2s ease-in-out infinite;
-}
-@keyframes glow-breathe {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.08); }
+  background: radial-gradient(circle, rgba(255, 244, 214, 0.78) 0%, rgba(247, 222, 170, 0.28) 42%, transparent 70%);
 }
 
-/* 浮金尘 */
+/* 浮金尘：缓慢上浮，opacity 维持柔和区间（不归零、不闪烁） */
 .dust { position: absolute; inset: 0; }
 .mote {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 248, 224, 0.95) 0%, rgba(222, 195, 138, 0.5) 60%, transparent 100%);
-  opacity: 0;
-  animation-name: mote-float;
+  background: radial-gradient(circle, rgba(255, 248, 224, 0.9) 0%, rgba(222, 195, 138, 0.45) 60%, transparent 100%);
+  opacity: 0.5;
+  animation-name: mote-drift;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
-@keyframes mote-float {
-  0% { opacity: 0; transform: translateY(16rpx); }
-  30% { opacity: 0.9; }
-  70% { opacity: 0.7; }
-  100% { opacity: 0; transform: translateY(-40rpx); }
+@keyframes mote-drift {
+  0% { transform: translateY(10rpx); opacity: 0.32; }
+  50% { transform: translateY(-14rpx); opacity: 0.62; }
+  100% { transform: translateY(10rpx); opacity: 0.32; }
 }
 
-/* 中央品牌 */
+/* 中央品牌：入场一次性上浮淡入 */
 .brand {
   position: relative;
   z-index: 2;
@@ -147,7 +135,7 @@ function petalStyle(n: number) {
   animation: brand-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes brand-rise {
-  from { opacity: 0; transform: translateY(32rpx) scale(0.96); }
+  from { opacity: 0; transform: translateY(30rpx) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -165,9 +153,13 @@ function petalStyle(n: number) {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 245, 224, 0.55) 0%, rgba(255, 245, 224, 0.08) 55%, transparent 72%);
-  box-shadow: 0 0 60rpx rgba(255, 240, 210, 0.6);
-  animation: glow-breathe 3.2s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(255, 245, 224, 0.5) 0%, rgba(255, 245, 224, 0.08) 55%, transparent 72%);
+  /* 仅 opacity 轻微呼吸（无缩放），柔和不抖 */
+  animation: halo-breathe 3.4s ease-in-out infinite;
+}
+@keyframes halo-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
 }
 .lotus {
   position: relative;
