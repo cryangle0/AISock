@@ -1,7 +1,7 @@
 <template>
   <view class="feed">
     <scroll-view class="feed-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
-      <!-- Hero 头图：暖色渐变遮罩 + 分类 Tab -->
+      <!-- 顶部一体化 Hero：同一背景图从状态栏延伸到「全部」标题底部，再渐隐到下方网格 -->
       <view class="hero">
         <image class="hero-img" :src="HERO_IMG" mode="aspectFill" />
         <view class="hero-mask" />
@@ -18,19 +18,16 @@
               <view v-if="t.id === activeId" class="topic-underline" />
             </view>
           </scroll-view>
+          <!-- 「分类」标题并入顶部背景：与 hero 同一张图连续，无断层 -->
+          <view class="hero-banner">
+            <view class="tb-ornament"><view class="tb-line" /><view class="tb-diamond" /></view>
+            <text class="tb-title">{{ activeTabName }}</text>
+            <view class="tb-ornament"><view class="tb-diamond" /><view class="tb-line" /></view>
+          </view>
         </view>
       </view>
 
       <view class="feed-body">
-        <!-- 主题 banner -->
-        <view class="topic-banner">
-          <image class="tb-img" :src="HERO_IMG" mode="aspectFill" />
-          <view class="topic-banner-scrim" />
-          <view class="tb-ornament"><view class="tb-line" /><view class="tb-diamond" /></view>
-          <text class="tb-title">{{ activeTabName }}</text>
-          <view class="tb-ornament"><view class="tb-diamond" /><view class="tb-line" /></view>
-        </view>
-
         <!-- 真实花型商品网格 -->
         <view v-if="loading" class="state">加载中…</view>
         <view v-else-if="!products.length" class="state">该分类暂无花型，换一个看看～</view>
@@ -156,26 +153,29 @@ onShow(async () => {
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* 顶部为状态栏/「发现」加深保证白字清晰，中段透出丛林大图，
+     接近「分类」标题处再加深，最底部才渐隐到米色衔接下方网格 */
   background: linear-gradient(
     180deg,
-    rgba(150, 58, 44, 0.5) 0%,
-    rgba(156, 66, 50, 0.46) 46%,
-    rgba(176, 110, 90, 0.42) 66%,
-    rgba(212, 190, 172, 0.5) 82%,
-    rgba(240, 235, 226, 0.86) 93%,
+    rgba(40, 26, 18, 0.5) 0%,
+    rgba(58, 40, 28, 0.34) 20%,
+    rgba(96, 74, 52, 0.2) 46%,
+    rgba(74, 50, 34, 0.36) 70%,
+    rgba(110, 82, 58, 0.5) 84%,
+    rgba(240, 235, 226, 0.86) 96%,
     #f7f3ea 100%
   );
 }
 .hero-fg {
   position: relative;
   z-index: 2;
-  padding-bottom: 24rpx;
+  padding-bottom: 12rpx;
 }
 .topic-tabs {
   position: relative;
   z-index: 2;
   white-space: nowrap;
-  padding: 8rpx 24rpx 28rpx;
+  padding: 8rpx 24rpx 20rpx;
 }
 .topic {
   display: inline-flex;
@@ -201,31 +201,18 @@ onShow(async () => {
 }
 
 .feed-body {
-  padding: 8rpx 32rpx calc(180rpx + env(safe-area-inset-bottom));
+  padding: 32rpx 32rpx calc(180rpx + env(safe-area-inset-bottom));
 }
 
-.topic-banner {
+/* 「分类」标题：并入 hero 底部，居中的暖金描边 + 衬线大字 */
+.hero-banner {
   position: relative;
-  height: 200rpx;
-  border-radius: $mp-radius-md;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20rpx;
-  overflow: hidden;
-  background: #5a8a7d;
-  box-shadow: $mp-shadow-md;
-}
-.tb-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.topic-banner-scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(43, 31, 20, 0.3);
+  padding: 16rpx 0 36rpx;
 }
 .tb-ornament {
   position: relative;
@@ -253,6 +240,7 @@ onShow(async () => {
   color: #fff;
   font-family: $mp-font-serif;
   letter-spacing: 0.06em;
+  text-shadow: 0 2rpx 8rpx rgba(40, 26, 18, 0.55);
 }
 
 .state {
