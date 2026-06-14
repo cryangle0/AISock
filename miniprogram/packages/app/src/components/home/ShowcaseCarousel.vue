@@ -51,27 +51,36 @@
 import { onMounted, ref, watch } from 'vue'
 import type { ConfigItem } from '@aisock/service'
 
-const props = defineProps<{ items: ConfigItem[] }>()
+const props = defineProps<{ items: ConfigItem[]; revealReady?: boolean }>()
 const emit = defineEmits<{ select: [item: ConfigItem] }>()
 
 // 默认选中中间一张（与原型一致）
 const active = ref(props.items.length > 1 ? 1 : 0)
 
-// 中心卡渐清晰：每次轮播到某张图（成为中心卡）时，清晰层从中心重放圆形扩展
+// 中心卡渐清晰：等「页面就绪(revealReady) + 当前图已加载」后，清晰层才从中心矩形(圆角)扩展，
+// 避免首页加载/启动页期间就播完导致用户看不到特效。
 const activeShown = ref(false)
-function replayReveal() {
-  activeShown.value = false // 先瞬时复位到「中心未清晰」（base 态无 transition，立即收圆）
-  // 切卡时图片已加载，稍后即从中心向四周逐步清晰
-  setTimeout(() => { activeShown.value = true }, 60)
-}
-watch(active, replayReveal)
+const loaded = new Set<number>()
 
-// 关键：等当前中心图「加载完成」后再触发渐清晰，避免图未到位时动画空放（表现为「无效果」）
-function onCoverLoad(i: number) {
-  if (i === active.value) activeShown.value = true
+function play() {
+  activeShown.value = false // 先瞬时复位到中心收拢（base 态无 transition）
+  setTimeout(() => { activeShown.value = true }, 60) // 再从中心向四周逐步清晰
 }
-// 兜底：个别图已缓存 / load 未触发时，确保最终清晰（放宽到 1.5s，给远程封面留足加载时间）
-onMounted(() => { setTimeout(() => { activeShown.value = true }, 1500) })
+function maybeReveal() {
+  if (props.revealReady !== false && loaded.has(active.value)) play()
+}
+function onCoverLoad(i: number) {
+  loaded.add(i)
+  if (i === active.value) maybeReveal()
+}
+// 切卡：先收拢，已加载则重放
+watch(active, () => { activeShown.value = false; maybeReveal() })
+// 页面就绪（冷启动启动页消失后）→ 触发当前卡渐清晰
+watch(() => props.revealReady, (v) => { if (v) maybeReveal() })
+// 兜底：就绪后若图迟迟未 load，最终仍展示清晰
+onMounted(() => {
+  setTimeout(() => { if (props.revealReady !== false && !activeShown.value) activeShown.value = true }, 3000)
+})
 
 // 触摸左右滑动切换（仅用 start/end 位移判断，不拦截 touchmove，避免影响页面竖向滚动）
 let touchStartX = 0
@@ -169,15 +178,15 @@ function onTap(i: number, d: ConfigItem) {
   background: linear-gradient(180deg, rgba(74, 48, 32, 0.34), rgba(120, 74, 54, 0.26));
 }
 /* 顶层清晰图：初始收到中心一点（无 transition → 切卡瞬时复位，不倒放）
-   用 inset 矩形裁剪 → 与卡片同形（矩形）从中心扩散，外圆角由卡片 overflow 负责 */
+   用 inset 矩形 + round 圆角裁剪 → 与卡片同形（圆角矩形）从中心扩散 */
 .cover-sharp {
-  clip-path: inset(50% 50% 50% 50%);
-  -webkit-clip-path: inset(50% 50% 50% 50%);
+  clip-path: inset(50% 50% 50% 50% round 36rpx);
+  -webkit-clip-path: inset(50% 50% 50% 50% round 36rpx);
 }
-/* 清晰态：矩形从中心向四周边缘逐步展开，覆盖模糊底 → 中心到四周渐次清晰（放慢节奏） */
+/* 清晰态：圆角矩形从中心向四周边缘逐步展开，覆盖模糊底 → 中心到四周渐次清晰（放慢节奏） */
 .cover-sharp.clear {
-  clip-path: inset(0 0 0 0);
-  -webkit-clip-path: inset(0 0 0 0);
+  clip-path: inset(0 0 0 0 round 36rpx);
+  -webkit-clip-path: inset(0 0 0 0 round 36rpx);
   transition: clip-path 2.8s cubic-bezier(0.33, 0.62, 0.36, 0.99),
     -webkit-clip-path 2.8s cubic-bezier(0.33, 0.62, 0.36, 0.99);
 }

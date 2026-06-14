@@ -40,7 +40,7 @@
 
         <!-- 4. 袜版设计预设（3D 横滑，无标题，紧随主题卡） -->
         <view class="section section--carousel">
-          <ShowcaseCarousel :items="featured" @select="onFeatured" />
+          <ShowcaseCarousel :items="featured" :reveal-ready="carouselReady" @select="onFeatured" />
         </view>
 
         <!-- 5. 资讯中心：后台「推荐资讯」可配；未配置自动隐藏 -->
@@ -92,6 +92,9 @@ import { cdnImg } from '@/config/cdn'
 // 启动页仅本次小程序进程冷启动展示一次：模块级标记，tab 来回切换不再重现
 const showSplash = ref(!splashShown)
 splashShown = true
+
+// 轮播渐清晰特效：等启动页消失（首页真正可见）后再播，避免加载/启动页期间空放看不到
+const carouselReady = computed(() => !showSplash.value)
 
 /**
  * 首页运营配置（主题随心订 / 案例 carousel）。
