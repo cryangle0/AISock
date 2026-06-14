@@ -1,13 +1,29 @@
 import { http } from './http.js'
 import type { SockModel, Pattern, PatternCategory, PageResult } from '@aisock/common/types'
+import type { ConfigItem } from './config.js'
 
-/** 首页聚合 */
+/** 首页运营 Banner（后台「Banner 管理」可配） */
+export interface Banner {
+  id: number
+  title: string | null
+  subtitle: string | null
+  image_url: string
+  link: string | null
+}
+
+/** 首页聚合：Banner + 主题/功能区/案例 + 袜型/分类（后台均可配） */
+export interface HomeAggregate {
+  banners: Banner[]
+  socks: SockModel[]
+  categories: PatternCategory[]
+  themes: ConfigItem[]
+  zones: ConfigItem[]
+  cases: ConfigItem[]
+}
+
+/** 首页聚合（一次请求拿全）。启动期非关键：静默 + 8s 快速超时，失败回退本地默认 */
 export function getHome() {
-  return http.get<{ banners: unknown[]; socks: SockModel[]; categories: PatternCategory[] }>(
-    '/api/v1/app/home',
-    undefined,
-    { showLoading: false },
-  )
+  return http.get<HomeAggregate>('/api/v1/app/home', undefined, { showLoading: false, silent: true, timeout: 8000 })
 }
 
 export function listSocks() {

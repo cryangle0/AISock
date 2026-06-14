@@ -52,54 +52,44 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { navigateTo } from '@aisock/common/utils'
-import { catalogApi } from '@aisock/service'
 import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
+import NavBar from '@/components/ui/NavBar.vue'
+import SectionTitle from '@/components/ui/SectionTitle.vue'
+import { cdnImg } from '@/config/cdn'
 
-const seriesTitle = ref('杭城袜韵')
-const navTitle = ref('袜款详情')
-const cover = ref<string | null>('/pkg/static/images/detail-hero.jpg')
-const patternId = ref<number | undefined>(undefined)
+// 详情页按 Figma「袜版定制 · 杭城」设计稿固定呈现（标题 / 轮播 / 描述 / 设计展示图均为定稿内容）
+const seriesTitle = '杭城袜韵'
+const navTitle = '袜版定制 · 杭城'
+const description = '将杭州城市文化融入袜品设计\n舒适与美学兼具\n传递城市温度与品质生活'
+const cover = cdnImg('/pkg/static/detail/hangzhou-hero.webp')
 const slide = ref(0)
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
-const description = ref('原创花型设计，舒适与美学兼具\n精准织造，传递品质生活')
 
-// 设计展示小图：有真实花型图则铺展，否则用静态占位
-const GRID_IMGS = ref<string[]>([
-  '/pkg/static/images/detail-1.jpg',
-  '/pkg/static/images/detail-2.jpg',
-  '/pkg/static/images/detail-3.jpg',
-])
+// 设计展示图（Figma 定稿，已转 webp 优化加载，托管 CDN）
+const GRID_IMGS = [
+  cdnImg('/pkg/static/detail/hangzhou-1.webp'),
+  cdnImg('/pkg/static/detail/hangzhou-2.webp'),
+  cdnImg('/pkg/static/detail/hangzhou-3.webp'),
+]
 
-onLoad(async (q?: Record<string, string>) => {
+// 仅保留 patternId 用于「立即购买」关联具体花型；页面展示内容保持固定不被覆盖
+const patternId = ref<number | undefined>(undefined)
+onLoad((q?: Record<string, string>) => {
   const id = q?.id ? Number(q.id) : NaN
-  if (!Number.isInteger(id) || id <= 0) {
-    if (q?.title) navTitle.value = decodeURIComponent(q.title)
-    return
-  }
-  try {
-    const res = await catalogApi.getPattern(id)
-    const p = res.data
-    patternId.value = p.id
-    seriesTitle.value = p.name
-    navTitle.value = p.name
-    cover.value = p.image_url
-    GRID_IMGS.value = [p.image_url, p.thumb_url || p.image_url, p.image_url]
-  } catch {
-    /* 取不到则保留默认占位 */
-  }
+  if (Number.isInteger(id) && id > 0) patternId.value = id
 })
 
 function onBuy() {
-  // 立即购买：携带真实花型封面 + patternId，购买页据此可直接成单
+  // 立即购买：携带封面 + patternId，购买页据此可直接成单
   navigateTo(purchaseRoute({
-    name: seriesTitle.value || '袜款',
-    cover: cover.value,
+    name: seriesTitle || '袜款',
+    cover,
     patternId: patternId.value,
   }))
 }
 function onCustomize() {
   // 定制设计：把花型图带入袜版选择页（upload）做个性化定制
-  stashCustomizeCover(cover.value)
+  stashCustomizeCover(cover)
   navigateTo('/pkg/upload/index')
 }
 </script>

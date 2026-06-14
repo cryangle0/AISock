@@ -86,8 +86,10 @@ function onMaskTap() {
 }
 .sheet-body {
   flex: 1;
+  width: 100%;
   padding: 24rpx 32rpx;
   min-height: 0;
+  box-sizing: border-box;
 }
 .sheet-foot {
   padding: 16rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));

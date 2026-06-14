@@ -21,7 +21,7 @@ export function generate(data: { type?: string; prompt?: string; refImage?: stri
 export function optimizePrompt(prompt: string, options?: { showLoading?: boolean }) {
   return http.post<{ original: string; optimized: string }>(
     '/api/v1/app/ai/optimize-prompt',
-    { prompt },
+    { prompt, platform: 'miniprogram' },
     { loadingText: 'AI 优化中...', timeout: 30000, showLoading: options?.showLoading ?? true, silent: options?.showLoading === false },
   )
 }
@@ -37,7 +37,7 @@ export function listTasks() {
 
 /** 语音识别：把已上传的音频 URL 转写为文本（千问 ASR） */
 export function asr(audioUrl: string) {
-  return http.post<{ text: string }>('/api/v1/app/ai/asr', { audioUrl }, { loadingText: '识别中...', timeout: 30000 })
+  return http.post<{ text: string }>('/api/v1/app/ai/asr', { audioUrl, platform: 'miniprogram' }, { loadingText: '识别中...', timeout: 30000 })
 }
 
 export interface VariantColors {

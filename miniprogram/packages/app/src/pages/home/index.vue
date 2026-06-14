@@ -10,10 +10,33 @@
       :show-scrollbar="false"
     >
       <view class="home-body">
-        <!-- 1. Hero 主题大图 banner -->
-        <HomeBanner :item="heroBanner" @tap="onHero" />
+        <!-- 1. Banner：后台「Banner 管理」可配多张轮播；未配置回退固定主视觉 -->
+        <swiper
+          v-if="banners.length"
+          class="banner-swiper"
+          :circular="true"
+          :autoplay="true"
+          :interval="4000"
+          :duration="500"
+          indicator-dots
+          indicator-active-color="#8e4f43"
+          indicator-color="rgba(255,255,255,0.45)"
+        >
+          <swiper-item v-for="b in banners" :key="b.id" @tap="onBanner(b)">
+            <image class="banner-img" :src="b.image_url" mode="aspectFill" />
+          </swiper-item>
+        </swiper>
+        <HomeBanner v-else :item="heroBanner" @tap="onHero" />
 
-        <!-- 2. 主题随心订 -->
+        <!-- 2. 功能区：后台「小程序配置 · 功能区」可配快捷入口 -->
+        <view v-if="zones.length" class="zones">
+          <view v-for="z in zones" :key="z.id" class="zone" @tap="go(z.link)">
+            <text class="zone-icon">{{ z.icon || '✨' }}</text>
+            <text class="zone-title">{{ z.title }}</text>
+          </view>
+        </view>
+
+        <!-- 3. 主题随心订 -->
         <view class="section">
           <view class="section-head">
             <text class="section-title">主题随心订</text>
@@ -23,9 +46,28 @@
           </view>
         </view>
 
-        <!-- 3. 袜版设计预设（3D 横滑，无标题，紧随主题卡） -->
+        <!-- 4. 袜版设计预设（3D 横滑，无标题，紧随主题卡） -->
         <view class="section section--carousel">
           <ShowcaseCarousel :items="featured" @select="onFeatured" />
+        </view>
+
+        <!-- 5. 资讯中心：后台「推荐资讯」可配；未配置自动隐藏 -->
+        <view v-if="news.length" class="section">
+          <view class="section-head">
+            <text class="section-title">资讯中心</text>
+          </view>
+          <view class="news-list">
+            <view v-for="a in news" :key="a.id" class="news-card" @tap="onNews(a)">
+              <image v-if="a.cover_url" class="news-cover" :src="a.cover_url" mode="aspectFill" lazy-load />
+              <view class="news-body">
+                <view class="news-top">
+                  <text class="news-title">{{ a.title }}</text>
+                  <text v-if="a.tag" class="news-tag">{{ a.tag }}</text>
+                </view>
+                <text v-if="a.summary" class="news-summary">{{ a.summary }}</text>
+              </view>
+            </view>
+          </view>
         </view>
       </view>
     </scroll-view>
@@ -46,13 +88,14 @@ let splashShown = false
 import { computed, ref } from 'vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { switchTab, navigateTo } from '@aisock/common/utils'
-import { configApi, type ConfigItem } from '@aisock/service'
+import { catalogApi, type ConfigItem, type Banner, type Article } from '@aisock/service'
 import NavBar from '@/components/ui/NavBar.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import LaunchSplash from '@/components/LaunchSplash.vue'
 import HomeBanner from '@/components/home/HomeBanner.vue'
 import ThemeCard from '@/components/home/ThemeCard.vue'
 import ShowcaseCarousel from '@/components/home/ShowcaseCarousel.vue'
+import { cdnImg } from '@/config/cdn'
 
 // 启动页仅本次小程序进程冷启动展示一次：模块级标记，tab 来回切换不再重现
 const showSplash = ref(!splashShown)
@@ -65,14 +108,14 @@ splashShown = true
  * 内容永不退化为占位图。失败/超时保留本地兜底，首屏永不空白。
  */
 const FALLBACK_THEMES: ConfigItem[] = [
-  { id: 'jieqi', title: '二十四节气', en: 'JIE QI', cover: '/static/images/theme-jieqi.png', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)', decoColor: '#5a8a7d' },
-  { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', cover: '/static/images/theme-dunhuang.png', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)', decoColor: '#8E4F43' },
-  { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', cover: '/static/images/theme-wenchuang.png', bg: 'linear-gradient(135deg,#9BB8CC,#5F93C2)', decoColor: '#3a6fa3' },
+  { id: 'jieqi', title: '二十四节气', en: 'JIE QI', cover: '/static/images/theme-jieqi.webp', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)', decoColor: '#5a8a7d' },
+  { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', cover: '/static/images/theme-dunhuang.webp', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)', decoColor: '#8E4F43' },
+  { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', cover: '/static/images/theme-wenchuang.webp', bg: 'linear-gradient(135deg,#9BB8CC,#5F93C2)', decoColor: '#3a6fa3' },
 ]
 const FALLBACK_CASES: ConfigItem[] = [
-  { id: 'd1', title: '敦煌九色鹿', cover: '/static/images/showcase.jpg', mainColor: '#C8B89A', accent: '#8E4F43' },
-  { id: 'd2', title: '飞天乐舞', cover: '/static/images/showcase.jpg', mainColor: '#A8C4B0', accent: '#5a8a7d' },
-  { id: 'd3', title: '千手观音', cover: '/static/images/showcase.jpg', mainColor: '#D6A87A', accent: '#A05A3C' },
+  { id: 'd1', title: '敦煌九色鹿', cover: cdnImg('/static/images/showcase.webp'), mainColor: '#C8B89A', accent: '#8E4F43' },
+  { id: 'd2', title: '飞天乐舞', cover: cdnImg('/static/images/showcase.webp'), mainColor: '#A8C4B0', accent: '#5a8a7d' },
+  { id: 'd3', title: '千手观音', cover: cdnImg('/static/images/showcase.webp'), mainColor: '#D6A87A', accent: '#A05A3C' },
 ]
 
 /** 用本地兜底封面回填后台项缺失的 cover：先按 id 匹配，再按位置，最后默认图 */
@@ -86,43 +129,65 @@ function mergeCover(items: ConfigItem[], fallbacks: ConfigItem[], defaultCover: 
 
 const themes = ref<ConfigItem[]>([...FALLBACK_THEMES])
 const featured = ref<ConfigItem[]>([...FALLBACK_CASES])
+// 后台可配（空则隐藏/回退）：Banner 轮播、功能区快捷入口、资讯中心
+const banners = ref<Banner[]>([])
+const zones = ref<ConfigItem[]>([])
+const news = ref<Article[]>([])
 
 // Hero banner：固定主视觉大图，标题随主题联动
 const heroBanner = computed<ConfigItem>(() => ({
   id: 'hero',
   title: (themes.value[1]?.title as string) || '敦煌入梦',
   en: 'DUN HUANG DREAM',
-  cover: '/static/images/hero-dunhuang.jpg',
+  cover: cdnImg('/static/images/hero-dunhuang.webp'),
 }))
 
 async function loadHomeConfig() {
   try {
-    const res = await configApi.getHomeConfig()
-    const { themes: t, cases: c } = res.data || {}
-    if (t?.length) themes.value = mergeCover(t, FALLBACK_THEMES, '/static/images/theme-dunhuang.png')
-    if (c?.length) featured.value = mergeCover(c, FALLBACK_CASES, '/static/images/showcase.jpg')
+    // 一次聚合拉取：Banner + 主题 + 功能区 + 案例（后台均可配，空则用兜底/隐藏）
+    const res = await catalogApi.getHome()
+    const d = res.data || ({} as Partial<typeof res.data>)
+    // 仅展示已配图片的 Banner（演示/未填图的不渲染破图，回退固定 hero）
+    banners.value = (Array.isArray(d.banners) ? d.banners : []).filter((b) => !!b.image_url)
+    zones.value = Array.isArray(d.zones) ? d.zones : []
+    if (d.themes?.length) themes.value = mergeCover(d.themes, FALLBACK_THEMES, '/static/images/theme-dunhuang.webp')
+    if (d.cases?.length) featured.value = mergeCover(d.cases, FALLBACK_CASES, cdnImg('/static/images/showcase.webp'))
   } catch {
     /* 保留本地兜底 */
   }
 }
 
-onShow(loadHomeConfig)
+async function loadNews() {
+  try {
+    const res = await catalogApi.listFeed()
+    news.value = Array.isArray(res.data) ? res.data : []
+  } catch {
+    news.value = []
+  }
+}
+
+onShow(() => {
+  loadHomeConfig()
+  loadNews()
+})
 
 // pages.json 开了 enablePullDownRefresh，必须收回动画，否则下拉后一直转圈
 onPullDownRefresh(async () => {
-  await loadHomeConfig()
+  await Promise.all([loadHomeConfig(), loadNews()])
   uni.stopPullDownRefresh()
 })
 
 const TAB_PATHS = new Set([
   '/pages/home/index', '/pages/feed/index', '/pages/ai/index', '/pages/cart/index', '/pages/mine/index',
 ])
-function go(link?: string) {
+function go(link?: string | null) {
   if (!link) return
   if (TAB_PATHS.has(link)) switchTab(link)
   else navigateTo(link)
 }
 const onHero = () => switchTab('/pages/feed/index')
+const onBanner = (b: Banner) => go(b.link)
+const onNews = (a: Article) => go(a.link)
 const onTheme = (t: ConfigItem) => go(t.link || '/pages/feed/index')
 const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/index')
 </script>
@@ -170,5 +235,108 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/inde
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
+}
+
+/* Banner 轮播（后台可配） */
+.banner-swiper {
+  width: 100%;
+  height: 300rpx;
+  border-radius: $mp-radius-lg;
+  overflow: hidden;
+  box-shadow: $mp-shadow-card;
+}
+.banner-img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 功能区快捷入口（后台可配） */
+.zones {
+  margin-top: 28rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  background: $mp-bg-card;
+  border-radius: $mp-radius-lg;
+  padding: 24rpx 12rpx;
+  box-shadow: $mp-shadow-sm;
+}
+.zone {
+  flex: 1 0 20%;
+  min-width: 120rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+.zone-icon {
+  font-size: 48rpx;
+  line-height: 1;
+}
+.zone-title {
+  font-size: 22rpx;
+  color: $mp-text-secondary;
+  font-family: $mp-font-serif;
+}
+
+/* 资讯中心（后台可配） */
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.news-card {
+  display: flex;
+  gap: 20rpx;
+  background: $mp-bg-card;
+  border-radius: $mp-radius-md;
+  overflow: hidden;
+  box-shadow: $mp-shadow-sm;
+}
+.news-cover {
+  width: 200rpx;
+  height: 150rpx;
+  flex-shrink: 0;
+  background: $mp-bg-inset;
+}
+.news-body {
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx 20rpx 18rpx 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.news-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.news-title {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $mp-text-primary;
+  font-family: $mp-font-serif;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.news-tag {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  color: $mp-primary;
+  background: $mp-primary-soft;
+  padding: 2rpx 14rpx;
+  border-radius: $mp-radius-pill;
+}
+.news-summary {
+  font-size: 24rpx;
+  color: $mp-text-muted;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 </style>

@@ -13,7 +13,7 @@
       <view class="ai-body">
         <!-- 吉祥物问候 -->
         <view class="mascot">
-          <view class="mascot-avatar"><image class="ma-img" src="/static/images/mascot.png" mode="aspectFill" /></view>
+          <view class="mascot-avatar"><image class="ma-img" src="/static/images/mascot.webp" mode="aspectFill" /></view>
           <text class="mascot-title">嗨！我是你的袜品推荐官～</text>
           <text class="mascot-sub">帮你找到舒适好穿、风格百搭的心动袜子</text>
         </view>
@@ -68,6 +68,7 @@ import { nextTick, ref } from 'vue'
 import { navigateTo } from '@aisock/common/utils'
 import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
 import NavBar from '@/components/ui/NavBar.vue'
+import { cdnImg } from '@/config/cdn'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import GiftGrid, { type GiftItem } from '@/components/ai/GiftGrid.vue'
 import StyleGrid, { type StyleItem } from '@/components/ai/StyleGrid.vue'
@@ -79,22 +80,22 @@ import { useAiRecommend } from './composables/useAiRecommend'
 
 // ========== 数据配置 ==========
 const gifts: GiftItem[] = [
-  { id: 'lover', title: '送爱人/恋人', desc: '甜蜜心意，温暖相伴', bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/gift-lover.jpg' },
-  { id: 'bff', title: '送闺蜜/朋友', desc: '一起出行，默契加倍', bg: 'linear-gradient(135deg,#CFE0D6,#8FB3A0)', img: '/static/images/gift-bff.jpg' },
-  { id: 'elder', title: '送长辈/家人', desc: '贴心守护，舒服相伴', bg: 'linear-gradient(135deg,#E6D7B8,#C6A857)', img: '/static/images/gift-elder.jpg' },
-  { id: 'self', title: '送给自己', desc: '取悦自己，从脚开始', bg: 'linear-gradient(135deg,#C9C2E0,#9387C4)', img: '/static/images/gift-self.jpg' },
+  { id: 'lover', title: '送爱人/恋人', desc: '甜蜜心意，温暖相伴', bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/gift-lover.webp' },
+  { id: 'bff', title: '送闺蜜/朋友', desc: '一起出行，默契加倍', bg: 'linear-gradient(135deg,#CFE0D6,#8FB3A0)', img: '/static/images/gift-bff.webp' },
+  { id: 'elder', title: '送长辈/家人', desc: '贴心守护，舒服相伴', bg: 'linear-gradient(135deg,#E6D7B8,#C6A857)', img: '/static/images/gift-elder.webp' },
+  { id: 'self', title: '送给自己', desc: '取悦自己，从脚开始', bg: 'linear-gradient(135deg,#C9C2E0,#9387C4)', img: '/static/images/gift-self.webp' },
 ]
 
 const styles: StyleItem[] = [
-  { id: 'floral', name: '浪漫花卉', bg: 'linear-gradient(135deg,#F0C9D4,#D98AA0)', img: '/static/images/style-floral.jpg' },
-  { id: 'couple', name: '爱心情侣', bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/style-couple.jpg' },
-  { id: 'sport', name: '运动活力', bg: 'linear-gradient(135deg,#A9D2E0,#5B9BB8)', img: '/static/images/style-sport.jpg' },
-  { id: 'retro', name: '复古格纹', bg: 'linear-gradient(135deg,#D8C49C,#A8854E)', img: '/static/images/style-retro.jpg' },
-  { id: 'solid', name: '简约纯色', bg: 'linear-gradient(135deg,#DDD6CB,#B4A98F)', img: '/static/images/style-solid.jpg' },
-  { id: 'cartoon', name: '萌趣卡通', bg: 'linear-gradient(135deg,#F2D8A8,#E0A85A)', img: '/static/images/style-cartoon.jpg' },
-  { id: 'illust', name: '艺术插画', bg: 'linear-gradient(135deg,#CBBBD9,#9B82B8)', img: '/static/images/style-illust.jpg' },
-  { id: 'guochao', name: '国潮纹样', bg: 'linear-gradient(135deg,#D99A8A,#A8503C)', img: '/static/images/style-guochao.jpg' },
-  { id: 'more', name: '更多', bg: 'linear-gradient(135deg,#E3DACB,#C2B49A)', img: '/static/images/style-more.jpg' },
+  { id: 'floral', name: '浪漫花卉', bg: 'linear-gradient(135deg,#F0C9D4,#D98AA0)', img: '/static/images/style-floral.webp' },
+  { id: 'couple', name: '爱心情侣', bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/style-couple.webp' },
+  { id: 'sport', name: '运动活力', bg: 'linear-gradient(135deg,#A9D2E0,#5B9BB8)', img: '/static/images/style-sport.webp' },
+  { id: 'retro', name: '复古格纹', bg: 'linear-gradient(135deg,#D8C49C,#A8854E)', img: '/static/images/style-retro.webp' },
+  { id: 'solid', name: '简约纯色', bg: 'linear-gradient(135deg,#DDD6CB,#B4A98F)', img: '/static/images/style-solid.webp' },
+  { id: 'cartoon', name: '萌趣卡通', bg: 'linear-gradient(135deg,#F2D8A8,#E0A85A)', img: '/static/images/style-cartoon.webp' },
+  { id: 'illust', name: '艺术插画', bg: 'linear-gradient(135deg,#CBBBD9,#9B82B8)', img: '/static/images/style-illust.webp' },
+  { id: 'guochao', name: '国潮纹样', bg: 'linear-gradient(135deg,#D99A8A,#A8503C)', img: '/static/images/style-guochao.webp' },
+  { id: 'more', name: '更多', bg: 'linear-gradient(135deg,#E3DACB,#C2B49A)', img: '/static/images/style-more.webp' },
 ]
 
 const cats: Cat[] = [
@@ -113,7 +114,7 @@ const selectedGift = ref<GiftItem | null>(null)
 const showStyles = ref(false)
 const showRecommend = ref(false)
 const anchor = ref('')
-const recMain = ref<Candidate>({ id: 'main', name: '推荐花型', bg: 'linear-gradient(135deg,#C9B89A,#8E4F43)', url: '/static/images/rec-main.jpg' })
+const recMain = ref<Candidate>({ id: 'main', name: '推荐花型', bg: 'linear-gradient(135deg,#C9B89A,#8E4F43)', url: cdnImg('/static/images/rec-main.webp') })
 const candidates = ref<Candidate[]>([])
 
 // ========== 滚动控制 ==========

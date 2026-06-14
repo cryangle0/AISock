@@ -3,7 +3,7 @@
     <!-- PC 扫码登录确认浮层 -->
     <view v-if="qrScene" class="qr-confirm-mask">
       <view class="qr-confirm-card">
-        <image class="qr-logo" src="/static/logo.png" mode="aspectFit" />
+        <image class="qr-logo" src="/static/logo.webp" mode="aspectFit" />
         <text class="qr-title">网页登录确认</text>
         <text class="qr-desc">是否授权登录「爱花型」电脑网页版？</text>
         <button class="qr-btn primary" :disabled="qrLoading" @tap="onQrConfirm">{{ qrLoading ? '处理中…' : '确认登录' }}</button>
@@ -15,7 +15,7 @@
       <view class="login-inner">
         <view class="hero">
           <view class="logo-ring">
-            <image class="logo" src="/static/images/mascot.png" mode="aspectFill" />
+            <image class="logo" src="/static/images/mascot.webp" mode="aspectFill" />
           </view>
           <text class="brand">爱花型</text>
           <text class="slogan">创意由你，花型随心</text>
@@ -50,7 +50,7 @@
 
           <view class="divider"><text>或</text></view>
           <button class="wechat" @tap="onWechat">
-            <image class="wechat-ico" src="/static/images/wechat.png" mode="aspectFit" />
+            <image class="wechat-ico" src="/static/images/wechat.webp" mode="aspectFit" />
             <text class="wechat-text">微信登录</text>
           </button>
         </view>

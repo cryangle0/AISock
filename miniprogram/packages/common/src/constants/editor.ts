@@ -89,9 +89,8 @@ export const UNIT_PRICE: Record<string, number> = { cotton: 28, nylon: 32 }
 export const CRAFT_FEE: Record<string, number> = { uv: 0, '3d': 6, jacquard: 12 }
 
 export const PAY_METHODS = [
-  { value: 'wechat', label: '微信支付', tip: '推荐 · 免手续费', accent: '#1aad19' },
-  { value: 'alipay', label: '支付宝', tip: '快捷支付', accent: '#1677ff' },
-  { value: 'bank', label: '银行卡', tip: '储蓄卡 / 信用卡', accent: '#7e6cf2' },
+  { value: 'wechat', label: '微信支付', tip: '推荐 · 免手续费', accent: '#1aad19', icon: '/static/pay/wechat-pay.webp' },
+  { value: 'alipay', label: '支付宝', tip: '快捷支付', accent: '#1677ff', icon: '/static/pay/alipay.webp' },
 ]
 
 export const SIZE_LIST = ['S', 'M', 'L', 'XL']

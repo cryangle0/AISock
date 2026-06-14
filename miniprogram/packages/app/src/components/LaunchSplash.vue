@@ -13,7 +13,7 @@
       <!-- 光环底衬 + 小程序 Logo -->
       <view class="seal">
         <view class="halo" />
-        <image class="logo-img" src="/static/logo.png" mode="aspectFit" />
+        <image class="logo-img" src="/static/logo.webp" mode="aspectFit" />
       </view>
 
       <text class="name">爱花型</text>

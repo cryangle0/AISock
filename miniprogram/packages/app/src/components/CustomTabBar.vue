@@ -32,7 +32,7 @@
     <!-- 中间浮起 AI 设计入口（吉祥物头像） -->
     <view :class="['fab', { active: current === 'editor' }]" @tap="onTap(editorTab)">
       <view class="fab-ring">
-        <image class="fab-avatar" src="/static/images/mascot.png" mode="aspectFill" />
+        <image class="fab-avatar" src="/static/images/mascot.webp" mode="aspectFill" />
       </view>
     </view>
 

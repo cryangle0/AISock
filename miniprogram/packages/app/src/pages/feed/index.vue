@@ -77,24 +77,27 @@ import { patternToProduct, detailRoute, type BuyableProduct } from '@/domain/cat
 import NavBar from '@/components/ui/NavBar.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import { cdnImg } from '@/config/cdn'
 
-const HERO_IMG = '/static/images/feed-hero.jpg'
+const HERO_IMG = cdnImg('/static/images/feed-hero.webp')
 
 // 发现页记录卡的设计稿切图（模特照 / 成对袜子样机），按 index 交替
 const DISCOVER_IMG = {
-  modelA: '/static/discover/model-a.png',
-  modelB: '/static/discover/model-b.png',
-  sockA: '/static/discover/sock-a.png',
-  sockB: '/static/discover/sock-b.png',
+  modelA: '/static/discover/model-a.webp',
+  modelB: '/static/discover/model-b.webp',
+  sockA: '/static/discover/sock-a.webp',
+  sockB: '/static/discover/sock-b.webp',
 }
 
 interface Tab { id: number; name: string; desc?: string }
 const ALL_TAB: Tab = { id: 0, name: '全部' }
+// 分类未配置描述时的兜底文案（如「全部」），保证发现页主题描述区始终有内容
+const DEFAULT_DESC = '甄选花型灵感，从浪漫碎花到国潮纹样，\n每一款都可一键进入 AI 设计，\n定制属于你的专属袜款。'
 const tabs = ref<Tab[]>([ALL_TAB])
 const activeId = ref(0)
 const activeTab = computed(() => tabs.value.find((t) => t.id === activeId.value))
 const activeTabName = computed(() => activeTab.value?.name || '全部')
-const activeTabDesc = computed(() => activeTab.value?.desc?.trim() || '')
+const activeTabDesc = computed(() => activeTab.value?.desc?.trim() || DEFAULT_DESC)
 
 const products = ref<BuyableProduct[]>([])
 const loading = ref(false)
@@ -165,11 +168,9 @@ onShow(async () => {
 }
 .hero-img {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* 背景图比渐变遮罩短一截：底部 72rpx 为纯渐变区，使渐变越过背景图底部 */
-  bottom: 72rpx;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
 }
 .hero-mask {
@@ -228,24 +229,23 @@ onShow(async () => {
 
 /* 分类风格描述：居中衬线、暖褐色，多行（对齐设计稿 Topic Description） */
 .topic-desc {
-  margin: 0 8rpx 8rpx;
+  margin: 20rpx 24rpx 36rpx;
   text-align: center;
   font-size: 26rpx;
-  line-height: 1.85;
+  line-height: 1.9;
   color: $mp-text-secondary;
   font-family: $mp-font-serif;
   white-space: pre-wrap;
 }
 
-/* 主题 Banner 卡片：顶部圆角 + 上/左/右描边，底部不要边框（向下开口、融入背景） */
+/* 主题 Banner 卡片：四角圆角 + 四边描边，独立浮于 hero 背景之上（不再向下开口，避免与背景图错位） */
 .topic-banner {
   position: relative;
-  margin: 8rpx 32rpx 0;
+  margin: 8rpx 32rpx 24rpx;
   height: 300rpx;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: 24rpx;
   overflow: hidden;
   border: 2rpx solid rgba(255, 248, 236, 0.6);
-  border-bottom: none;
   box-shadow: 0 10rpx 28rpx rgba(60, 40, 28, 0.22);
   display: flex;
   align-items: flex-end;
@@ -318,7 +318,7 @@ onShow(async () => {
 .rec-card {
   position: relative;
   height: 200rpx;
-  margin-bottom: 44rpx;
+  margin-bottom: 112rpx;
   border-radius: 24rpx;
   background: #faf6ef;
   box-shadow: 0 8rpx 24rpx rgba(94, 60, 30, 0.1);
@@ -342,14 +342,14 @@ onShow(async () => {
   position: absolute;
   left: 20rpx;
   bottom: 0;
-  width: 128rpx;
+  width: 104rpx;
   z-index: 2;
 }
 /* 中间系列名 + 查看详情：居中（避让左右） */
 .rec-info {
   position: absolute;
-  left: 168rpx;
-  right: 172rpx;
+  left: 144rpx;
+  right: 148rpx;
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
@@ -390,6 +390,6 @@ onShow(async () => {
   gap: 6rpx;
 }
 .rec-sock {
-  height: 224rpx;
+  height: 184rpx;
 }
 </style>

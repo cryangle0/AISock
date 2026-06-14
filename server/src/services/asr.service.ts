@@ -5,7 +5,7 @@
  * 调用「录音文件识别」多模态端点：传入可访问的音频 URL，返回转写文本。
  * 端点固定，仅 model 走配置，避免写死出错。
  */
-import { resolvePlatformConfig } from './aiConfig.service.js'
+import { resolvePlatformConfig, type AiPlatform } from './aiConfig.service.js'
 
 interface AsrResponse {
   output?: {
@@ -19,10 +19,11 @@ interface AsrResponse {
 /**
  * 转写一段音频为文本。
  * @param audioUrl 可公网访问的音频 URL（小程序录音先上传 /upload 拿到 URL 再传入）
+ * @param platform 取后台「AI 配置」对应平台的语音模型/密钥（小程序传 'miniprogram'）
  * @returns 识别出的文本（失败抛错，由路由统一处理）
  */
-export async function transcribeAudio(audioUrl: string): Promise<string> {
-  const cfg = await resolvePlatformConfig('default')
+export async function transcribeAudio(audioUrl: string, platform: AiPlatform = 'default'): Promise<string> {
+  const cfg = await resolvePlatformConfig(platform)
   // 密钥/基址：后台「AI 配置」优先（provider=dashscope 时用其 apiKey），留空回退环境变量
   const key = (cfg.provider === 'dashscope' ? cfg.apiKey : '') || process.env.DASHSCOPE_API_KEY
   if (!key) throw Object.assign(new Error('未配置语音识别服务'), { status: 503 })

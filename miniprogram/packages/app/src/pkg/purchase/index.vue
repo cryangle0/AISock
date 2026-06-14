@@ -140,7 +140,7 @@ const craftLabel = ref('喷墨')
 const designName = ref('定制袜版')
 const designId = ref<number | undefined>(undefined)
 const patternId = ref<number | undefined>(undefined)
-const cover = ref<string | null>('/pkg/static/images/purchase-sock.jpg')
+const cover = ref<string | null>('/pkg/static/images/purchase-sock.webp')
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
 
 const quantity = ref(1)

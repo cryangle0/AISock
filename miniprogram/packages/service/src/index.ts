@@ -13,6 +13,6 @@ export type { CreateOrderInput, PrepayResult, Shipment, PriceBreakdown, OrderAtt
 export type { StreamChatTurn, StreamChatPayload, StreamChatHandlers, StreamChatHandle } from './ai.js'
 export type { SaveDesignInput } from './design.js'
 export type { VariantRecipe, VariantColors, VariantParams } from './ai.js'
-export type { Article } from './catalog.js'
+export type { Article, Banner } from './catalog.js'
 export type { UploadResult } from './upload.js'
 export type { HomeConfig, ConfigItem } from './config.js'

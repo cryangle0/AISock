@@ -90,11 +90,11 @@ const printImage = ref<string | null>(null)
 
 interface Ref { bg: string; url?: string }
 const refs = ref<Ref[]>([
-  { bg: 'linear-gradient(135deg,#E9D5C2,#C9A98A)', url: '/pkg/static/images/ref-1.png' },
-  { bg: 'linear-gradient(135deg,#CFE0D6,#8FB3A0)', url: '/pkg/static/images/ref-2.png' },
-  { bg: 'linear-gradient(135deg,#E7D2D8,#C293A6)', url: '/pkg/static/images/ref-3.png' },
-  { bg: 'linear-gradient(135deg,#D8D2E4,#9C8FC4)', url: '/pkg/static/images/ref-4.png' },
-  { bg: 'linear-gradient(135deg,#E6D7B8,#C6A857)', url: '/pkg/static/images/ref-5.png' },
+  { bg: 'linear-gradient(135deg,#E9D5C2,#C9A98A)', url: '/pkg/static/images/ref-1.webp' },
+  { bg: 'linear-gradient(135deg,#CFE0D6,#8FB3A0)', url: '/pkg/static/images/ref-2.webp' },
+  { bg: 'linear-gradient(135deg,#E7D2D8,#C293A6)', url: '/pkg/static/images/ref-3.webp' },
+  { bg: 'linear-gradient(135deg,#D8D2E4,#9C8FC4)', url: '/pkg/static/images/ref-4.webp' },
+  { bg: 'linear-gradient(135deg,#E6D7B8,#C6A857)', url: '/pkg/static/images/ref-5.webp' },
 ])
 
 // 页面加载时检查是否从AI助手过来，并加载缓存的图片

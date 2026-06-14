@@ -12,12 +12,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ConfigItem } from '@aisock/service'
+import { cdnImg } from '@/config/cdn'
 
 const props = defineProps<{ item?: ConfigItem }>()
 defineEmits<{ tap: [] }>()
 
 // Figma 的 hero 文案/装饰已烘焙进图片，直接整图展示即可
-const cover = computed(() => (props.item?.cover as string) || '/static/images/hero-dunhuang.jpg')
+const cover = computed(() => (props.item?.cover as string) || cdnImg('/static/images/hero-dunhuang.webp'))
 const title = computed(() => props.item?.title || '敦煌入梦')
 </script>
 

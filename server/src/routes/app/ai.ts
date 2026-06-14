@@ -54,11 +54,12 @@ aiRouter.get('/tasks', async (c) => {
 
 /** 意图分析：把模糊指令优化成高质量提示词（DeepSeek，失败回退原文） */
 aiRouter.post('/optimize-prompt', async (c) => {
-  const { prompt } = await c.req.json<{ prompt?: string }>()
+  const { prompt, platform: p } = await c.req.json<{ prompt?: string; platform?: string }>()
   if (!prompt?.trim()) return fail(c, '提示词不能为空')
   await assertRateLimit('ai-optimize', getUserId(c), 10, 60)
+  const platform = (p === 'miniprogram' || p === 'web') ? p : 'default'
   const { optimizePrompt } = await import('../../services/aiText.service.js')
-  const optimized = await optimizePrompt(prompt)
+  const optimized = await optimizePrompt(prompt, platform)
   return ok(c, { original: prompt, optimized })
 })
 
@@ -131,10 +132,11 @@ aiRouter.post('/family', async (c) => {
 
 /** 语音识别：把上传后的音频 URL 转写为文本（千问 ASR，后台可配模型） */
 aiRouter.post('/asr', async (c) => {
-  const { audioUrl } = await c.req.json<{ audioUrl?: string }>()
+  const { audioUrl, platform: p } = await c.req.json<{ audioUrl?: string; platform?: string }>()
   if (!audioUrl) return fail(c, '缺少音频地址')
   await assertRateLimit('ai-asr', getUserId(c), 10, 60)
+  const platform = (p === 'miniprogram' || p === 'web') ? p : 'default'
   const { transcribeAudio } = await import('../../services/asr.service.js')
-  const text = await transcribeAudio(audioUrl)
+  const text = await transcribeAudio(audioUrl, platform)
   return ok(c, { text })
 })

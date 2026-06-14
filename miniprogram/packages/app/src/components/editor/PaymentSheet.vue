@@ -21,7 +21,7 @@
           :class="['method', { active: method === m.value }]"
           @tap="method = m.value"
         >
-          <view class="method-dot" :style="{ background: m.accent }" />
+          <image class="method-icon" :src="m.icon" mode="aspectFit" />
           <view class="method-info">
             <text class="method-name">{{ m.label }}</text>
             <text class="method-tip">{{ m.tip }}</text>
@@ -198,6 +198,11 @@ async function startPay() {
   width: 24rpx;
   height: 24rpx;
   border-radius: 6rpx;
+}
+.method-icon {
+  width: 48rpx;
+  height: 48rpx;
+  flex-shrink: 0;
 }
 .method-info {
   flex: 1;
