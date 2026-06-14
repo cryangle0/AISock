@@ -28,14 +28,6 @@
         </swiper>
         <HomeBanner v-else :item="heroBanner" @tap="onHero" />
 
-        <!-- 2. 功能区：后台「小程序配置 · 功能区」可配快捷入口 -->
-        <view v-if="zones.length" class="zones">
-          <view v-for="z in zones" :key="z.id" class="zone" @tap="go(z.link)">
-            <text class="zone-icon">{{ z.icon || '✨' }}</text>
-            <text class="zone-title">{{ z.title }}</text>
-          </view>
-        </view>
-
         <!-- 3. 主题随心订 -->
         <view class="section">
           <view class="section-head">
@@ -129,9 +121,8 @@ function mergeCover(items: ConfigItem[], fallbacks: ConfigItem[], defaultCover: 
 
 const themes = ref<ConfigItem[]>([...FALLBACK_THEMES])
 const featured = ref<ConfigItem[]>([...FALLBACK_CASES])
-// 后台可配（空则隐藏/回退）：Banner 轮播、功能区快捷入口、资讯中心
+// 后台可配（空则隐藏/回退）：Banner 轮播、资讯中心
 const banners = ref<Banner[]>([])
-const zones = ref<ConfigItem[]>([])
 const news = ref<Article[]>([])
 
 // Hero banner：固定主视觉大图，标题随主题联动
@@ -149,7 +140,6 @@ async function loadHomeConfig() {
     const d = res.data || ({} as Partial<typeof res.data>)
     // 仅展示已配图片的 Banner（演示/未填图的不渲染破图，回退固定 hero）
     banners.value = (Array.isArray(d.banners) ? d.banners : []).filter((b) => !!b.image_url)
-    zones.value = Array.isArray(d.zones) ? d.zones : []
     if (d.themes?.length) themes.value = mergeCover(d.themes, FALLBACK_THEMES, '/static/images/theme-dunhuang.webp')
     if (d.cases?.length) featured.value = mergeCover(d.cases, FALLBACK_CASES, cdnImg('/static/images/showcase.webp'))
   } catch {
@@ -250,59 +240,31 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/inde
   height: 100%;
 }
 
-/* 功能区快捷入口（后台可配） */
-.zones {
-  margin-top: 28rpx;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-  background: $mp-bg-card;
-  border-radius: $mp-radius-lg;
-  padding: 24rpx 12rpx;
-  box-shadow: $mp-shadow-sm;
-}
-.zone {
-  flex: 1 0 20%;
-  min-width: 120rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
-}
-.zone-icon {
-  font-size: 48rpx;
-  line-height: 1;
-}
-.zone-title {
-  font-size: 22rpx;
-  color: $mp-text-secondary;
-  font-family: $mp-font-serif;
-}
-
-/* 资讯中心（后台可配） */
+/* 资讯中心（后台可配，封面可有可无均整齐） */
 .news-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 .news-card {
   display: flex;
-  gap: 20rpx;
+  align-items: center;
   background: $mp-bg-card;
   border-radius: $mp-radius-md;
   overflow: hidden;
   box-shadow: $mp-shadow-sm;
 }
 .news-cover {
-  width: 200rpx;
-  height: 150rpx;
+  width: 168rpx;
+  height: 126rpx;
   flex-shrink: 0;
   background: $mp-bg-inset;
 }
 .news-body {
   flex: 1;
   min-width: 0;
-  padding: 18rpx 20rpx 18rpx 0;
+  /* 始终四周内边距：无封面时文字也不贴边、有封面时与封面留白 */
+  padding: 22rpx 24rpx;
   display: flex;
   flex-direction: column;
   gap: 10rpx;
@@ -327,7 +289,7 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/inde
   font-size: 20rpx;
   color: $mp-primary;
   background: $mp-primary-soft;
-  padding: 2rpx 14rpx;
+  padding: 4rpx 16rpx;
   border-radius: $mp-radius-pill;
 }
 .news-summary {
@@ -335,8 +297,7 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/inde
   color: $mp-text-muted;
   line-height: 1.5;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 </style>
