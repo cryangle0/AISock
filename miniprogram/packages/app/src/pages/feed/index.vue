@@ -36,7 +36,17 @@
         <view v-if="activeTabDesc" class="topic-desc">{{ activeTabDesc }}</view>
 
         <!-- 真实花型记录：严格还原设计稿横向卡（左模特 + 中系列名/查看详情 + 右成对袜子，卡底为淡化花型图） -->
-        <view v-if="loading" class="state">加载中…</view>
+        <!-- 加载中：骨架屏（与记录卡同版式 + 微光），避免先闪空态再出数据 -->
+        <view v-if="loading" class="rec-list">
+          <view v-for="n in 4" :key="'sk' + n" class="rec-card sk-card">
+            <view class="sk-block sk-model" />
+            <view class="sk-info">
+              <view class="sk-bar" style="width: 56%" />
+              <view class="sk-bar sk-bar-sm" style="width: 34%" />
+            </view>
+            <view class="sk-block sk-socks" />
+          </view>
+        </view>
         <view v-else-if="!products.length" class="state">该分类暂无花型，换一个看看～</view>
         <view v-else class="rec-list">
           <view
@@ -100,7 +110,7 @@ const activeTabName = computed(() => activeTab.value?.name || '全部')
 const activeTabDesc = computed(() => activeTab.value?.desc?.trim() || DEFAULT_DESC)
 
 const products = ref<BuyableProduct[]>([])
-const loading = ref(false)
+const loading = ref(true)
 let loaded = false
 
 async function loadCategories() {
@@ -322,6 +332,56 @@ onShow(async () => {
   border-radius: 24rpx;
   background: #faf6ef;
   box-shadow: 0 8rpx 24rpx rgba(94, 60, 30, 0.1);
+}
+/* ── 加载骨架屏：与记录卡同版式 + 暖色微光 ── */
+.sk-card {
+  margin-bottom: 24rpx;
+  background: $mp-bg-card;
+  overflow: hidden;
+}
+.sk-block,
+.sk-bar {
+  background: linear-gradient(100deg, #efe7da 30%, #f8f2e7 50%, #efe7da 70%);
+  background-size: 280% 100%;
+  animation: sk-shimmer 1.3s linear infinite;
+}
+@keyframes sk-shimmer {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+.sk-model {
+  position: absolute;
+  left: 24rpx;
+  top: 30rpx;
+  bottom: 30rpx;
+  width: 110rpx;
+  border-radius: 16rpx;
+}
+.sk-info {
+  position: absolute;
+  left: 168rpx;
+  right: 172rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18rpx;
+}
+.sk-bar {
+  height: 26rpx;
+  border-radius: 999rpx;
+}
+.sk-bar-sm {
+  height: 22rpx;
+}
+.sk-socks {
+  position: absolute;
+  right: 24rpx;
+  top: 40rpx;
+  bottom: 40rpx;
+  width: 120rpx;
+  border-radius: 16rpx;
 }
 /* 卡底：淡化的真实花型图（对齐设计稿 faint product-image 底纹） */
 .rec-bg {
