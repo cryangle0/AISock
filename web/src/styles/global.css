@@ -1,93 +1,166 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=ZCOOL+KuaiLe&display=swap');
+/* 中文界面字体走系统优先（PingFang SC 苹果原生 / Noto Sans SC 跨端兜底）；数字/拉丁展示用 Manrope */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
 
-/* 敦煌主题 token（与原型 / 小程序对齐） */
+/* ============================================================
+   爱花型 · Web 设计端 —— 设计令牌（严格对齐 FigmaUI/web端，色值取自 Figma JSON）
+   设计画布固定宽 1280，高随内容；主色 #00a46e
+   ============================================================ */
 :root {
-  --bg: #f5ede0;
-  --bg-secondary: #f0e4d1;
-  --bg-card: #fffcf6;
-  --bg-hover: #efe5d4;
-  --primary: #8c5a3c;
-  --primary-hover: #6f4528;
-  --primary-soft: #f2e6d2;
-  --text: #2b1f14;
-  --text-2: #6b5a48;
-  --text-3: #998975;
-  --border: #e5d8c0;
-  --border-strong: #c9b89a;
-  /* 矿物质感辅助色 */
-  --blue: #3a6fa3; /* 螺青 */
-  --purple: #9b7bb8; /* 紫檀 */
-  --mint: #5a8a7d; /* 山水绿 */
-  --pink: #c5483c; /* 朱砂 */
-  --coral: #dec38a; /* 沙金 */
-  --radius: 14px;
-  --shadow-sm: 0 2px 8px rgba(94, 60, 30, 0.06);
-  --shadow-md: 0 8px 24px rgba(94, 60, 30, 0.12);
-  --font-art: 'ZCOOL KuaiLe', 'PingFang SC', sans-serif;
+  /* 主色与绿色体系 */
+  --primary: #00a46e;
+  --primary-deep: #008a5d;
+  --primary-hover: #00b97c;
+  --primary-soft: #00a46e1a;   /* 10% 绿，快捷入口图标底 / 选中态浅底 */
+  --primary-tint: #f0faf6;
+  --mint: #94edd8;             /* 背景光晕 */
+
+  /* 中性 / 文本（取自设计稿真实值） */
+  --text: #292524;            /* 主标题 */
+  --text-strong: #1a1c19;
+  --ink: #222222;             /* 卡片标题 */
+  --text-2: #57534e;          /* 正文次级 */
+  --text-mid: #666666;        /* 未选导航 */
+  --text-3: #a8a29e;          /* 弱化说明 */
+  --text-muted: #a8a29e;
+  --link-stone: #78716c;      /* “查看更多”链接 */
+
+  /* 描边 / 分隔 */
+  --border: #0000001a;        /* 10% 黑，卡片描边 */
+  --border-2: #e6eeed;
+  --border-strong: #d6d3d1;
+  --line: #f0eeec;
+  --divider: #f5f5f4;
+
+  /* 背景表面 */
+  --bg: #f5faf9;              /* 内容区浅绿底 */
+  --surface: #f5faf9;
+  --surface-2: #fafaf9;       /* 订单统计小块底 */
+  --bg-soft: #fafaf9;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f3;
+  --white-glass: #ffffff33;   /* 顶栏圆形按钮底（20%白） */
+
+  /* 全屏绿色渐变背景（顶部鲜绿 → 青绿 → 底部淡化） */
+  --app-grad: linear-gradient(122deg, #5bc77d 0%, #1fc6a3 36%, #74d9be 58%, #e9f6f0 100%);
+
+  /* 快捷入口 / 标签 强调色（图标用纯色，底用 10%） */
+  --tile-green: #00a46e;  --tile-green-bg: #00a46e1a;
+  --tile-terra: #cb7463;  --tile-terra-bg: #cb74631a;
+  --tile-orange: #ffab35; --tile-orange-bg: #ffab351a;
+  --tile-pink: #dd6e9e;   --tile-pink-bg: #dd6e9e1a;
+  --card-pink: #f7d8e1;   /* 花型卡占位底 */
+  --chip-cream: #ffedd5;  /* 灵感小圆点底 */
+
+  /* 兼容旧组件别名 */
+  --pink: #dd6e9e;   --pink-soft: #fbe6ef;
+  --orange: #ea7a16; --orange-soft: #fdecd6;
+  --violet: #8b7bd8; --violet-soft: #efeafb;
+
+  /* 圆角（设计稿真实值） */
+  --r-panel: 32px;   /* 主面板 */
+  --r-hero: 20px;    /* Banner / 顶栏圆钮 */
+  --r-card: 16px;    /* 信息卡 / 快捷入口 */
+  --r-12: 12px;      /* 缩略图 / 统计块 */
+  --r-nav: 10px;     /* 左栏导航项 */
+  --r-8: 8px;
+  --radius: 16px; --radius-lg: 20px; --radius-sm: 10px; /* 旧别名 */
+
+  /* 阴影（设计稿真实值） */
+  --shadow-sm: 0 1px 2px #0000000d;
+  --shadow-card: 0 1px 2px #0000000d, 0 4px 14px #00000014;
+  --shadow-md: 0 10px 15px #0000001a;
+  --shadow-panel: 0 24px 60px rgba(16, 78, 58, 0.20);
+  --shadow-pop: 0 4px 20px #0000000d;
+
+  /* 字体 */
+  --font: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-num: 'Manrope', 'PingFang SC', sans-serif;
+  --font-art: 'Noto Sans SC', 'PingFang SC', sans-serif;
+
+  /* 画布宽度 */
+  --canvas-w: 1280px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ── 夜间模式（moon 切换；仅覆盖令牌，组件用 var() 自动适配）── */
+:root[data-theme='dark'] {
+  --app-grad: linear-gradient(122deg, #0c2a22 0%, #0a352b 42%, #07211b 100%);
+  --mint: #1f5a4a;
+
+  --surface: #16201c;
+  --surface-2: #1b2723;
+  --bg: #16201c;
+  --bg-card: #1e2a26;
+  --bg-hover: #26332d;
+
+  --text: #e9edeb;
+  --text-strong: #f4f7f5;
+  --ink: #eef2f0;
+  --text-2: #bcc5c0;
+  --text-mid: #9aa49f;
+  --text-3: #7f8a85;
+  --text-muted: #7f8a85;
+  --link-stone: #9aa49f;
+
+  --border: #ffffff1f;
+  --border-2: #2b3833;
+  --border-strong: #3a4842;
+  --line: #243029;
+  --divider: #2b3833;
+
+  /* 装饰色在暗色下改为中性深色，避免亮粉/亮奶油色块突兀 */
+  --card-pink: #26332d;
+  --chip-cream: #2f3a26;
+  --primary-soft: #00a46e2e;
+
+  --shadow-sm: 0 1px 2px #00000040;
+  --shadow-card: 0 1px 2px #00000040, 0 4px 14px #00000033;
+  --shadow-md: 0 10px 15px #00000059;
+  --shadow-panel: 0 24px 60px #00000066;
 }
 
-html,
-body,
-#app {
-  height: 100%;
+/* 强制浅色子树（设计器工作区 / 登录弹框在夜间也保持浅色，避免硬编码深色文字不可读） */
+.theme-light {
+  --surface: #f5faf9; --surface-2: #fafaf9; --bg: #f5faf9; --bg-card: #ffffff; --bg-hover: #f3f4f3;
+  --text: #292524; --text-strong: #1a1c19; --ink: #222222; --text-2: #57534e; --text-mid: #666666;
+  --text-3: #a8a29e; --text-muted: #a8a29e; --link-stone: #78716c;
+  --border: #0000001a; --border-2: #e6eeed; --border-strong: #d6d3d1; --line: #f0eeec; --divider: #f5f5f4;
+  --shadow-sm: 0 1px 2px #0000000d; --shadow-card: 0 1px 2px #0000000d, 0 4px 14px #00000014;
+  --shadow-md: 0 10px 15px #0000001a; --shadow-pop: 0 4px 20px #0000000d;
 }
 
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body, #app { min-height: 100%; }
 body {
-  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
-  background: var(--bg);
+  font-family: var(--font);
+  background: var(--app-grad) fixed;
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+input, textarea { font-family: inherit; outline: none; border: none; background: none; color: inherit; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #cdd6d2; border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-}
+/* 数字 / 拉丁展示统一字体 */
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
+/* 通用按钮（保留，供非设计稿页面使用） */
 .btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 20px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.18s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 42px; padding: 0 22px; background: var(--primary); color: #fff;
+  border-radius: 999px; font-size: 14px; font-weight: 600;
+  transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
 }
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
+.btn-primary:hover { background: var(--primary-hover); box-shadow: 0 8px 18px rgba(0, 164, 110, 0.26); }
+.btn-primary:active { transform: translateY(1px); }
 .btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 18px;
-  background: var(--bg-card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 42px; padding: 0 20px; background: var(--bg-card); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: 999px; font-size: 14px; font-weight: 600;
+  transition: all 0.18s;
 }
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-card); }

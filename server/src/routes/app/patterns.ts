@@ -8,17 +8,31 @@ import { listCategories, listPatterns, createPattern, deletePattern, getPublicPa
 
 export const patternsRouter = new Hono()
 
+/** 解析逗号分隔的正整数 id 列表（如 "1,2,3"），过滤非法值 */
+function parseIdList(csv?: string): number[] {
+  if (!csv) return []
+  return csv
+    .split(',')
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n > 0)
+}
+
 /** 分类列表 */
 patternsRouter.get('/categories', async (c) => {
   return ok(c, await listCategories())
 })
 
-/** 公共花型库（分页 + 分类/关键词筛选） */
+/** 公共花型库（分页 + 分类/关键词/标签筛选） */
 patternsRouter.get('/', async (c) => {
   const { pageNum, pageSize, offset } = getPageQuery(c, 20)
   const categoryId = c.req.query('categoryId') ? Number(c.req.query('categoryId')) : undefined
   const keyword = c.req.query('keyword') || undefined
-  const { list, total } = await listPatterns({ categoryId, keyword, offset, pageSize })
+  // 标签筛选：sceneIds / styleIds / themeIds 为逗号分隔的标签 id；维度内 OR，维度间 AND
+  const sceneIds = parseIdList(c.req.query('sceneIds'))
+  const styleIds = parseIdList(c.req.query('styleIds'))
+  const themeIds = parseIdList(c.req.query('themeIds'))
+  const tagIdGroups = [sceneIds, styleIds, themeIds].filter((g) => g.length)
+  const { list, total } = await listPatterns({ categoryId, keyword, tagIdGroups, offset, pageSize })
   return paginated(c, list, total, pageNum, pageSize)
 })
 

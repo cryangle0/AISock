@@ -25,10 +25,18 @@ export function uploadFile(tempFilePath: string): Promise<UploadResult> {
       success: (res) => {
         try {
           const body = JSON.parse(res.data) as { code: number; data: UploadResult; message: string }
+          if (res.statusCode === 401) {
+            reject(new Error(body.message || '请先登录'))
+            return
+          }
+          if (res.statusCode >= 400) {
+            reject(new Error(body.message || `上传失败(${res.statusCode})`))
+            return
+          }
           if (body.code === 0) resolve(body.data)
           else reject(new Error(body.message || '上传失败'))
         } catch {
-          reject(new Error('上传响应解析失败'))
+          reject(new Error(res.statusCode === 401 ? '请先登录' : '上传响应解析失败'))
         }
       },
       fail: () => reject(new Error('上传失败，请检查网络')),

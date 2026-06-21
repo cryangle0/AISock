@@ -2,7 +2,22 @@
   <view class="od-page">
     <NavBar title="订单详情" show-back variant="solid" />
     <scroll-view class="od-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
-    <view class="od" v-if="order">
+    <!-- 加载骨架屏：与正文同版式占位，避免空态按钮被拉成「竖条」闪现 -->
+    <view v-if="loading" class="od">
+      <view class="card sk-card">
+        <view class="sk-steps">
+          <view v-for="n in 4" :key="'ss' + n" class="sk-step" />
+        </view>
+      </view>
+      <view v-for="n in 2" :key="'sk' + n" class="card sk-card">
+        <view class="sk-line w40" />
+        <view v-if="n === 1" class="sk-block" />
+        <view class="sk-line w70" />
+        <view class="sk-line w55" />
+      </view>
+    </view>
+
+    <view class="od" v-else-if="order">
     <!-- 待支付提示 -->
     <view v-if="isPending" class="pay-banner">
       <text class="pay-banner-text">订单待支付，完成支付后进入生产排期</text>
@@ -15,7 +30,7 @@
         :key="label"
         :class="['step', { done: i < currentIdx, active: i === currentIdx }]"
       >
-        <view class="step-dot">{{ stepIcon(label) }}</view>
+        <view class="step-dot"><AppIcon :name="stepIcon(label)" :size="26" :color="i <= currentIdx ? '#ffffff' : '#a89f93'" /></view>
         <text class="step-label">{{ label }}</text>
         <view v-if="i < statusLabels.length - 1" class="step-line" />
       </view>
@@ -116,6 +131,7 @@ import type { Order } from '@aisock/common/types'
 import OrderAttachments from '@/components/order/OrderAttachments.vue'
 import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
 import NavBar from '@/components/ui/NavBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const statusFlow = ['paid', 'producing', 'shipped', 'done']
 const statusText: Record<string, string> = { paid: '待生产', producing: '生产中', shipped: '已发货', done: '已完成' }
@@ -128,6 +144,7 @@ const draftNote = ref('')
 const draftAddress = ref('')
 const paying = ref(false)
 const cancelling = ref(false)
+const loading = ref(true)
 
 // 落库的是枚举 key（cotton/uv 等），展示时映射为用户文案
 const materialLabel = computed(() => {
@@ -154,7 +171,10 @@ async function reload() {
 
 onLoad(async (q) => {
   const id = Number((q as { id?: string }).id)
-  if (!id) return
+  if (!id) {
+    loading.value = false
+    return
+  }
   try {
     const res = await orderApi.getOrder(id)
     order.value = res.data as typeof order.value
@@ -162,6 +182,8 @@ onLoad(async (q) => {
     shipment.value = sh.data
   } catch {
     /* 忽略 */
+  } finally {
+    loading.value = false
   }
 })
 
@@ -209,7 +231,7 @@ async function onCancel() {
 }
 
 function stepIcon(label: string) {
-  return { 待生产: '⏱', 生产中: '📦', 已发货: '🚚', 已完成: '✓' }[label] || '•'
+  return { 待生产: 'clock', 生产中: 'box', 已发货: 'truck', 已完成: 'check' }[label] || 'clock'
 }
 function percent(qty: number) {
   const total = order.value?.quantity || 0
@@ -501,5 +523,47 @@ function onContactSupport() {
   gap: 20rpx;
   font-size: 26rpx;
   color: $mp-text-secondary;
+}
+.empty .cta {
+  flex: none;
+  width: 280rpx;
+}
+
+/* ── 加载骨架屏 ── */
+.sk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+.sk-line,
+.sk-block,
+.sk-step {
+  background: linear-gradient(100deg, #efe7da 30%, #f8f2e7 50%, #efe7da 70%);
+  background-size: 280% 100%;
+  animation: od-shimmer 1.3s linear infinite;
+  border-radius: 999rpx;
+}
+@keyframes od-shimmer {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+.sk-line {
+  height: 26rpx;
+}
+.sk-line.w40 { width: 40%; }
+.sk-line.w55 { width: 55%; }
+.sk-line.w70 { width: 70%; }
+.sk-block {
+  height: 300rpx;
+  border-radius: 14rpx;
+}
+.sk-steps {
+  display: flex;
+  justify-content: space-between;
+}
+.sk-step {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
 }
 </style>

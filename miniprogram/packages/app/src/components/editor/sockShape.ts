@@ -21,13 +21,14 @@ export interface SockParams {
   rotation: number
   singleMode: boolean
   tileDensity?: number
+  coverMode?: boolean
 }
 
 const DEFAULTS = {
   body: '#efe4cc',
-  welt: '#d9c8a8',
-  heel: '#d9c8a8',
-  toe: '#d9c8a8',
+  welt: '#ffffff',
+  heel: '#ffffff',
+  toe: '#ffffff',
 }
 
 /** 页面米色底（与 $mp-bg 一致），用于填充袜形之外的画布空白，消除原生 canvas 白底 */
@@ -83,6 +84,7 @@ export function drawSock(
   params: SockParams,
   printImg: any | null,
   sockTypeId?: string | null,
+  bg: string | null = PAGE_BG,
 ): void {
   const g = getSockGeometry(sockTypeId)
   const sy = h / BASE_H
@@ -90,9 +92,11 @@ export function drawSock(
   const footTop = g.footTopY * sy
 
   ctx.clearRect(0, 0, w, h)
-  // 0) 页面底色铺满，避免原生 canvas 白底在袜形外露白
-  ctx.fillStyle = PAGE_BG
-  ctx.fillRect(0, 0, w, h)
+  // 0) 页面底色铺满，避免原生 canvas 白底在袜形外露白；预览态传 null → 透明，不盖住浮层标签
+  if (bg) {
+    ctx.fillStyle = bg
+    ctx.fillRect(0, 0, w, h)
+  }
 
   ctx.save()
   // 1) 整体裁剪到袜形
@@ -159,15 +163,24 @@ function drawPrint(
   ctx.rotate(rad)
 
   if (params.singleMode) {
+    const regionRatio = w / regionH
+    const cover = params.coverMode ?? false
     let drawW: number
     let drawH: number
-    const regionRatio = w / regionH
-    if (ratio > regionRatio) {
-      drawH = regionH * scale
-      drawW = drawH * ratio
-    } else {
+    if (cover) {
+      if (ratio > regionRatio) {
+        drawH = regionH * scale
+        drawW = drawH * ratio
+      } else {
+        drawW = w * scale
+        drawH = drawW / ratio
+      }
+    } else if (ratio > regionRatio) {
       drawW = w * scale
       drawH = drawW / ratio
+    } else {
+      drawH = regionH * scale
+      drawW = drawH * ratio
     }
     ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH)
   } else {

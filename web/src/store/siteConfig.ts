@@ -14,7 +14,7 @@ const BUILTIN: SiteConfig = {
   copyright: '爱花型袜业 · 2026',
 }
 
-const FALLBACK_LOGO = '/logo.png'
+const FALLBACK_LOGO = `${import.meta.env.BASE_URL}logo.png`
 
 export const useSiteConfigStore = defineStore('siteConfig', () => {
   const config = ref<SiteConfig>({ ...BUILTIN })

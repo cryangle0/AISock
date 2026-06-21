@@ -1,16 +1,24 @@
 <template>
   <view class="editor">
-    <!-- ① 袜型选择 -->
+    <!-- ① 袜型选择：先选板型（直板/弯板），再选尺寸 -->
     <view class="sock-bar">
       <text class="bar-label">袜型</text>
+      <view v-if="families.length > 1" class="fam-tabs">
+        <view
+          v-for="f in families"
+          :key="f"
+          :class="['fam-tab', { active: activeFamily === f }]"
+          @tap="activeFamily = f"
+        >{{ f }}</view>
+      </view>
       <scroll-view scroll-x class="sock-row">
         <view
-          v-for="s in sockTypes"
+          v-for="s in shownSocks"
           :key="s.id"
           :class="['sock-chip', { active: sockTypeId === s.id }]"
           @tap="sockTypeId = s.id"
         >
-          {{ s.name }}
+          {{ sockShortName(s) }}
         </view>
       </scroll-view>
     </view>
@@ -28,10 +36,10 @@
     <scroll-view class="editor-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <!-- 快捷操作 -->
     <view class="quick-row">
-      <button class="quick-btn" :disabled="!hasPrint" @tap="onAiExtend">✨ 款式衍生</button>
-      <button class="quick-btn" :disabled="!hasPrint" @tap="onFamily">♥ 亲子袜</button>
-      <button class="quick-btn" @tap="onExport">⬇ 导出</button>
-      <button class="quick-btn" @tap="onShare">↗ 分享</button>
+      <button class="quick-btn" :disabled="!hasPrint" @tap="onAiExtend">款式衍生</button>
+      <button class="quick-btn" :disabled="!hasPrint" @tap="onFamily">亲子袜</button>
+      <button class="quick-btn" @tap="onExport">导出</button>
+      <button class="quick-btn" @tap="onShare">分享</button>
     </view>
 
     <!-- sheet tab -->
@@ -55,8 +63,8 @@
             <text class="pattern-name">{{ p.name }}</text>
           </view>
         </view>
-        <button class="ai-gen-entry" @tap="onAiGen">⚡ AI 生成花型（今日剩 {{ quota.remaining }} 次）</button>
-        <button v-if="printImage" class="ai-recolor-entry" @tap="onAiRecolor">🎨 指令改色 / 改背景</button>
+        <button class="ai-gen-entry" @tap="onAiGen">AI 生成花型（今日剩 {{ quota.remaining }} 次）</button>
+        <button v-if="printImage" class="ai-recolor-entry" @tap="onAiRecolor">指令改色 / 改背景</button>
       </template>
 
       <!-- 调节 -->
@@ -160,6 +168,7 @@
       :initial-prompt="aiInitialPrompt"
       @close="aiGenOpen = false"
       @generate="onAiGenerate"
+      @preview="onSheetPreview"
     />
 
     <custom-tab-bar current="editor" />
@@ -174,8 +183,8 @@ import {
 } from '@aisock/common'
 import { navigateTo, reLaunch } from '@aisock/common/utils'
 import { useUserStore } from '@aisock/composition'
-import { aiApi, designApi, uploadApi } from '@aisock/service'
-import { useCatalog, type EditorPattern } from '@/pkg/composables/useCatalog'
+import { aiApi, designApi, uploadApi, parseAiResultUrl } from '@aisock/service'
+import { useCatalog, type EditorPattern } from '@/composables/useCatalog'
 import { paletteToColors } from '@/pkg/composables/usePalette'
 import { useShare } from '@/pkg/composables/useShare'
 import { exportDesignToAlbum } from '@/pkg/composables/useExport'
@@ -208,6 +217,19 @@ const colorRegions = [
 
 const tab = ref('print')
 const sockTypeId = ref(defaultSockId)
+
+// 板型分组（直板/弯板）：先选板型，再选尺寸
+const families = computed(() => {
+  const set = [...new Set(sockTypes.value.map((s) => s.family).filter(Boolean))] as string[]
+  return set.sort((a, b) => (a === '直板' ? -1 : b === '直板' ? 1 : 0))
+})
+const activeFamily = ref('直板')
+const shownSocks = computed(() =>
+  families.value.length ? sockTypes.value.filter((s) => s.family === activeFamily.value) : sockTypes.value,
+)
+function sockShortName(s: { name: string; family: string | null }) {
+  return s.family ? s.name.replace(new RegExp('^' + s.family + '[·\\s]*'), '') : s.name
+}
 const printImage = ref<string | null>(null)
 const patternId = ref<string | null>(null)
 const printName = ref('')
@@ -289,7 +311,11 @@ async function loadDesignIfRequested() {
 }
 
 onShow(async () => {
-  ensureCatalog()
+  await ensureCatalog()
+  // 默认/历史袜型若不在目录（如旧 'crew'）→ 落到首个真实袜版
+  if (!sockTypes.value.find((s) => s.id === sockTypeId.value)) {
+    sockTypeId.value = sockTypes.value[0]?.id || sockTypeId.value
+  }
   await loadDesignIfRequested()
   // 从「袜版定制」上传页带入的图片 → 直接渲染到袜版
   const upImg = uni.getStorageSync('aisock_upload_image')
@@ -300,6 +326,15 @@ onShow(async () => {
     printName.value = '上传花型'
     tab.value = 'print'
   }
+  // 从「AI 设计」推荐官「袜版选择」带入的袜型 → 预选对应袜版
+  const presetSock = uni.getStorageSync('aisock_sock_type')
+  if (presetSock) {
+    uni.removeStorageSync('aisock_sock_type')
+    sockTypeId.value = String(presetSock)
+  }
+  // 同步板型 tab 到当前选中袜版（让其所属板型下的尺寸高亮）
+  const curFam = sockTypes.value.find((s) => s.id === sockTypeId.value)?.family
+  if (curFam) activeFamily.value = curFam
   // 从「AI 设计」推荐官携带的意图描述 → 自动打开 AI 生成面板并预填灵感
   const aiPrompt = uni.getStorageSync('aisock_ai_prompt')
   if (aiPrompt) {
@@ -378,8 +413,12 @@ async function onAiGen() {
   aiGenOpen.value = true
 }
 
+function onSheetPreview(_path: string) {
+  /* 参考图预览仅在 sheet 内展示，不写入 printImage，避免临时 wxfile:// 污染画布 */
+}
+
 /** 由 AI 生成面板提交：意图优化 → 生成 → 刷新额度 */
-async function onAiGenerate(rawPrompt: string) {
+async function onAiGenerate(rawPrompt: string, refImages: string[] = []) {
   let prompt = rawPrompt.trim()
   if (!prompt) return
 
@@ -400,8 +439,11 @@ async function onAiGenerate(rawPrompt: string) {
   }
 
   try {
-    const r = await aiApi.generate({ type: 'text2img', prompt })
-    const url = r.data.status !== 'failed' ? r.data.result_urls?.[0] : undefined
+    const payload = refImages.length
+      ? { type: 'img2img' as const, prompt, refImages, refImage: refImages[0] }
+      : { type: 'text2img' as const, prompt }
+    const r = await aiApi.generate(payload)
+    const url = parseAiResultUrl(r.data)
     if (url) {
       printImage.value = url
       patternId.value = null
@@ -429,7 +471,7 @@ async function onAiRecolor() {
   if (!res.confirm || !res.content?.trim()) return
   try {
     const r = await aiApi.remixImage(printImage.value, res.content.trim())
-    const url = r.data.status !== 'failed' ? r.data.result_urls?.[0] : undefined
+    const url = parseAiResultUrl(r.data)
     if (url) {
       printImage.value = url
       patternId.value = null
@@ -645,6 +687,24 @@ function goDesigns() {
   font-weight: 700;
   color: $mp-text-primary;
   flex-shrink: 0;
+}
+.fam-tabs {
+  display: flex;
+  gap: 4rpx;
+  flex-shrink: 0;
+  background: #f1ebe0;
+  border-radius: 999rpx;
+  padding: 4rpx;
+}
+.fam-tab {
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: $mp-text-secondary;
+}
+.fam-tab.active {
+  background: $mp-primary;
+  color: #fff;
 }
 .sock-row {
   white-space: nowrap;

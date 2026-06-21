@@ -15,7 +15,7 @@ export const SOCK_TYPES: SockType[] = [
   { id: 'tube', name: '长筒袜', desc: '过膝长版 · 50cm' },
   { id: 'short', name: '短袜', desc: '常规短款 · 18cm' },
 ]
-export const DEFAULT_SOCK_TYPE_ID = 'crew'
+export const DEFAULT_SOCK_TYPE_ID = '' // 空 → 由袜版目录(接口)解析为首个真实袜版
 
 // ── 色卡（6 套，每套 8 色） ──
 export interface Palette {

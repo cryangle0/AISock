@@ -4,8 +4,14 @@
 import { Hono } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { listArticles, getArticle } from '../../services/article.service.js'
+import { getFeedDiscoverBundle } from '../../services/feed-discover.service.js'
 
 export const feedRouter = new Hono()
+
+/** 发现页配图 + 商品详情默认内容（后台「小程序配置」可维护） */
+feedRouter.get('/discover', async (c) => {
+  return ok(c, await getFeedDiscoverBundle())
+})
 
 feedRouter.get('/', async (c) => {
   return ok(c, await listArticles('feed'))

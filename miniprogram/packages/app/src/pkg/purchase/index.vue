@@ -8,7 +8,7 @@
         <!-- 商品概要 -->
         <view class="card summary">
           <view class="sock-thumb" :style="{ background: heroBg }">
-            <image v-if="cover" class="thumb-img" :src="cover" mode="aspectFill" />
+            <image v-if="cover" class="thumb-img" :src="cover" mode="aspectFit" />
           </view>
           <view class="summary-info">
             <view class="price-row">
@@ -114,7 +114,7 @@ import { navigateTo, switchTab } from '@aisock/common/utils'
 import { MATERIALS } from '@aisock/common'
 import { STORAGE_KEYS } from '@aisock/common/constants'
 import { useUserStore } from '@aisock/composition'
-import { orderApi, designApi } from '@aisock/service'
+import { orderApi, designApi, catalogApi } from '@aisock/service'
 import { isRemoteCover } from '@/domain/catalog'
 import { toRegions } from '@/pkg/components/editor/designSnapshot'
 import NavBar from '@/components/ui/NavBar.vue'
@@ -140,7 +140,8 @@ const craftLabel = ref('喷墨')
 const designName = ref('定制袜版')
 const designId = ref<number | undefined>(undefined)
 const patternId = ref<number | undefined>(undefined)
-const cover = ref<string | null>('/pkg/static/images/purchase-sock.webp')
+const cover = ref<string | null>('/pkg/static/images/purchase-sock.jpg')
+const printImage = ref<string | null>(null)
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
 
 const quantity = ref(1)
@@ -148,6 +149,7 @@ const craft = ref('uv')
 const material = ref(MATERIALS[0].value)
 const size = ref(shoeSizes[1])
 const sockTypeName = ref('中筒袜')
+const sockTypeId = ref('crew')
 
 const activeMaterial = computed(() => materials.find((m) => m.value === material.value) || materials[0])
 
@@ -195,7 +197,22 @@ onLoad((q?: Record<string, string>) => {
   if (q?.patternId) patternId.value = Number(q.patternId)
   if (q?.name) designName.value = decodeURIComponent(q.name)
   if (q?.cover) cover.value = decodeURIComponent(q.cover)
+  if (q?.printImage) printImage.value = decodeURIComponent(q.printImage)
+  if (q?.sockTypeId) {
+    sockTypeId.value = decodeURIComponent(q.sockTypeId)
+    resolveSockTypeName(sockTypeId.value)
+  }
 })
+
+async function resolveSockTypeName(id: string) {
+  try {
+    const res = await catalogApi.listSocks()
+    const sock = res.data?.find((s) => (s.code || String(s.id)) === id)
+    if (sock?.name) sockTypeName.value = sock.name
+  } catch {
+    /* 保留默认名称 */
+  }
+}
 
 function changeQty(d: number) {
   quantity.value = Math.max(1, quantity.value + d)
@@ -225,15 +242,18 @@ function ensureLogin(): boolean {
  */
 async function ensureDesignId(): Promise<number | null> {
   if (designId.value) return designId.value
-  if (!isRemoteCover(cover.value)) return null
+  const candidatePrint = printImage.value || cover.value
+  const designCover = isRemoteCover(cover.value) ? cover.value : candidatePrint
+  const designPrint = isRemoteCover(candidatePrint) ? candidatePrint : designCover
+  if (!isRemoteCover(designPrint) || !isRemoteCover(designCover)) return null
   try {
     const res = await designApi.createDesign({
       name: designName.value,
-      coverUrl: cover.value as string,
+      coverUrl: designCover as string,
       regions: toRegions({
-        sockTypeId: 'crew',
+        sockTypeId: sockTypeId.value,
         patternId: patternId.value ? String(patternId.value) : null,
-        printImage: cover.value,
+        printImage: designPrint,
         printName: designName.value,
         params: { density: 100, rotation: 0, singleMode: true, tileDensity: 3 },
         colors: { bodyHex: null, weltHex: null, heelHex: null, toeHex: null },
@@ -256,7 +276,9 @@ function guideCustomize() {
     cancelText: '再看看',
     success: (r) => {
       if (!r.confirm) return
-      if (isRemoteCover(cover.value)) uni.setStorageSync('aisock_upload_image', cover.value)
+      const designPrint = printImage.value || cover.value
+      if (isRemoteCover(designPrint)) uni.setStorageSync('aisock_upload_image', designPrint)
+      if (sockTypeId.value) uni.setStorageSync('aisock_sock_type', sockTypeId.value)
       navigateTo('/pkg/upload/index')
     },
   })
@@ -301,9 +323,12 @@ async function onNext() {
   payOpen.value = true
 }
 
-function onPaid() {
+function onPaid(result: { orderId: number; orderNo: string; amount: number; real: boolean }) {
   payOpen.value = false
-  uni.showToast({ title: '支付成功', icon: 'success' })
+  uni.showToast({
+    title: result.real ? '支付成功' : '演示支付成功',
+    icon: 'success',
+  })
   setTimeout(() => navigateTo('/pkg/orders/index'), 800)
 }
 </script>

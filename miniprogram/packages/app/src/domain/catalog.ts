@@ -20,10 +20,11 @@ export interface BuyableProduct {
 
 /** 后端花型 → 可下单商品 */
 export function patternToProduct(p: Pattern): BuyableProduct {
+  const display = p.display_config
   return {
     patternId: p.id,
-    name: p.name,
-    cover: p.image_url,
+    name: display?.feedTitle || p.name,
+    cover: display?.feedCover || p.image_url,
     categoryId: p.category_id,
   }
 }
@@ -50,6 +51,18 @@ export function purchaseRoute(target: PurchaseTarget): string {
   return `/pkg/purchase/index?${params.join('&')}`
 }
 
+/** 从后台配置的 link 解析花型 ID（pattern:5、/pkg/detail/index?id=5、/product/5） */
+export function parsePatternIdFromLink(link?: string | null): number | null {
+  if (!link) return null
+  const m =
+    link.match(/(?:^|\/)product\/(\d+)/i) ||
+    link.match(/[?&]id=(\d+)/) ||
+    link.match(/^pattern:(\d+)$/i) ||
+    link.match(/^(\d+)$/)
+  const id = m ? Number(m[1]) : NaN
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
 /** 详情页路由（按花型 ID 打开真实商品详情） */
 export function detailRoute(patternId: number): string {
   return `/pkg/detail/index?id=${patternId}`
@@ -61,4 +74,38 @@ export const CUSTOMIZE_IMAGE_KEY = 'aisock_upload_image'
 /** 把商品封面暂存，供 upload/editor 渲染到袜版 */
 export function stashCustomizeCover(cover?: string | null): void {
   if (isRemoteCover(cover)) uni.setStorageSync(CUSTOMIZE_IMAGE_KEY, cover)
+}
+
+/** 首页底部轮播 → 详情页 携带的详情配置本地存储 key */
+export const CASE_DETAIL_KEY = 'aisock_detail_config'
+
+/** 首页轮播携带到详情页的详情内容（来自后台「首页主题配置」每张轮播的详情页配置） */
+export interface CaseDetailPayload {
+  navTitle?: string
+  seriesTitle?: string
+  description?: string
+  cover?: string
+  slides?: string[]
+  gallery?: string[]
+}
+
+/** 暂存首页轮播对应的详情页配置，供详情页读取后渲染 */
+export function stashCaseDetail(payload: CaseDetailPayload): void {
+  try {
+    uni.setStorageSync(CASE_DETAIL_KEY, JSON.stringify(payload))
+  } catch {
+    /* 存储失败时详情页走默认/花型配置兜底 */
+  }
+}
+
+/** 读取并清除首页轮播暂存的详情页配置（只消费一次） */
+export function takeCaseDetail(): CaseDetailPayload | null {
+  try {
+    const raw = uni.getStorageSync(CASE_DETAIL_KEY)
+    if (!raw) return null
+    uni.removeStorageSync(CASE_DETAIL_KEY)
+    return JSON.parse(raw) as CaseDetailPayload
+  } catch {
+    return null
+  }
 }

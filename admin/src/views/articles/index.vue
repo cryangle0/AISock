@@ -58,7 +58,7 @@
         <a-form-item label="标题"><a-input v-model="form.title" /></a-form-item>
         <a-form-item label="标签"><a-input v-model="form.tag" /></a-form-item>
         <a-form-item label="摘要"><a-textarea v-model="form.summary" :auto-size="{ minRows: 2 }" /></a-form-item>
-        <a-form-item label="封面 URL"><a-input v-model="form.cover_url" /></a-form-item>
+        <a-form-item label="封面 URL"><ImageUploadInput v-model="form.cover_url" /></a-form-item>
         <a-form-item label="跳转链接"><a-input v-model="form.link" /></a-form-item>
         <a-row :gutter="12">
           <a-col :span="12"><a-form-item label="排序"><a-input-number v-model="form.sort" :min="0" /></a-form-item></a-col>
@@ -73,6 +73,7 @@
 import { computed, onActivated, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listArticles, createArticle, updateArticle, deleteArticle, type Article } from '@/api/articles'
+import ImageUploadInput from '@/components/ImageUploadInput.vue'
 
 const kind = ref('feed')
 const list = ref<Article[]>([])

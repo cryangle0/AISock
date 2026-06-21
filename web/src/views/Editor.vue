@@ -10,9 +10,14 @@
       :print-image-url="finalPrintImage"
       :params="params"
       :colors="colors"
+      :design-name="printName"
+      :can-undo="canUndo"
+      :can-redo="canRedo"
       @region-click="onRegionClick"
       @drop-image="onApplyImage"
-      @resource-ready="onResourceReady"
+      @resource-ready="onGeometryReady"
+      @undo="undo"
+      @redo="redo"
     />
 
     <!-- 右：参数 / 颜色 / 色卡 / 操作 -->
@@ -45,7 +50,8 @@
       v-if="variantMode"
       :mode="variantMode"
       :base-design="{ printName, colors, params }"
-      :resources="resources"
+      :reference-image="variantRefImage"
+      :geometry="parsedGeo"
       @close="variantMode = null"
       @apply="onVariantApply"
       @save-all="onFamilySaveAll"
@@ -89,8 +95,8 @@ import ShareModal from '@/components/editor/ShareModal.vue'
 import OrderModal, { type OrderFormData } from '@/components/order/OrderModal.vue'
 import PaymentModal from '@/components/order/PaymentModal.vue'
 import { useSockEditor } from '@/composables/useSockEditor'
-import { compressDataURL, toRegions, fromRegions, type DesignVariant, type SockResources } from '@/engine'
-import { designApi } from '@/api'
+import { compressDataURL, toRegions, fromRegions, type DesignVariant, type ParsedGeometry } from '@/engine'
+import { designApi, catalogApi } from '@/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -114,12 +120,17 @@ const {
   setParams,
   applyDesign,
   restoreSnapshot,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
 } = useSockEditor()
 
 const canvasRef = ref<InstanceType<typeof SockCanvas> | null>(null)
-const resources = ref<SockResources | null>(null)
+const parsedGeo = ref<ParsedGeometry | null>(null)
 const activeRegion = ref<string | null>(null)
 const variantMode = ref<'derive' | 'family' | null>(null)
+const variantRefImage = ref('')
 const shareOpen = ref(false)
 const orderOpen = ref(false)
 const pendingOrder = ref<OrderFormData | null>(null)
@@ -135,17 +146,34 @@ function showToast(msg: string) {
   toastTimer = window.setTimeout(() => (toast.value = ''), 2000)
 }
 
-// 继续编辑：路由带 ?design=ID 时拉取并还原整套设计
+// 继续编辑 / 外链带入花型
 onMounted(async () => {
-  const id = Number(route.query.design)
-  if (!id) return
-  try {
-    const res = await designApi.get(id)
-    restoreSnapshot(fromRegions(res.data.regions))
-    currentDesignId.value = id
-    showToast(`继续编辑：${res.data.name}`)
-  } catch {
-    /* 拉取失败按空白新建 */
+  const designId = Number(route.query.design)
+  if (designId) {
+    try {
+      const res = await designApi.get(designId)
+      restoreSnapshot(fromRegions(res.data.regions))
+      currentDesignId.value = designId
+      showToast(`继续编辑：${res.data.name}`)
+    } catch {
+      /* 拉取失败按空白新建 */
+    }
+    return
+  }
+
+  const patternId = Number(route.query.pattern)
+  const coverQ = typeof route.query.cover === 'string' ? route.query.cover : ''
+  const nameQ = typeof route.query.name === 'string' ? route.query.name : ''
+
+  if (patternId > 0) {
+    try {
+      const res = await catalogApi.getPattern(patternId)
+      applyImage(res.data.image_url, res.data.name || nameQ)
+    } catch {
+      if (coverQ) applyImage(coverQ, nameQ)
+    }
+  } else if (coverQ) {
+    applyImage(coverQ, nameQ)
   }
 })
 
@@ -165,16 +193,20 @@ function buildRegions() {
 function onApplyPattern(patternId: string, name: string) {
   applyPattern(patternId, name)
 }
-function onApplyImage(url: string, name: string) {
-  applyImage(url, name)
+function onApplyImage(url: string, name: string, fromAi = false) {
+  applyImage(
+    url,
+    name,
+    fromAi ? { singleMode: true, coverMode: true } : undefined,
+  )
 }
 function onUploadFile(file: File) {
   const reader = new FileReader()
   reader.onload = (e) => applyImage(e.target?.result as string, file.name.replace(/\.[^.]+$/, ''))
   reader.readAsDataURL(file)
 }
-function onResourceReady(res: SockResources) {
-  resources.value = res
+function onGeometryReady(geo: ParsedGeometry | null) {
+  parsedGeo.value = geo
 }
 function onRegionClick(region: string) {
   activeRegion.value = region
@@ -237,22 +269,43 @@ async function onOrderSubmit(data: OrderFormData) {
   }
   pendingOrder.value = { ...data, designId: currentDesignId.value ?? undefined }
 }
-function onPaid(payment: { orderNo: string }) {
+function onPaid(payment: { orderNo: string; pending?: boolean }) {
   pendingOrder.value = null
-  showToast(`支付成功，订单 ${payment.orderNo} 已提交`)
+  showToast(
+    payment.pending
+      ? `订单 ${payment.orderNo} 已创建，请按对公信息完成转账`
+      : `支付成功，订单 ${payment.orderNo} 已提交`,
+  )
   setTimeout(() => router.push({ name: 'Cart' }), 900)
 }
 
-function onAiExtend() {
+async function prepareVariantReference(): Promise<string> {
+  const cover = await snapshotCover()
+  return cover || finalPrintImage.value || ''
+}
+
+async function onAiExtend() {
   if (!hasPrint.value) {
     showToast('请先选择印花')
     return
   }
+  showToast('正在准备当前设计图…')
+  variantRefImage.value = await prepareVariantReference()
+  if (!variantRefImage.value) {
+    showToast('当前设计图读取失败，请稍后重试')
+    return
+  }
   variantMode.value = 'derive'
 }
-function onFamilyPair() {
+async function onFamilyPair() {
   if (!hasPrint.value) {
     showToast('请先选择印花')
+    return
+  }
+  showToast('正在准备当前设计图…')
+  variantRefImage.value = await prepareVariantReference()
+  if (!variantRefImage.value) {
+    showToast('当前设计图读取失败，请稍后重试')
     return
   }
   variantMode.value = 'family'
@@ -292,7 +345,7 @@ function onShared(target: string) {
 <style scoped>
 .sock-editor {
   display: flex;
-  height: calc(100vh - 64px);
+  height: 100%;
   overflow: hidden;
 }
 .editor-toast {

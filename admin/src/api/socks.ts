@@ -4,6 +4,7 @@ export interface SockModel {
   id: number
   code: string
   name: string
+  thumb_url: string | null
   svg_url: string | null
   mask_url: string | null
   lineart_url: string | null

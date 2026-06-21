@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 647.12 840.99">
+  <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
+  <defs>
+    <style>
+      .st0 {
+        opacity: .18;
+        stroke: #919191;
+        stroke-width: .31px;
+      }
+
+      .st0, .st1, .st2 {
+        fill: none;
+      }
+
+      .st0, .st2 {
+        stroke-miterlimit: 10;
+      }
+
+      .st3 {
+        fill: url(#_新建图案_35);
+        opacity: .16;
+      }
+
+      .st2 {
+        stroke: #858585;
+      }
+
+      .st4 {
+        fill: #fcfdff;
+        filter: url(#drop-shadow-3);
+      }
+    </style>
+    <filter id="drop-shadow-3" x="268.64" y="284.85" width="152.88" height="314.88" filterUnits="userSpaceOnUse">
+      <feOffset dx="4.13" dy="4.13"/>
+      <feGaussianBlur result="blur" stdDeviation="6.89"/>
+      <feFlood flood-color="#7f7f80" flood-opacity=".75"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <pattern id="_新建图案_35" data-name="新建图案 35" x="0" y="0" width="28.35" height="75.82" patternTransform="translate(-10926.97 2129.15) scale(.27 .62)" patternUnits="userSpaceOnUse" viewBox="0 0 28.35 75.82">
+      <g>
+        <rect class="st1" width="28.35" height="75.82"/>
+        <line class="st2" x1="25.51" y1="0" x2="25.51" y2="75.82"/>
+        <line class="st2" x1="19.84" y1="0" x2="19.84" y2="75.82"/>
+        <line class="st2" x1="14.17" y1="0" x2="14.17" y2="75.82"/>
+        <line class="st2" x1="8.5" y1="0" x2="8.5" y2="75.82"/>
+        <line class="st2" x1="2.83" y1="0" x2="2.83" y2="75.82"/>
+      </g>
+    </pattern>
+  </defs>
+  <path class="st4" d="M396.31,519.56v3.35c0,10.54-11.67,40.5-24,46.73-9.59,4.84-19.2,4.91-32.61,4.91-12.16,0-21.21-1.32-30.35-5.38-13.9-6.16-24-34.97-24-46.27v-220.03c0-.78.63-1.41,1.41-1.41h108.14c.78,0,1.41.63,1.41,1.41v216.69Z"/>
+  <rect class="st3" x="285.4" y="301.46" width="110.92" height="23.73"/>
+  <line class="st0" x1="285.37" y1="325.21" x2="396.33" y2="325.21"/>
+</svg>

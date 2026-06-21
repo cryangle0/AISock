@@ -18,6 +18,11 @@ export interface ConfigItem {
   en?: string
   icon?: string
   bg?: string
+  /** 封面图 URL（首页主题/案例卡片图片） */
+  cover?: string
+  /** 商品详情描述等多行文案 */
+  desc?: string
+  themeKey?: string
   link?: string
   [k: string]: unknown
 }

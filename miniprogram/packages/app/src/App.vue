@@ -50,6 +50,12 @@ page {
   font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
+/* 去除小程序原生 <button> 的默认 ::after 边框：圆角(pill)按钮上它不贴合，显示为模糊边线。
+   只去掉这层默认边框，不影响各按钮用 CSS 自绘的 border（微信登录/取消等）。 */
+button::after {
+  border: none;
+}
+
 /* 隐藏竖向滚动条（页面级 / scroll-view），保留滚动能力 */
 ::-webkit-scrollbar {
   width: 0 !important;

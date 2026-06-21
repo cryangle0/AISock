@@ -2,11 +2,13 @@
  * 微信支付路由（jsapi 预下单 / 回调 / mock 通知）
  */
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { ok, fail } from '../../utils/response.js'
 import { getUserId } from '../../utils/context.js'
 import { queryOne } from '../../db.js'
-import { createPrepay, handlePaidNotify } from '../../services/wxpay.service.js'
+import { createPrepay, createNativePrepay, handlePaidNotify } from '../../services/wxpay.service.js'
 import { decryptNotify } from '../../services/wxpay/signer.js'
+import { createAlipayOrder, handleAlipayNotify } from '../../services/alipay.service.js'
 
 export const payRouter = new Hono()
 
@@ -44,6 +46,68 @@ payRouter.post('/prepay', async (c) => {
   const amountFen = Math.round(Number(order.total_amount) * 100)
   const result = await createPrepay(orderId, amountFen, openid, order.design_name || '袜款定制')
   return ok(c, result)
+})
+
+/** 加载当前用户的待支付订单（web 微信 Native / 支付宝 共用） */
+async function loadPayableOrder(c: Context, orderId: number) {
+  return queryOne<OrderRow>(
+    'SELECT id, user_id, total_amount, status, design_name FROM `order` WHERE id = ? AND user_id = ?',
+    [orderId, getUserId(c)],
+  )
+}
+
+/** 微信 Native（扫码）预下单 —— web/PC 端，返回 code_url 供前端渲染二维码 */
+payRouter.post('/native', async (c) => {
+  const { orderId } = await c.req.json<{ orderId?: number }>()
+  if (!orderId) return fail(c, '缺少 orderId')
+  const order = await loadPayableOrder(c, orderId)
+  if (!order) return fail(c, '订单不存在', 404)
+  if (order.status !== 'pending') return fail(c, '订单状态不可支付')
+  const amountFen = Math.round(Number(order.total_amount) * 100)
+  const result = await createNativePrepay(orderId, amountFen, order.design_name || '袜款定制')
+  return ok(c, result)
+})
+
+/** 支付宝电脑网站支付下单 —— 返回收银台跳转 URL（前端 window.location 跳转） */
+payRouter.post('/alipay', async (c) => {
+  const { orderId } = await c.req.json<{ orderId?: number }>()
+  if (!orderId) return fail(c, '缺少 orderId')
+  const order = await loadPayableOrder(c, orderId)
+  if (!order) return fail(c, '订单不存在', 404)
+  if (order.status !== 'pending') return fail(c, '订单状态不可支付')
+  const amountFen = Math.round(Number(order.total_amount) * 100)
+  const result = await createAlipayOrder(orderId, amountFen, order.design_name || '袜款定制')
+  return ok(c, result)
+})
+
+/** 支付状态查询 —— web 扫码/跳转后轮询确认（依赖异步回调已落库） */
+payRouter.get('/status', async (c) => {
+  const outTradeNo = c.req.query('outTradeNo')
+  if (!outTradeNo) return fail(c, '缺少 outTradeNo')
+  const row = await queryOne<{ status: string; order_id: number }>(
+    'SELECT p.status, p.order_id FROM payment p JOIN `order` o ON o.id = p.order_id WHERE p.out_trade_no = ? AND o.user_id = ?',
+    [outTradeNo, getUserId(c)],
+  )
+  return ok(c, { status: row?.status || 'unknown', orderId: row?.order_id || null })
+})
+
+/**
+ * 支付宝异步通知（生产）：application/x-www-form-urlencoded + RSA2 验签。
+ * 支付宝要求返回纯文本 'success' 才视为接收成功，否则会重试。
+ */
+payRouter.post('/alipay/notify', async (c) => {
+  try {
+    const body = await c.req.parseBody()
+    const params: Record<string, string> = {}
+    for (const [k, v] of Object.entries(body)) {
+      if (typeof v === 'string') params[k] = v
+    }
+    const okRes = await handleAlipayNotify(params)
+    return c.text(okRes ? 'success' : 'failure')
+  } catch (err: any) {
+    console.warn(`[alipay] 回调处理失败: ${err?.message || err}`)
+    return c.text('failure')
+  }
 })
 
 /**

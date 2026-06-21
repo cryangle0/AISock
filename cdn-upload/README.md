@@ -15,6 +15,9 @@
 | pkg/static/detail/hangzhou-1.webp | https://cdn.onnsa.cn/aisock/pkg/static/detail/hangzhou-1.webp |
 | pkg/static/detail/hangzhou-2.webp | https://cdn.onnsa.cn/aisock/pkg/static/detail/hangzhou-2.webp |
 | pkg/static/detail/hangzhou-3.webp | https://cdn.onnsa.cn/aisock/pkg/static/detail/hangzhou-3.webp |
+| static/images/gift-*.jpg | https://cdn.onnsa.cn/aisock/static/images/gift-*.jpg |
+| static/images/style-*.jpg | https://cdn.onnsa.cn/aisock/static/images/style-*.jpg |
+| pkg/static/images/ref-*.png | https://cdn.onnsa.cn/aisock/pkg/static/images/ref-*.png |
 
 代码侧已统一通过 `src/config/cdn.ts` 的 `CDN_BASE = 'https://cdn.onnsa.cn/aisock'` 引用，
 若 CDN 根路径不同，改这一个常量即可。

@@ -20,7 +20,7 @@
           @tap="picked = v.id"
         >
           <image v-if="v.cover" :src="v.cover" mode="aspectFit" class="variant-thumb" />
-          <view v-else class="variant-thumb placeholder">🧦</view>
+          <view v-else class="variant-thumb placeholder"><AppIcon name="socks" :size="44" color="#c8b89a" /></view>
           <text class="variant-name">{{ v.name }}</text>
           <text class="variant-scheme">{{ v.scheme }}</text>
         </view>
@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { generateDeriveVariants, generateFamilyVariants, type DesignVariant } from '@/composables/useVariants'
 import type { SockColors, SockParams } from './sockShape'
 

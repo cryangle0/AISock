@@ -1,598 +1,357 @@
 <template>
-  <div class="home-page">
-    <!-- 中间主区 -->
-    <div class="home-main">
-      <!-- Hero -->
-      <section class="hero">
-        <div class="hero-content">
-          <h1 class="hero-title">从一根花线到成品</h1>
-          <p class="hero-desc">
-            3 分钟出袜款，或直接进入设计器<br />
-            自由编辑模板匹配花型，AI 同款一键延展<br />
-            提交至爱花型工厂量产。
-          </p>
-          <div class="hero-cta">
-            <button class="btn-primary" @click="goEditor">▶ 开始设计</button>
-            <button class="btn-ghost" @click="$router.push({ name: 'Feed' })">浏览灵感</button>
-          </div>
-        </div>
-        <div class="hero-stage">
-          <img class="hero-sock" src="/image-tool/sock.png" alt="袜款展示" draggable="false" />
-        </div>
+  <div class="home">
+    <!-- 主区 892 -->
+    <div class="main">
+      <!-- Hero Banner 892×223 r20 -->
+      <section class="hero" @click="goEditor()">
+        <img class="hero-img" :src="heroImg" alt="主题随心订 花型选不停" draggable="false" />
       </section>
 
-      <!-- 4 格快捷入口 -->
+      <!-- 快捷入口 4×（205×74 r16） -->
       <section class="quick">
-        <button class="quick-card" @click="goEditor">
-          <span class="quick-icon">✏️</span>
-          <span class="quick-text"><b>开始设计</b><i>进入袜版编辑器</i></span>
-          <span class="quick-arrow">›</span>
+        <button class="qtile" @click="goEditor()">
+          <span class="qico green"><AppIcon name="design" :size="20" /></span>
+          <span class="qtxt"><b>AI 设计</b><i>进入袜版编辑器</i></span>
+          <AppIcon class="qarrow" name="chevron-right" :size="12" />
         </button>
-        <button class="quick-card" @click="goAuthed('Mine')">
-          <span class="quick-icon">📁</span>
-          <span class="quick-text"><b>我的设计</b><i>{{ overview.designs }} 个模板</i></span>
-          <span class="quick-arrow">›</span>
+        <button class="qtile" @click="goAuthed('Mine')">
+          <span class="qico terra"><AppIcon name="folder" :size="20" /></span>
+          <span class="qtxt"><b>我的设计</b><i>{{ overview.designs }} 个模板</i></span>
+          <AppIcon class="qarrow" name="chevron-right" :size="12" />
         </button>
-        <button class="quick-card" @click="goAuthed('Cart')">
-          <span class="quick-icon">🛒</span>
-          <span class="quick-text"><b>购物车</b><i>{{ orderTotal }} 个订单</i></span>
-          <span class="quick-arrow">›</span>
+        <button class="qtile" @click="goAuthed('Cart')">
+          <span class="qico orange"><AppIcon name="cart" :size="20" /></span>
+          <span class="qtxt"><b>购物车</b><i>{{ orderTotal }} 个订单</i></span>
+          <AppIcon class="qarrow" name="chevron-right" :size="12" />
         </button>
-        <button class="quick-card" @click="$router.push({ name: 'Feed' })">
-          <span class="quick-icon">🎨</span>
-          <span class="quick-text"><b>推荐灵感</b><i>主题 + 配色</i></span>
-          <span class="quick-arrow">›</span>
+        <button class="qtile" @click="goEditor()">
+          <span class="qico pink"><AppIcon name="image" :size="20" /></span>
+          <span class="qtxt"><b>素材库</b><i>公共 + 个人花型</i></span>
+          <AppIcon class="qarrow" name="chevron-right" :size="12" />
         </button>
       </section>
 
-      <!-- 袜版设计预设 -->
-      <section class="section">
-        <div class="section-head">
-          <h2 class="section-title">袜版设计预设 ✨</h2>
-          <span class="section-sub">从模板快速开局，一键进入编辑器调整即用</span>
-          <button class="section-more" @click="goEditor">查看更多模板 ›</button>
+      <!-- 袜版设计预设 卡片 r12 -->
+      <section class="presets">
+        <div class="sec-head">
+          <h2 class="sec-title">袜版设计预设</h2>
+          <span class="sec-sub">✨ 从模板快速开局，一键进入编辑器调整即用</span>
+          <button class="sec-more" @click="goEditor()">查看更多模板 <AppIcon name="chevron-right" :size="12" /></button>
         </div>
-        <div class="preset-grid">
-          <button v-for="p in presets" :key="p.id" class="preset-card" @click="goEditor">
+        <div v-if="presetsLoading" class="preset-grid">
+          <div v-for="n in 10" :key="'sk' + n" class="preset-skel" />
+        </div>
+        <div v-else class="preset-grid">
+          <button v-for="p in presets" :key="p.id" class="preset-card" @click="openPreset(p)">
             <div class="preset-cover">
-              <SockMiniSvg :uid="p.id" :regions="p.regions" />
+              <img v-if="p.cover" :src="p.cover" :alt="p.title" loading="lazy" />
+              <div v-else class="preset-fallback" :style="{ background: p.bg || 'var(--card-pink)' }" />
             </div>
-            <div class="preset-meta">
-              <div class="preset-name">{{ p.name }}</div>
-              <div class="preset-desc">4 区模板</div>
-            </div>
+            <div class="preset-name">{{ p.title }}</div>
+            <div class="preset-tag">花型模板</div>
           </button>
         </div>
       </section>
     </div>
 
-    <!-- 右侧信息栏 -->
-    <aside class="home-rail">
-      <div class="rp-card">
-        <div class="rp-head"><h3 class="rp-title">资讯中心</h3><button class="rp-more" @click="$router.push({ name: 'Feed' })">查看更多 ›</button></div>
-        <div class="rp-news">
-          <div v-for="n in news" :key="n.title" class="rp-news-item">
-            <span class="rp-news-icon" :style="{ background: n.bg }">{{ n.emoji }}</span>
-            <div class="rp-news-text">
-              <div class="rp-news-title">{{ n.title }}</div>
-              <div class="rp-news-meta">{{ n.meta }}</div>
-              <div class="rp-news-date">{{ n.date }}</div>
-            </div>
+    <!-- 右侧信息栏 241 -->
+    <aside class="rail-right">
+      <!-- 我的订单 -->
+      <div class="rcard">
+        <div class="rcard-head">
+          <h3>我的订单</h3>
+          <button class="rmore" @click="goAuthed('Cart')">查看更多 <AppIcon name="chevron-right" :size="11" /></button>
+        </div>
+        <div class="ostats">
+          <div class="ostat"><span class="onum num">{{ orderTotal }}</span><span class="olabel">订单总数</span></div>
+          <div class="ostat"><span class="onum num">{{ overview.orders.pending ?? 0 }}</span><span class="olabel">待确认</span></div>
+          <div class="ostat"><span class="onum num">{{ overview.orders.producing ?? 0 }}</span><span class="olabel">生产中</span></div>
+          <div class="ostat"><span class="onum num">{{ overview.orders.done ?? 0 }}</span><span class="olabel">已完成</span></div>
+        </div>
+      </div>
+
+      <!-- 常见问题 -->
+      <button class="faq-card" @click="openFaq">
+        <span class="faq-ico"><AppIcon name="chat" :size="20" color="var(--primary)" /></span>
+        <span class="faq-txt"><b>常见问题</b><i>快速查看使用说明</i></span>
+      </button>
+
+      <!-- 设计灵感 -->
+      <div class="rcard">
+        <div class="rcard-head"><h3>设计灵感</h3></div>
+        <div class="tips">
+          <div v-for="(t, i) in tips" :key="i" class="tip">
+            <span class="tip-dot"><AppIcon name="sparkle" :size="8" color="#e08a2e" /></span>
+            <span class="tip-text">{{ t }}</span>
           </div>
         </div>
       </div>
 
-      <div class="rp-card">
-        <div class="rp-head"><h3 class="rp-title">我的订单</h3><button class="rp-more" @click="goAuthed('Cart')">查看更多 ›</button></div>
-        <div class="rp-orders">
-          <div class="rp-stat"><span class="rp-stat-num">{{ orderTotal }}</span><span class="rp-stat-label">订单总数</span></div>
-          <div class="rp-stat"><span class="rp-stat-num">{{ overview.orders.pending ?? 0 }}</span><span class="rp-stat-label">待确认</span></div>
-          <div class="rp-stat"><span class="rp-stat-num">{{ overview.orders.producing ?? 0 }}</span><span class="rp-stat-label">生产中</span></div>
-          <div class="rp-stat"><span class="rp-stat-num">{{ overview.orders.done ?? 0 }}</span><span class="rp-stat-label">已完成</span></div>
-        </div>
-      </div>
-
-      <div class="rp-card rp-faq">
-        <div class="rp-faq-icon">🧦</div>
-        <div class="rp-faq-text">
-          <h3 class="rp-title">常见问题</h3>
-          <p class="rp-faq-desc">快速查看使用说明</p>
-        </div>
-        <button class="rp-faq-btn" @click="$router.push({ name: 'Feed' })">查看详情</button>
-      </div>
-
-      <div class="rp-card">
-        <div class="rp-head"><h3 class="rp-title">设计灵感</h3></div>
-        <div class="rp-tips">
-          <div v-for="(t, i) in tips" :key="i" class="rp-tip">
-            <span class="rp-tip-num">{{ String(i + 1).padStart(2, '0') }}</span>
-            <span class="rp-tip-text">{{ t }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="recentDesigns.length" class="rp-card">
-        <div class="rp-head"><h3 class="rp-title">最近设计</h3><button class="rp-more" @click="goAuthed('Mine')">查看更多 ›</button></div>
-        <div class="rp-activity">
-          <div v-for="d in recentDesigns" :key="d.id" class="rp-act-item" @click="editDesign(d.id)">
-            <span class="rp-act-dot" />
-            <span class="rp-act-text">{{ d.name }}</span>
-            <span class="rp-act-time">{{ d.created_at?.slice(5, 10) }}</span>
+      <!-- 最近活动 -->
+      <div class="rcard">
+        <div class="rcard-head"><h3>最近活动</h3></div>
+        <div class="acts">
+          <span class="act-line" />
+          <div v-if="!activities.length" class="act-empty">登录后查看你的最近动态</div>
+          <div v-for="(a, i) in activities" :key="i" class="act">
+            <span class="act-dot" />
+            <span class="act-text">{{ a.text }}</span>
+            <span class="act-time">{{ a.time }}</span>
           </div>
         </div>
       </div>
     </aside>
+
+    <!-- 常见问题 弹层 -->
+    <div v-if="faqOpen" class="faq-mask" @click="faqOpen = false">
+      <div class="faq-panel" @click.stop>
+        <div class="faq-head">
+          <h3>常见问题</h3>
+          <button class="faq-close" @click="faqOpen = false">✕</button>
+        </div>
+        <div class="faq-list">
+          <div v-for="(f, i) in FAQS" :key="i" class="faq-item">
+            <div class="faq-q"><AppIcon name="sparkle" :size="15" color="var(--primary)" /> {{ f.q }}</div>
+            <div class="faq-a">{{ f.a }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { userApi, feedApi, designApi, type Design } from '@/api'
-import { useUserStore, useSiteConfigStore } from '@/store'
-import SockMiniSvg from '@/components/SockMiniSvg.vue'
-import { PRESETS } from '@/data/presets'
+import { catalogApi, userApi, designApi, type HomeConfigItem } from '@/api'
+import { useUserStore } from '@/store'
+import { useAuthModal } from '@/composables/useAuthModal'
+import { parsePatternIdFromLink, detailRoute, resolveCfgImg } from '@/domain/catalog'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
-const site = useSiteConfigStore()
-const presets = PRESETS
+const { openLogin } = useAuthModal()
+const heroImg = ref(import.meta.env.BASE_URL + 'home-hero.png')
+const presets = ref<HomeConfigItem[]>([])
+const presetsLoading = ref(true)
 const overview = reactive<{ designs: number; orders: Record<string, number> }>({ designs: 0, orders: {} })
 const orderTotal = computed(() => overview.orders.total ?? 0)
 
-const NEWS_ICONS = ['🌸', '🏆', '⚙️', '🎨', '📦']
-const NEWS_BGS = ['rgba(222,195,138,0.4)', 'rgba(197,72,60,0.18)', 'rgba(90,138,125,0.2)', 'rgba(58,111,176,0.18)']
-interface NewsItem { emoji: string; title: string; meta: string; date: string; bg: string }
-// 兜底资讯（后端无数据时展示，保证不空屏）
-const FALLBACK_NEWS: NewsItem[] = [
-  { emoji: '🌸', title: '2024 春夏趋势花型发布', meta: '最新花型趋势已上线，快来获取灵感！', date: '2024-06-20', bg: NEWS_BGS[0] },
-  { emoji: '🏆', title: '敦煌主题设计大赛开启', meta: '参与赢取丰厚奖励，展示你的创意！', date: '2024-06-15', bg: NEWS_BGS[1] },
-  { emoji: '⚙️', title: '系统升级维护通知', meta: '9月25日 02:00~04:00 系统升级维护', date: '2024-05-15', bg: NEWS_BGS[2] },
-]
-const news = ref<NewsItem[]>(FALLBACK_NEWS)
-const tips = ['尝试用 AI 延展生成同款变体', '搭配色卡映射快速换季配色', '亲子袜一键生成成人 + 儿童款']
-const recentDesigns = ref<Design[]>([])
+const tips = ['尝试用 AI 延展生成同款变体', '搭配色卡映射快速换季配色', '亲子袜一键生成成人+儿童款']
 
-function goEditor() {
-  router.push({ name: 'Editor' })
+interface Act { text: string; time: string }
+const activities = ref<Act[]>([])
+
+const faqOpen = ref(false)
+const FAQS = [
+  { q: '如何开始设计一双袜子？', a: '进入「AI 设计」，从公共库选花型或用 AI 生成图案，拖到袜版上即可，支持调节配色与排布。' },
+  { q: '怎么下单和付款？', a: '设计完成后点「下单」填写数量尺码，确认报价后支付；网页端为演示下单，真实付款请在微信小程序内完成。' },
+  { q: '支持哪些材质和工艺？', a: '提供多种材质与印花 / 针织工艺，下单时可选，价格按材质 + 工艺 + 数量实时计算。' },
+  { q: '设计能保存以后再改吗？', a: '可以。点「保存」存到「我的设计」，之后从「我的」进入可继续编辑。' },
+]
+
+function goEditor(presetId?: string) {
+  router.push({ name: 'Editor', query: typeof presetId === 'string' ? { preset: presetId } : {} })
 }
-function editDesign(id: number) {
-  router.push({ name: 'Editor', query: { design: id } })
+function openPreset(p: HomeConfigItem) {
+  const pid = parsePatternIdFromLink(p.link)
+  if (pid) {
+    router.push(detailRoute(pid))
+    return
+  }
+  if (p.cover) {
+    router.push({ name: 'Editor', query: { cover: p.cover, name: p.title || '' } })
+    return
+  }
+  router.push({ name: 'Feed' })
 }
+function openFaq() { faqOpen.value = true }
 function goAuthed(name: string) {
   if (!userStore.isLogin) {
-    router.push({ name: 'Login', query: { redirect: name === 'Mine' ? '/mine' : '/cart' } })
+    openLogin(name === 'Mine' ? '/mine' : '/cart')
     return
   }
   router.push({ name })
 }
 
 onMounted(async () => {
-  // 资讯中心：后端 news 文章驱动，失败/空保留兜底
   try {
-    const res = await feedApi.news()
-    if (res.data.length) {
-      news.value = res.data.map((a, i) => ({
-        emoji: NEWS_ICONS[i % NEWS_ICONS.length],
-        title: a.title,
-        meta: a.summary || '',
-        date: '',
-        bg: NEWS_BGS[i % NEWS_BGS.length],
+    const h = await catalogApi.home()
+    const d = h.data
+    if (d.cases?.length) {
+      presets.value = d.cases.map((c) => ({
+        ...c,
+        cover: c.cover ? resolveCfgImg(c.cover, c.cover) : c.cover,
       }))
     }
-  } catch {
-    /* 保留兜底资讯 */
-  }
-
-  if (userStore.isLogin) {
-    try {
-      const ov = await userApi.overview()
-      overview.designs = ov.data.designs
-      overview.orders = ov.data.orders
-    } catch {
-      /* 忽略 */
-    }
-    try {
-      const ds = await designApi.list()
-      recentDesigns.value = ds.data.slice(0, 5)
-    } catch {
-      /* 忽略 */
-    }
-  }
+    const b = (d.banners?.[0] ?? null) as { image_url?: string } | null
+    if (b?.image_url) heroImg.value = b.image_url
+  } catch { /* 用静态兜底 */ } finally { presetsLoading.value = false }
+  if (!userStore.isLogin) return
+  try {
+    const ov = await userApi.overview()
+    overview.designs = ov.data.designs
+    overview.orders = ov.data.orders
+  } catch { /* 忽略 */ }
+  try {
+    const ds = await designApi.list()
+    activities.value = ds.data.slice(0, 3).map((d) => ({ text: `保存了「${d.name}」设计`, time: (d.created_at || '').slice(5, 10) }))
+  } catch { /* 忽略 */ }
 })
 </script>
 
 <style scoped>
-.home-page {
-  display: flex;
-  gap: 0;
-  height: 100%;
-}
-.home-main {
+/* 内容区：左 892 主区 + 12 间距 + 241 右栏，内边距 16/12 */
+.home {
   flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 16px 20px 32px;
-  overflow-y: auto;
-}
-.home-main > * {
-  flex-shrink: 0;
-}
-
-/* Hero */
-.hero {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 32px 36px;
-  background:
-    radial-gradient(80% 60% at 100% 0%, rgba(222, 195, 138, 0.4), transparent 70%),
-    linear-gradient(135deg, #fffcf6 0%, #f2e6d2 100%);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  min-height: 200px;
-  position: relative;
-  overflow: hidden;
-}
-.hero-content {
-  flex: 1;
-  min-width: 0;
-}
-.hero-title {
-  margin: 0 0 12px;
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-  font-family: var(--font-art);
-}
-.hero-desc {
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.85;
-}
-.hero-cta {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-.hero-stage {
-  width: 200px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.hero-sock {
-  width: 180px;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.08));
-}
-
-/* 快捷入口 */
-.quick {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-.quick-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  text-align: left;
-  transition: all 0.18s;
-}
-.quick-card:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-.quick-icon {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: var(--bg-hover);
-  flex-shrink: 0;
-}
-.quick-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.quick-text b {
-  font-size: 13px;
-}
-.quick-text i {
-  font-size: 11px;
-  color: var(--text-3);
-  font-style: normal;
-}
-.quick-arrow {
-  color: var(--text-3);
-}
-
-/* Section */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.section-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.section-title {
-  font-size: 18px;
-  font-weight: 800;
-  font-family: var(--font-art);
-  letter-spacing: 0.04em;
-}
-.section-sub {
-  font-size: 12px;
-  color: var(--text-3);
-}
-.section-more {
-  margin-left: auto;
-  background: transparent;
-  border: none;
-  color: var(--text-2);
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-.section-more:hover {
-  background: var(--bg-hover);
-  color: var(--text);
-}
-
-/* 预设 6 列 */
-.preset-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-}
-.preset-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
-  text-align: center;
-  transition: all 0.18s;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.preset-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
-.preset-cover {
-  aspect-ratio: 1;
-  background: var(--bg-hover);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  overflow: hidden;
-}
-.preset-name {
-  font-size: 12px;
-  font-weight: 600;
-}
-.preset-desc {
-  font-size: 10px;
-  color: var(--text-3);
-}
-
-/* 右栏 */
-.home-rail {
-  width: 280px;
-  flex-shrink: 0;
-  padding: 16px 16px 16px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  overflow-y: auto;
-}
-.rp-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.rp-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.rp-title {
-  font-size: 14px;
-  font-weight: 700;
-}
-.rp-more {
-  background: transparent;
-  border: none;
-  color: var(--text-3);
-  font-size: 11px;
-}
-.rp-news {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.rp-news-item {
-  display: flex;
-  gap: 10px;
-}
-.rp-news-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.rp-news-title {
-  font-size: 12px;
-  font-weight: 600;
-}
-.rp-news-meta {
-  font-size: 10px;
-  color: var(--text-3);
-  line-height: 1.4;
-}
-.rp-news-date {
-  font-size: 10px;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-.rp-orders {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.rp-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 8px 0;
-}
-.rp-stat-num {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--primary);
-}
-.rp-stat-label {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.rp-faq {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-.rp-faq-icon {
-  font-size: 32px;
-}
-.rp-faq-text {
-  flex: 1;
-}
-.rp-faq-desc {
-  font-size: 11px;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-.rp-faq-btn {
-  background: var(--bg-hover);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 11px;
-  color: var(--text-2);
-}
-.rp-tips {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.rp-tip {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 12px;
+  padding: 16px 12px;
+  overflow-y: auto;
 }
-.rp-tip-num {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-size: 10px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.rp-tip-text {
-  font-size: 11px;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-.rp-activity {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.rp-act-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-}
-.rp-act-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--primary);
-  opacity: 0.6;
-  flex-shrink: 0;
-}
-.rp-act-text {
-  flex: 1;
-  color: var(--text-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.rp-act-time {
-  font-size: 10px;
-  color: var(--text-3);
-  flex-shrink: 0;
-}
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
-@media (max-width: 1280px) {
-  .preset-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .home-rail {
-    width: 240px;
-  }
+/* Hero 自适应宽 × 高 223 r20 */
+.hero {
+  width: 100%; height: clamp(220px, 24vw, 320px);
+  border-radius: var(--r-hero);
+  overflow: hidden; cursor: pointer;
+  background: #cfeedd;
+  box-shadow: var(--shadow-sm);
 }
-@media (max-width: 1080px) {
-  .home-rail {
-    display: none;
-  }
-  .quick {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.hero-img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+
+/* 快捷入口 4×205 r16，间距 24 */
+.quick { display: flex; gap: 24px; }
+.qtile {
+  flex: 1; min-width: 0; height: 74px;
+  display: flex; align-items: center;
+  padding: 17px 16px;
+  background: var(--bg-card); border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  transition: transform 0.16s, box-shadow 0.16s;
 }
-@media (max-width: 720px) {
-  .hero-stage {
-    display: none;
-  }
-  .preset-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.qtile:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.qico {
+  width: 40px; height: 40px; border-radius: var(--r-12);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-right: 12px;
 }
+.qico.green { background: var(--tile-green-bg); color: var(--tile-green); }
+.qico.terra { background: var(--tile-terra-bg); color: var(--tile-terra); }
+.qico.orange { background: var(--tile-orange-bg); color: var(--tile-orange); }
+.qico.pink { background: var(--tile-pink-bg); color: var(--tile-pink); }
+.qtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.qtxt b { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.qtxt i { font-size: 12px; color: var(--text-3); font-style: normal; white-space: nowrap; }
+.qarrow { color: var(--text-3); flex-shrink: 0; }
+
+/* 预设卡 r12 */
+.presets {
+  background: var(--bg-card); border-radius: var(--r-12);
+  padding: 16px; box-shadow: var(--shadow-card);
+}
+.sec-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.sec-title { font-size: 20px; font-weight: 600; color: var(--text); }
+.sec-sub { font-size: 12px; color: var(--text-3); }
+.sec-more {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 2px;
+  font-size: 12px; color: var(--link-stone);
+}
+.sec-more:hover { color: var(--primary); }
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  column-gap: 19px; row-gap: 12px;
+}
+.preset-card { display: flex; flex-direction: column; gap: 8px; text-align: left; transition: transform 0.16s; }
+.preset-card:hover { transform: translateY(-3px); }
+.preset-cover {
+  width: 100%; aspect-ratio: 157 / 165;
+  border-radius: var(--r-12);
+  background: var(--card-pink);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.preset-cover img { width: 100%; height: 100%; object-fit: cover; }
+.preset-fallback { width: 100%; height: 100%; }
+.preset-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.preset-tag { font-size: 10px; color: var(--text-3); }
+.preset-skel {
+  aspect-ratio: 157 / 200;
+  border-radius: var(--r-12);
+  background: linear-gradient(100deg, var(--surface-2) 30%, var(--bg-hover) 50%, var(--surface-2) 70%);
+  background-size: 280% 100%; animation: home-sh 1.3s linear infinite;
+}
+@keyframes home-sh { 0% { background-position: 180% 0; } 100% { background-position: -80% 0; } }
+
+/* 右栏 241 */
+.rail-right { width: 241px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+.rcard { background: var(--bg-card); border-radius: var(--r-card); padding: 12px; box-shadow: var(--shadow-card); }
+.rcard-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.rcard-head h3 { font-size: 16px; font-weight: 600; color: var(--text); }
+.rmore { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; color: var(--text-3); }
+.rmore:hover { color: var(--primary); }
+.ostats { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.ostat {
+  background: var(--surface-2); border-radius: var(--r-12);
+  padding: 12px; height: 67px;
+  display: flex; flex-direction: column; justify-content: center; gap: 6px;
+}
+.onum { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1; }
+.olabel { font-size: 12px; color: var(--text-3); }
+
+/* 常见问题卡 */
+.faq-card {
+  background: var(--bg-card); border-radius: var(--r-card); padding: 12px;
+  box-shadow: var(--shadow-card);
+  display: flex; align-items: center; gap: 11px; text-align: left;
+  transition: transform 0.16s, box-shadow 0.16s;
+}
+.faq-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.faq-card .faq-ico {
+  width: 32px; height: 32px; border-radius: var(--r-8);
+  background: var(--bg-card); box-shadow: var(--shadow-sm);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.faq-txt { display: flex; flex-direction: column; gap: 3px; }
+.faq-txt b { font-size: 14px; font-weight: 600; color: var(--text); }
+.faq-txt i { font-size: 10px; color: var(--text-3); font-style: normal; }
+
+/* 设计灵感 */
+.tips { display: flex; flex-direction: column; gap: 8px; }
+.tip { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-2); }
+.tip-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--chip-cream);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.tip-text { line-height: 1.3; }
+
+/* 最近活动 */
+.acts { position: relative; display: flex; flex-direction: column; gap: 8px; padding-left: 20px; }
+.act-line { position: absolute; left: 4px; top: 4px; bottom: 4px; width: 1px; background: var(--divider); }
+.act { position: relative; display: flex; align-items: center; gap: 0; font-size: 10px; }
+.act-dot {
+  position: absolute; left: -20px; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong);
+}
+.act-text { flex: 1; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-time { font-size: 9px; color: var(--text-3); flex-shrink: 0; margin-left: 8px; }
+.act-empty { font-size: 11px; color: var(--text-3); }
+
+/* 常见问题弹层 */
+.faq-mask { position: fixed; inset: 0; z-index: 300; background: rgba(20, 40, 32, 0.4); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.faq-panel { width: 100%; max-width: 480px; background: var(--bg-card); border-radius: 18px; box-shadow: var(--shadow-md); overflow: hidden; }
+.faq-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.faq-head h3 { font-size: 17px; font-weight: 700; }
+.faq-close { font-size: 16px; color: var(--text-3); }
+.faq-list { padding: 12px 22px 22px; max-height: 60vh; overflow-y: auto; }
+.faq-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.faq-item:last-child { border-bottom: none; }
+.faq-q { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.faq-a { font-size: 13px; color: var(--text-2); line-height: 1.6; }
 </style>

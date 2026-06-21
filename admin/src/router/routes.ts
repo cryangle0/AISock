@@ -12,13 +12,19 @@ export const appRoutes: RouteRecordRaw[] = [
     path: 'socks',
     name: 'Socks',
     component: () => import('@/views/socks/index.vue'),
-    meta: { title: '袜型管理', icon: 'icon-apps' },
+    meta: { title: '袜版管理', icon: 'icon-apps' },
   },
   {
     path: 'patterns',
     name: 'Patterns',
     component: () => import('@/views/patterns/index.vue'),
     meta: { title: '花型素材', icon: 'icon-palette' },
+  },
+  {
+    path: 'tags',
+    name: 'Tags',
+    component: () => import('@/views/tags/index.vue'),
+    meta: { title: '标签管理', icon: 'icon-tag' },
   },
   {
     path: 'orders',
@@ -43,6 +49,18 @@ export const appRoutes: RouteRecordRaw[] = [
     name: 'AppConfig',
     component: () => import('@/views/app-config/index.vue'),
     meta: { title: '小程序配置', icon: 'icon-mobile' },
+  },
+  {
+    path: 'home-config',
+    name: 'HomeConfig',
+    component: () => import('@/views/home-config/index.vue'),
+    meta: { title: '首页主题配置', icon: 'icon-home' },
+  },
+  {
+    path: 'feed-config',
+    name: 'FeedConfig',
+    component: () => import('@/views/feed-config/index.vue'),
+    meta: { title: '浏览页配置', icon: 'icon-list' },
   },
   {
     path: 'site-config',

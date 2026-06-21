@@ -2,7 +2,7 @@
   <view :class="['chat-message', message.role, { error: message.status === 'error' }]">
     <!-- AI 消息显示头像 -->
     <view v-if="message.role === 'ai'" class="message-avatar" :class="{ thinking: message.typing }">
-      <image class="avatar-img" src="/static/images/mascot.webp" mode="aspectFill" />
+      <image class="avatar-img" src="/static/images/ai-avatar.png" mode="aspectFill" />
     </view>
 
     <!-- 消息气泡 -->

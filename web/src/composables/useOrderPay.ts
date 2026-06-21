@@ -1,23 +1,40 @@
 /**
- * 订单支付编排（web）—— 对已存在的待支付订单发起支付。
- * web 不在微信环境，真实 JSAPI 不可用，演示态走 prepay → mockPaid 落库。
- * 真实支付在微信端完成；web 端仅作下单与演示支付闭环。
+ * 订单支付辅助（web）—— 真实支付的状态轮询。
+ *
+ * web/PC 端真实支付：
+ *   - 微信：Native 扫码（/pay/native 返回 code_url → 前端渲染二维码），用户扫码后微信异步回调落库。
+ *   - 支付宝：电脑网站支付（/pay/alipay 返回收银台 URL → 新窗口打开），支付后异步回调落库。
+ * 两者均由前端轮询 /pay/status 确认最终结果（success）。
+ *
+ * 凭证缺失时后端返回 real=false，调用方回退 /pay/mock-paid 演示落库。
  */
 import { orderApi } from '@/api'
 
-export interface PayResult {
-  paid: boolean
-  orderNo: string
+export interface PollSignal {
+  cancelled: boolean
 }
 
-/** 对已存在订单发起支付（预下单 → 演示落库） */
-export async function payExistingOrder(orderId: number, orderNo = ''): Promise<PayResult> {
-  const pre = await orderApi.prepay(orderId)
-  const real = (pre.data as { real?: boolean }).real
-  if (real) {
-    // web 无法拉起微信 JSAPI；提示去小程序/微信内支付，订单保持待支付
-    return { paid: false, orderNo }
+/**
+ * 轮询支付流水状态，success 即支付成功。
+ * @param outTradeNo 商户订单号
+ * @param opts.attempts 轮询次数（默认 60）  opts.interval 间隔 ms（默认 3000，约 3 分钟窗口）
+ * @param opts.signal 外部取消信号（用户关闭弹窗时置 cancelled=true 终止轮询）
+ */
+export async function pollPaymentStatus(
+  outTradeNo: string,
+  opts: { attempts?: number; interval?: number; signal?: PollSignal } = {},
+): Promise<boolean> {
+  const attempts = opts.attempts ?? 60
+  const interval = opts.interval ?? 3000
+  for (let i = 0; i < attempts; i += 1) {
+    await new Promise((r) => setTimeout(r, interval))
+    if (opts.signal?.cancelled) return false
+    try {
+      const res = await orderApi.payStatus(outTradeNo)
+      if (res.data.status === 'success') return true
+    } catch {
+      /* 忽略单次失败，继续轮询 */
+    }
   }
-  await orderApi.mockPaid(pre.data.outTradeNo)
-  return { paid: true, orderNo }
+  return false
 }

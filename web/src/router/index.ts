@@ -1,13 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { getToken } from '@/api/http'
+import { useAuthModal } from '@/composables/useAuthModal'
 
 const routes: RouteRecordRaw[] = [
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('@/views/Login.vue'),
-    meta: { requiresAuth: false },
-  },
   {
     path: '/',
     component: () => import('@/layout/MainLayout.vue'),
@@ -15,6 +10,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: 'home', name: 'Home', component: () => import('@/views/Home.vue') },
       { path: 'feed', name: 'Feed', component: () => import('@/views/Feed.vue') },
+      { path: 'product/:id', name: 'ProductDetail', component: () => import('@/views/ProductDetail.vue') },
       { path: 'editor', name: 'Editor', component: () => import('@/views/Editor.vue'), meta: { requiresAuth: true } },
       { path: 'cart', name: 'Cart', component: () => import('@/views/Cart.vue'), meta: { requiresAuth: true } },
       { path: 'order/:id', name: 'OrderDetail', component: () => import('@/views/OrderDetail.vue'), meta: { requiresAuth: true } },
@@ -30,9 +26,13 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to, _from, next) => {
+// 需登录的路由：未登录则弹出登录框（不跳独立页），登录成功后回跳目标
+router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !getToken()) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
+    const { openLogin } = useAuthModal()
+    openLogin(to.fullPath)
+    if (from.name) next(false)
+    else next({ name: 'Home' })
   } else {
     next()
   }

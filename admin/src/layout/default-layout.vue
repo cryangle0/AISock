@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore, useUserStore } from '@/store'
 import { appRoutes } from '@/router/routes'
@@ -71,6 +71,22 @@ const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
+
+// 空闲时预取所有侧边栏页面的代码块（懒加载 chunk），
+// 这样首次点击任意 tab 时 JS 已在缓存中，避免点击后再下载导致的“反应慢”。
+onMounted(() => {
+  const prefetch = () => {
+    for (const r of appRoutes) {
+      const loader = r.component as unknown as (() => Promise<unknown>) | undefined
+      if (typeof loader === 'function') {
+        try { loader() } catch { /* 忽略预取失败 */ }
+      }
+    }
+  }
+  const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback
+  if (ric) ric(prefetch)
+  else setTimeout(prefetch, 1500)
+})
 
 const menus = computed(() =>
   appRoutes

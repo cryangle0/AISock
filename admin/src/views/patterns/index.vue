@@ -64,8 +64,61 @@
             <a-option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</a-option>
           </a-select>
         </a-form-item>
-        <a-form-item label="图片 URL"><a-input v-model="form.imageUrl" /></a-form-item>
-        <a-form-item label="缩略图 URL"><a-input v-model="form.thumbUrl" /></a-form-item>
+        <a-form-item label="礼赠场景">
+          <a-select v-model="selectedSceneIds" multiple allow-clear placeholder="可多选：送爱人/闺蜜/长辈/自己">
+            <a-option v-for="t in sceneTags" :key="t.id" :value="t.id">{{ t.name }}</a-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="风格">
+          <a-select v-model="selectedStyleIds" multiple allow-clear placeholder="可多选：浪漫花卉/国潮纹样…">
+            <a-option v-for="t in styleTags" :key="t.id" :value="t.id">{{ t.name }}</a-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="主题(发现页)">
+          <a-select v-model="selectedThemeIds" multiple allow-clear placeholder="发现页 Tab：野趣精灵/帕斯蒂尔…">
+            <a-option v-for="t in themeTags" :key="t.id" :value="t.id">{{ t.name }}</a-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="图片 URL"><ImageUploadInput v-model="form.imageUrl" placeholder="https://… 或点上传" /></a-form-item>
+        <a-form-item label="缩略图 URL"><ImageUploadInput v-model="form.thumbUrl" placeholder="留空则用主图" /></a-form-item>
+        <a-divider orientation="left">浏览页展示</a-divider>
+        <a-form-item label="条目展示名称">
+          <a-input v-model="form.displayConfig.feedTitle" placeholder="留空则用花型名称" />
+        </a-form-item>
+        <a-form-item label="条目背景图">
+          <ImageUploadInput v-model="form.displayConfig.feedCover" placeholder="留空则用主图" />
+        </a-form-item>
+        <a-divider orientation="left">详情页展示</a-divider>
+        <a-form-item label="详情标题">
+          <a-input v-model="form.displayConfig.detailTitle" placeholder="留空则用商品详情默认标题" />
+        </a-form-item>
+        <a-form-item label="详情描述">
+          <a-textarea
+            v-model="form.displayConfig.detailDescription"
+            :auto-size="{ minRows: 2, maxRows: 5 }"
+            placeholder="留空则用商品详情默认描述"
+          />
+        </a-form-item>
+        <a-form-item label="详情轮播图">
+          <div class="image-list-fields">
+            <ImageUploadInput
+              v-for="(_, i) in form.displayConfig.detailSlides"
+              :key="'slide-' + i"
+              v-model="form.displayConfig.detailSlides[i]"
+              :placeholder="`轮播图 ${i + 1}`"
+            />
+          </div>
+        </a-form-item>
+        <a-form-item label="设计展示图">
+          <div class="image-list-fields">
+            <ImageUploadInput
+              v-for="(_, i) in form.displayConfig.detailGallery"
+              :key="'gallery-' + i"
+              v-model="form.displayConfig.detailGallery[i]"
+              :placeholder="`固定展示图 ${i + 1}`"
+            />
+          </div>
+        </a-form-item>
       </a-form>
     </a-modal>
 
@@ -118,14 +171,23 @@
 <script setup lang="ts">
 import { onActivated, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
+import ImageUploadInput from '@/components/ImageUploadInput.vue'
 import {
   listPatterns, listCategories, createPattern, updatePattern, deletePattern,
   createCategory, updateCategory, deleteCategory,
-  type Pattern, type PatternCategory,
+  type Pattern, type PatternCategory, type PatternDisplayConfig,
 } from '@/api/patterns'
+import { listTags, getPatternTagIds, setPatternTags, type Tag } from '@/api/tags'
 
 const list = ref<Pattern[]>([])
 const categories = ref<PatternCategory[]>([])
+const sceneTags = ref<Tag[]>([])
+const styleTags = ref<Tag[]>([])
+const themeTags = ref<Tag[]>([])
+// 编辑表单中选中的标签 id（场景 / 风格 / 主题 分开维护，提交时合并）
+const selectedSceneIds = ref<number[]>([])
+const selectedStyleIds = ref<number[]>([])
+const selectedThemeIds = ref<number[]>([])
 const loading = ref(false)
 const total = ref(0)
 const pageNum = ref(1)
@@ -134,8 +196,30 @@ const categoryId = ref<number | undefined>()
 const keyword = ref('')
 const modalVisible = ref(false)
 const editing = ref<Pattern | null>(null)
-const form = reactive<{ name: string; imageUrl: string; thumbUrl: string; categoryId?: number }>({
-  name: '', imageUrl: '', thumbUrl: '', categoryId: undefined,
+type PatternForm = {
+  name: string
+  imageUrl: string
+  thumbUrl: string
+  categoryId?: number
+  displayConfig: Required<Record<'feedTitle' | 'feedCover' | 'detailTitle' | 'detailDescription', string>> & {
+    detailSlides: string[]
+    detailGallery: string[]
+  }
+}
+
+const form = reactive<PatternForm>({
+  name: '',
+  imageUrl: '',
+  thumbUrl: '',
+  categoryId: undefined,
+  displayConfig: {
+    feedTitle: '',
+    feedCover: '',
+    detailTitle: '',
+    detailDescription: '',
+    detailSlides: ['', '', '', ''],
+    detailGallery: ['', '', ''],
+  },
 })
 const categoryModalVisible = ref(false)
 const categoryForm = reactive<{ name: string; description: string; sort: number }>({ name: '', description: '', sort: 0 })
@@ -171,7 +255,23 @@ function onPageSizeChange(size: number) {
 }
 
 function resetForm() {
-  Object.assign(form, { name: '', imageUrl: '', thumbUrl: '', categoryId: undefined })
+  Object.assign(form, {
+    name: '',
+    imageUrl: '',
+    thumbUrl: '',
+    categoryId: undefined,
+    displayConfig: {
+      feedTitle: '',
+      feedCover: '',
+      detailTitle: '',
+      detailDescription: '',
+      detailSlides: ['', '', '', ''],
+      detailGallery: ['', '', ''],
+    },
+  })
+  selectedSceneIds.value = []
+  selectedStyleIds.value = []
+  selectedThemeIds.value = []
 }
 
 function openCreate() {
@@ -180,12 +280,61 @@ function openCreate() {
   modalVisible.value = true
 }
 
-function openEdit(p: Pattern) {
+async function openEdit(p: Pattern) {
   editing.value = p
   Object.assign(form, {
     name: p.name, imageUrl: p.image_url, thumbUrl: p.thumb_url || '', categoryId: p.category_id ?? undefined,
+    displayConfig: normalizeFormDisplayConfig(p.display_config),
   })
+  selectedSceneIds.value = []
+  selectedStyleIds.value = []
+  selectedThemeIds.value = []
   modalVisible.value = true
+  // 回显该花型已绑定的标签（按场景/风格/主题拆分到对应选择器）
+  try {
+    const ids = (await getPatternTagIds(p.id)).data || []
+    const sceneSet = new Set(sceneTags.value.map((t) => t.id))
+    const styleSet = new Set(styleTags.value.map((t) => t.id))
+    const themeSet = new Set(themeTags.value.map((t) => t.id))
+    selectedSceneIds.value = ids.filter((id) => sceneSet.has(id))
+    selectedStyleIds.value = ids.filter((id) => styleSet.has(id))
+    selectedThemeIds.value = ids.filter((id) => themeSet.has(id))
+  } catch {
+    /* 取标签失败不阻断编辑 */
+  }
+}
+
+function normalizeFormDisplayConfig(config?: PatternDisplayConfig | null): PatternForm['displayConfig'] {
+  return {
+    feedTitle: config?.feedTitle || '',
+    feedCover: config?.feedCover || '',
+    detailTitle: config?.detailTitle || '',
+    detailDescription: config?.detailDescription || '',
+    detailSlides: [...(config?.detailSlides || []), '', '', '', ''].slice(0, 4),
+    detailGallery: [...(config?.detailGallery || []), '', '', ''].slice(0, 3),
+  }
+}
+
+function trimText(value: string): string | undefined {
+  const text = value.trim()
+  return text || undefined
+}
+
+function buildDisplayConfig(): PatternDisplayConfig | null {
+  const cfg: PatternDisplayConfig = {}
+  const feedTitle = trimText(form.displayConfig.feedTitle)
+  const feedCover = trimText(form.displayConfig.feedCover)
+  const detailTitle = trimText(form.displayConfig.detailTitle)
+  const detailDescription = trimText(form.displayConfig.detailDescription)
+  const detailSlides = form.displayConfig.detailSlides.map((u) => u.trim()).filter(Boolean)
+  const detailGallery = form.displayConfig.detailGallery.map((u) => u.trim()).filter(Boolean).slice(0, 3)
+  if (feedTitle) cfg.feedTitle = feedTitle
+  if (feedCover) cfg.feedCover = feedCover
+  if (detailTitle) cfg.detailTitle = detailTitle
+  if (detailDescription) cfg.detailDescription = detailDescription
+  if (detailSlides.length) cfg.detailSlides = detailSlides
+  if (detailGallery.length) cfg.detailGallery = detailGallery
+  return Object.keys(cfg).length ? cfg : null
 }
 
 async function onSubmit(): Promise<boolean> {
@@ -194,15 +343,22 @@ async function onSubmit(): Promise<boolean> {
     return false
   }
   try {
+    let patternId: number
     if (editing.value) {
       await updatePattern(editing.value.id, {
-        name: form.name, imageUrl: form.imageUrl, thumbUrl: form.thumbUrl, categoryId: form.categoryId ?? null,
+        name: form.name, imageUrl: form.imageUrl, thumbUrl: form.thumbUrl, categoryId: form.categoryId ?? null, displayConfig: buildDisplayConfig(),
       })
+      patternId = editing.value.id
       Message.success('已更新')
     } else {
-      await createPattern(form)
+      const res = await createPattern({
+        name: form.name, imageUrl: form.imageUrl, thumbUrl: form.thumbUrl || undefined, categoryId: form.categoryId, displayConfig: buildDisplayConfig(),
+      })
+      patternId = res.data.id
       Message.success('已创建')
     }
+    // 覆盖式保存标签关联（场景 + 风格 + 主题合并）
+    await setPatternTags(patternId, [...selectedSceneIds.value, ...selectedStyleIds.value, ...selectedThemeIds.value])
   } catch {
     // 接口报错时保持弹窗打开，表单不丢失（错误提示由拦截器统一处理）
     return false
@@ -254,8 +410,16 @@ async function refreshCategories() {
 
 // keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
 onActivated(async () => {
-  const cats = await listCategories()
+  const [cats, scene, style, theme] = await Promise.all([
+    listCategories(),
+    listTags('scene'),
+    listTags('style'),
+    listTags('theme'),
+  ])
   categories.value = cats.data
+  sceneTags.value = scene.data
+  styleTags.value = style.data
+  themeTags.value = theme.data
   fetchList()
 })
 </script>
@@ -283,5 +447,11 @@ onActivated(async () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+.image-list-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 </style>

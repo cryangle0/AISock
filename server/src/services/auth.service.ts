@@ -41,14 +41,36 @@ function genCode(): string {
   return String(Math.floor(1000 + Math.random() * 9000))
 }
 
+/**
+ * 指定手机号的「固定登录验证码」（演示 / 审核 / 收不到短信的账号用）。
+ * 配置：SMS_FIXED_CODES="手机号:验证码,手机号:验证码"，例如 "15158119427:888888"。
+ * 仅命中配置里的手机号生效，其它号码完全不受影响（仍走真实短信）。
+ */
+function fixedCodeFor(phone: string): string | null {
+  const raw = process.env.SMS_FIXED_CODES
+  if (!raw) return null
+  for (const pair of raw.split(',')) {
+    const idx = pair.indexOf(':')
+    if (idx < 0) continue
+    const p = pair.slice(0, idx).trim()
+    const c = pair.slice(idx + 1).trim()
+    if (p === phone && c) return c
+  }
+  return null
+}
+
 /** 短信验证码登录：校验 code → 找/建用户 → 签发 token
  *  @param currentUserId 当前请求已携带的登录态用户（用于把「微信 openid 临时账号」合并进手机号账号）
  */
 export async function smsLogin(phone: string, code: string, currentUserId?: number): Promise<{ token: string; user: UserRow }> {
   const redis = getRedis()
   const masterCode = process.env.SMS_MASTER_CODE
+  const fixedCode = fixedCodeFor(phone)
   const saved = await redis.get(CacheKey.SMS_CODE + phone)
-  const matched = (saved && saved === code) || (masterCode && code === masterCode)
+  const matched =
+    (saved && saved === code) ||
+    (fixedCode && code === fixedCode) ||
+    (masterCode && code === masterCode)
   if (!matched) {
     throw Object.assign(new Error('验证码错误或已过期'), { status: 400 })
   }

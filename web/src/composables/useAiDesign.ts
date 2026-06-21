@@ -52,12 +52,13 @@ export function useAiDesign() {
     }
   }
 
-  /** 指令改色 / 改背景：基于参考图 + 指令做图生图 */
-  async function recolor(refImage: string, prompt: string): Promise<string | null> {
-    if (!refImage || !prompt.trim() || generating.value) return null
+  /** 指令改色 / 改背景：基于参考图 + 指令做图生图（1–9 张） */
+  async function remix(refImages: string[], prompt: string): Promise<string | null> {
+    const refs = refImages.filter(Boolean).slice(0, 9)
+    if (!refs.length || !prompt.trim() || generating.value) return null
     generating.value = true
     try {
-      const res = await aiApi.remix(refImage, prompt.trim())
+      const res = await aiApi.remix(refs, prompt.trim())
       const url = res.data.result_urls?.[0] ?? null
       void refreshQuota()
       return url
@@ -66,5 +67,5 @@ export function useAiDesign() {
     }
   }
 
-  return { quota, generating, refreshQuota, optimize, generate, recolor }
+  return { quota, generating, refreshQuota, optimize, generate, remix, recolor: remix }
 }

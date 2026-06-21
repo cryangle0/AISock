@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 647.12 840.99">
+  <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fcfdff;
+      }
+
+      .st1 {
+        fill: none;
+        opacity: .18;
+        stroke: #919191;
+        stroke-miterlimit: 10;
+        stroke-width: .31px;
+      }
+
+      .st2 {
+        fill: #8c8c8c;
+      }
+
+      .st3 {
+        fill: #070001;
+      }
+    </style>
+  </defs>
+  <rect class="st2" x="-1.2" width="652.6" height="861.4"/>
+  <path class="st3" d="M35.61,681.86c.15-.44.34-.41.54-.03-.18.01-.36.02-.54.03Z"/>
+  <path class="st3" d="M36.93,681.72c.13-.22.26-.44.39-.66.05.33.09.65-.39.66Z"/>
+  <g>
+    <rect class="st0" x="265.73" y="244.81" width="110.92" height="23.73"/>
+    <line class="st1" x1="265.7" y1="268.56" x2="376.66" y2="268.56"/>
+  </g>
+  <path class="st0" d="M377.27,613.69c-.87,11.65-12.24,39.92-24.24,45.97-9.71,4.9-19.43,4.97-33.01,4.97-12.31,0-21.47-1.33-30.72-5.44-13.55-6.01-23.54-33.29-24.25-45.5h112.22Z"/>
+</svg>

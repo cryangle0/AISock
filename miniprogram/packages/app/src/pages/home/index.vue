@@ -38,29 +38,20 @@
           </view>
         </view>
 
-        <!-- 4. 袜版设计预设（3D 横滑，无标题，紧随主题卡） -->
+        <!-- 4. 袜版设计预设（3D 横滑，主题卡可联动切换到对应案例） -->
         <view class="section section--carousel">
-          <ShowcaseCarousel :items="featured" :reveal-ready="carouselReady" @select="onFeatured" />
+          <ShowcaseCarousel
+            v-if="featured.length"
+            :items="featured"
+            :active-index="activeCaseIndex"
+            :reveal-ready="carouselReady"
+            @active-change="activeCaseIndex = $event"
+            @select="onFeatured"
+          />
+          <view v-else class="carousel-empty">当前主题暂无轮播图，请在后台「小程序配置」添加对应轮播图</view>
         </view>
 
-        <!-- 5. 资讯中心：后台「推荐资讯」可配；未配置自动隐藏 -->
-        <view v-if="news.length" class="section">
-          <view class="section-head">
-            <text class="section-title">资讯中心</text>
-          </view>
-          <view class="news-list">
-            <view v-for="a in news" :key="a.id" class="news-card" @tap="onNews(a)">
-              <image v-if="a.cover_url" class="news-cover" :src="a.cover_url" mode="aspectFill" lazy-load />
-              <view class="news-body">
-                <view class="news-top">
-                  <text class="news-title">{{ a.title }}</text>
-                  <text v-if="a.tag" class="news-tag">{{ a.tag }}</text>
-                </view>
-                <text v-if="a.summary" class="news-summary">{{ a.summary }}</text>
-              </view>
-            </view>
-          </view>
-        </view>
+        <!-- 5. 资讯中心：已按需求下线（首页不再展示咨询/资讯中心） -->
       </view>
     </scroll-view>
 
@@ -80,7 +71,8 @@ let splashShown = false
 import { computed, ref } from 'vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { switchTab, navigateTo } from '@aisock/common/utils'
-import { catalogApi, type ConfigItem, type Banner, type Article } from '@aisock/service'
+import { catalogApi, type ConfigItem, type Banner } from '@aisock/service'
+import { stashCaseDetail } from '@/domain/catalog'
 import NavBar from '@/components/ui/NavBar.vue'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import LaunchSplash from '@/components/LaunchSplash.vue'
@@ -103,14 +95,14 @@ const carouselReady = computed(() => !showSplash.value)
  * 内容永不退化为占位图。失败/超时保留本地兜底，首屏永不空白。
  */
 const FALLBACK_THEMES: ConfigItem[] = [
-  { id: 'jieqi', title: '二十四节气', en: 'JIE QI', cover: '/static/images/theme-jieqi.webp', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)', decoColor: '#5a8a7d' },
-  { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', cover: '/static/images/theme-dunhuang.webp', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)', decoColor: '#8E4F43' },
-  { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', cover: '/static/images/theme-wenchuang.webp', bg: 'linear-gradient(135deg,#9BB8CC,#5F93C2)', decoColor: '#3a6fa3' },
+  { id: 'jieqi', title: '二十四节气', en: 'JIE QI', cover: '/static/images/theme-jieqi.png', bg: 'linear-gradient(135deg,#E8D5B8,#D4C09A)', decoColor: '#5a8a7d' },
+  { id: 'dunhuang', title: '敦煌入梦', en: 'DUN HUANG', cover: '/static/images/theme-dunhuang.png', bg: 'linear-gradient(135deg,#C9B89A,#B5A085)', decoColor: '#8E4F43' },
+  { id: 'wenchuang', title: '文创物语', en: 'WEN CHUANG', cover: '/static/images/theme-wenchuang.png', bg: 'linear-gradient(135deg,#9BB8CC,#5F93C2)', decoColor: '#3a6fa3' },
 ]
 const FALLBACK_CASES: ConfigItem[] = [
-  { id: 'd1', title: '敦煌九色鹿', cover: cdnImg('/static/images/showcase.webp'), mainColor: '#C8B89A', accent: '#8E4F43' },
-  { id: 'd2', title: '飞天乐舞', cover: cdnImg('/static/images/showcase.webp'), mainColor: '#A8C4B0', accent: '#5a8a7d' },
-  { id: 'd3', title: '千手观音', cover: cdnImg('/static/images/showcase.webp'), mainColor: '#D6A87A', accent: '#A05A3C' },
+  { id: 'd1', title: '敦煌九色鹿', cover: cdnImg('/static/images/showcase.webp'), link: '/pkg/detail/index', themeKey: 'dunhuang', mainColor: '#C8B89A', accent: '#8E4F43' },
+  { id: 'd2', title: '飞天乐舞', cover: cdnImg('/static/images/showcase.webp'), link: '/pkg/detail/index', themeKey: 'wenchuang', mainColor: '#A8C4B0', accent: '#5a8a7d' },
+  { id: 'd3', title: '千手观音', cover: cdnImg('/static/images/showcase.webp'), link: '/pkg/detail/index', themeKey: 'jieqi', mainColor: '#D6A87A', accent: '#A05A3C' },
 ]
 
 /** 用本地兜底封面回填后台项缺失的 cover：先按 id 匹配，再按位置，最后默认图 */
@@ -124,9 +116,48 @@ function mergeCover(items: ConfigItem[], fallbacks: ConfigItem[], defaultCover: 
 
 const themes = ref<ConfigItem[]>([...FALLBACK_THEMES])
 const featured = ref<ConfigItem[]>([...FALLBACK_CASES])
-// 后台可配（空则隐藏/回退）：Banner 轮播、资讯中心
+const showcasePool = ref<ConfigItem[]>([...FALLBACK_CASES])
+const fallbackCases = ref<ConfigItem[]>([...FALLBACK_CASES])
+const activeThemeId = ref('')
+const activeCaseIndex = ref(featured.value.length > 1 ? 1 : 0)
+const defaultCaseCover = cdnImg('/static/images/showcase.webp')
+// 后台可配（空则隐藏/回退）：Banner 轮播
 const banners = ref<Banner[]>([])
-const news = ref<Article[]>([])
+let themeInitialized = false
+
+function normalizeKey(value: unknown): string {
+  return String(value || '').trim().toLowerCase().replace(/[\s_-]+/g, '')
+}
+
+function themeKeys(theme?: ConfigItem | null): string[] {
+  if (!theme) return []
+  return [theme.id, theme.title, theme.en, theme.themeKey]
+    .map(normalizeKey)
+    .filter(Boolean)
+}
+
+function showcaseKeys(item: ConfigItem): string[] {
+  return [item.themeKey, item.themeId, item.themeName, item.themeCode, item.title]
+    .map(normalizeKey)
+    .filter(Boolean)
+}
+
+function matchesTheme(item: ConfigItem, theme: ConfigItem): boolean {
+  const keys = themeKeys(theme)
+  if (!keys.length) return false
+  const itemKeys = showcaseKeys(item)
+  return keys.some((key) => itemKeys.includes(key))
+}
+
+function activeTheme(): ConfigItem | null {
+  return themes.value.find((item) => normalizeKey(item.id) === normalizeKey(activeThemeId.value)) || themes.value[0] || null
+}
+
+function applyThemeShowcases(theme: ConfigItem | null) {
+  const source = showcasePool.value.length ? showcasePool.value : fallbackCases.value
+  featured.value = theme ? source.filter((item) => matchesTheme(item, theme)) : []
+  activeCaseIndex.value = 0
+}
 
 // Hero banner：固定主视觉大图，标题随主题联动
 const heroBanner = computed<ConfigItem>(() => ({
@@ -143,30 +174,27 @@ async function loadHomeConfig() {
     const d = res.data || ({} as Partial<typeof res.data>)
     // 仅展示已配图片的 Banner（演示/未填图的不渲染破图，回退固定 hero）
     banners.value = (Array.isArray(d.banners) ? d.banners : []).filter((b) => !!b.image_url)
-    if (d.themes?.length) themes.value = mergeCover(d.themes, FALLBACK_THEMES, '/static/images/theme-dunhuang.webp')
-    if (d.cases?.length) featured.value = mergeCover(d.cases, FALLBACK_CASES, cdnImg('/static/images/showcase.webp'))
+    if (d.themes?.length) themes.value = mergeCover(d.themes, FALLBACK_THEMES, '/static/images/theme-dunhuang.png')
+    fallbackCases.value = d.cases?.length ? mergeCover(d.cases, FALLBACK_CASES, defaultCaseCover) : [...FALLBACK_CASES]
+    showcasePool.value = fallbackCases.value
+    if (!themeInitialized || !themes.value.some((item) => normalizeKey(item.id) === normalizeKey(activeThemeId.value))) {
+      activeThemeId.value = String(themes.value[0]?.id || '')
+      themeInitialized = true
+    }
+    applyThemeShowcases(activeTheme())
   } catch {
     /* 保留本地兜底 */
-  }
-}
-
-async function loadNews() {
-  try {
-    const res = await catalogApi.listFeed()
-    news.value = Array.isArray(res.data) ? res.data : []
-  } catch {
-    news.value = []
+    applyThemeShowcases(activeTheme())
   }
 }
 
 onShow(() => {
   loadHomeConfig()
-  loadNews()
 })
 
 // pages.json 开了 enablePullDownRefresh，必须收回动画，否则下拉后一直转圈
 onPullDownRefresh(async () => {
-  await Promise.all([loadHomeConfig(), loadNews()])
+  await loadHomeConfig()
   uni.stopPullDownRefresh()
 })
 
@@ -180,9 +208,40 @@ function go(link?: string | null) {
 }
 const onHero = () => switchTab('/pages/feed/index')
 const onBanner = (b: Banner) => go(b.link)
-const onNews = (a: Article) => go(a.link)
-const onTheme = (t: ConfigItem) => go(t.link || '/pages/feed/index')
-const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/index')
+/** 主题随心订：点击后只展示该主题后台配置的轮播记录 */
+const onTheme = (t: ConfigItem) => {
+  activeThemeId.value = String(t.id || '')
+  themeInitialized = true
+  applyThemeShowcases(t)
+}
+function stringField(item: ConfigItem, key: string): string {
+  const value = item[key]
+  return typeof value === 'string' ? value : ''
+}
+function stringList(item: ConfigItem, key: string): string[] {
+  const value = item[key]
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string' && !!v.trim()) : []
+}
+
+/** 点击首页底部轮播卡：进入对应详情页（与浏览页详情同款），按该轮播的后台详情配置渲染 */
+const onFeatured = (d: ConfigItem) => {
+  const cover =
+    stringField(d, 'cover') ||
+    stringField(d, 'printImage') ||
+    stringField(d, 'feedCover') ||
+    stringField(d, 'image_url') ||
+    stringField(d, 'imageUrl')
+  const slides = stringList(d, 'detailSlides')
+  stashCaseDetail({
+    navTitle: stringField(d, 'title'),
+    seriesTitle: stringField(d, 'detailTitle') || stringField(d, 'title'),
+    description: stringField(d, 'detailDescription'),
+    cover,
+    slides: slides.length ? slides : cover ? [cover] : [],
+    gallery: stringList(d, 'detailGallery'),
+  })
+  navigateTo('/pkg/detail/index')
+}
 </script>
 
 <style scoped lang="scss">
@@ -210,6 +269,19 @@ const onFeatured = (d: ConfigItem) => go((d.link as string) || '/pkg/editor/inde
 }
 .section--carousel {
   margin-top: 16rpx;
+}
+.carousel-empty {
+  min-height: 360rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32rpx;
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, 0.54);
+  color: $mp-text-muted;
+  font-size: 24rpx;
+  font-family: $mp-font-serif;
 }
 .section-head {
   display: flex;

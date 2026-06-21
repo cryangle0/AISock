@@ -34,6 +34,8 @@ export function useAiChat() {
 
   /**
    * 添加用户消息
+   * 返回数组内的「响应式代理」而非原始对象：后续对该对象的属性变更（typing/content/status）
+   * 必须经由代理才会触发 mp-weixin 重渲染，否则气泡会卡在初始状态（如一直转圈）。
    */
   function addUserMessage(content: string): ChatMessage {
     const message: ChatMessage = {
@@ -44,12 +46,14 @@ export function useAiChat() {
       createdAt: Date.now(),
     }
     messages.value.push(message)
-    context.value.history.push(message)
-    return message
+    const reactiveMsg = messages.value[messages.value.length - 1]
+    context.value.history.push(reactiveMsg)
+    return reactiveMsg
   }
 
   /**
-   * 添加 AI 消息（初始为空，等待流式填充）
+   * 添加 AI 消息（初始为空，等待流式填充）。
+   * 必须返回数组内的响应式代理，流式写入(typing/content)才能驱动视图更新。
    */
   function addAiMessage(): ChatMessage {
     const message: ChatMessage = {
@@ -61,7 +65,7 @@ export function useAiChat() {
       createdAt: Date.now(),
     }
     messages.value.push(message)
-    return message
+    return messages.value[messages.value.length - 1]
   }
 
   /**

@@ -122,11 +122,103 @@ async function seedArticles() {
   console.log(`✓ 已插入 ${feeds.length + news.length + faqs.length} 篇文章（推荐/资讯/FAQ）`)
 }
 
+/** 标签参考数据（与 migrations/007_pattern_tags.sql 保持一致；code 与小程序内置一致） */
+const SEED_TAGS: Array<{ kind: string; code: string; name: string; description?: string; sort: number }> = [
+  { kind: 'scene', code: 'lover', name: '送爱人/恋人', description: '甜蜜心意，温暖相伴', sort: 0 },
+  { kind: 'scene', code: 'bff', name: '送闺蜜/朋友', description: '一起出行，默契加倍', sort: 1 },
+  { kind: 'scene', code: 'elder', name: '送长辈/家人', description: '贴心守护，舒服相伴', sort: 2 },
+  { kind: 'scene', code: 'self', name: '送给自己', description: '取悦自己，从脚开始', sort: 3 },
+  { kind: 'style', code: 'floral', name: '浪漫花卉', sort: 0 },
+  { kind: 'style', code: 'couple', name: '爱心情侣', sort: 1 },
+  { kind: 'style', code: 'sport', name: '运动活力', sort: 2 },
+  { kind: 'style', code: 'retro', name: '复古格纹', sort: 3 },
+  { kind: 'style', code: 'solid', name: '简约纯色', sort: 4 },
+  { kind: 'style', code: 'cartoon', name: '萌趣卡通', sort: 5 },
+  { kind: 'style', code: 'illust', name: '艺术插画', sort: 6 },
+  { kind: 'style', code: 'guochao', name: '国潮纹样', sort: 7 },
+  // 主题（发现页顶部 Tab，名称与小程序内置一致；后台可改名/增减，前端跟随）
+  { kind: 'theme', code: 'yequ', name: '野趣精灵', sort: 0 },
+  { kind: 'theme', code: 'pasidier', name: '帕斯蒂尔', sort: 1 },
+  { kind: 'theme', code: 'tonghe', name: '痛核少女', sort: 2 },
+  { kind: 'theme', code: 'songchi', name: '松弛田园', sort: 3 },
+  { kind: 'theme', code: 'meishi', name: '美式学院', sort: 4 },
+]
+
+/** code → 关键词（用于按花型名 + 分类名做首批回填；运营后续在后台精修） */
+const TAG_KEYWORDS: Record<string, string[]> = {
+  lover: ['浪漫', '花', '玫瑰', '爱心', '粉', '情侣', '樱'],
+  bff: ['活力', '运动', '清新', '卡通', '彩虹', '萌'],
+  elder: ['经典', '简约', '纯色', '回纹', '祥', '节气', '竹', '梅', '民族'],
+  self: ['艺术', '插画', '个性', '国潮', '几何'],
+  floral: ['花', '玫瑰', '樱', '牡丹', '浪漫'],
+  couple: ['爱心', '情侣', '心'],
+  sport: ['运动', '活力', '几何'],
+  retro: ['格', '复古', '条纹'],
+  solid: ['纯色', '简约', '米白', '燕麦', '圆点'],
+  cartoon: ['卡通', '萌', '猫', '熊'],
+  illust: ['插画', '艺术'],
+  guochao: ['国潮', '祥', '龙', '云', '回纹', '观音', '飞天', '节气', '民族'],
+}
+
+/** 标签 + 花型打标：确保标签存在，再按关键词给公共花型回填首批关联（幂等，INSERT IGNORE） */
+async function seedPatternTags() {
+  // 1) 确保标签存在（与迁移一致，幂等）
+  for (const t of SEED_TAGS) {
+    await execute(
+      'INSERT IGNORE INTO tag (kind, code, name, description, sort) VALUES (?,?,?,?,?)',
+      [t.kind, t.code, t.name, t.description ?? null, t.sort],
+    )
+  }
+  const tagRows = await query<{ id: number; code: string }>('SELECT id, code FROM tag')
+  const tagIdByCode = new Map(tagRows.map((r) => [r.code, r.id]))
+
+  // 2) 已有关联则跳过回填（避免覆盖运营在后台的精修）
+  const linked = await query('SELECT 1 FROM pattern_tag LIMIT 1')
+  if (linked.length) {
+    console.log('· 花型标签关联已存在，跳过回填（标签已确保存在）')
+    return
+  }
+
+  // 3) 按 花型名 + 分类名 关键词回填
+  const patterns = await query<{ id: number; name: string; cat: string | null }>(
+    `SELECT p.id, p.name, pc.name AS cat
+     FROM pattern p LEFT JOIN pattern_category pc ON pc.id = p.category_id
+     WHERE p.owner_id IS NULL`,
+  )
+  let linkCount = 0
+  for (const p of patterns) {
+    const haystack = `${p.name || ''} ${p.cat || ''}`
+    for (const [code, keywords] of Object.entries(TAG_KEYWORDS)) {
+      const tagId = tagIdByCode.get(code)
+      if (!tagId) continue
+      if (keywords.some((k) => haystack.includes(k))) {
+        await execute('INSERT IGNORE INTO pattern_tag (pattern_id, tag_id) VALUES (?, ?)', [p.id, tagId])
+        linkCount++
+      }
+    }
+  }
+
+  // 4) 主题回填：保持发现页现有内容（第 i 个主题 ↔ 第 i 个分类的花型，与旧的按位置映射一致）
+  const themeRows = await query<{ id: number }>('SELECT id FROM tag WHERE kind = ? ORDER BY sort ASC, id ASC', ['theme'])
+  const catRows = await query<{ id: number }>('SELECT id FROM pattern_category ORDER BY sort ASC, id ASC')
+  for (let i = 0; i < themeRows.length; i++) {
+    const theme = themeRows[i]
+    const cat = catRows[i]
+    if (!theme || !cat) continue
+    await execute(
+      'INSERT IGNORE INTO pattern_tag (pattern_id, tag_id) SELECT id, ? FROM pattern WHERE category_id = ? AND owner_id IS NULL',
+      [theme.id, cat.id],
+    )
+  }
+  console.log(`✓ 已确保 ${SEED_TAGS.length} 个标签，按关键词回填 ${linkCount} 条场景/风格关联，并按主题回填发现页内容`)
+}
+
 async function main() {
   console.log('开始种子数据...')
   await seedAdmin()
   await seedSocks()
   await seedPatterns()
+  await seedPatternTags()
   await seedBanners()
   await seedArticles()
   console.log('完成 ✓')

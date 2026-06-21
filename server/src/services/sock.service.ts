@@ -7,9 +7,12 @@ export interface SockModel {
   id: number
   code: string
   name: string
+  family: string | null
   svg_url: string | null
+  thumb_url: string | null
   mask_url: string | null
   lineart_url: string | null
+  geometry_json: string | null
   print_area_px: number | null
   phys_width_mm: number | null
   phys_height_mm: number | null
@@ -21,9 +24,13 @@ export interface SockModel {
   status: number
 }
 
-export async function listSocks(onlyActive = true): Promise<SockModel[]> {
+/** 列表列（排除体积较大的 geometry_json，详情接口才返回，保证列表轻量） */
+const LIST_COLS =
+  'id, code, name, family, svg_url, thumb_url, mask_url, lineart_url, print_area_px, phys_width_mm, phys_height_mm, recommend_dpi, craft, min_order, unit_price, sort, status'
+
+export async function listSocks(onlyActive = true): Promise<Omit<SockModel, 'geometry_json'>[]> {
   const where = onlyActive ? 'WHERE status = 1' : ''
-  return query<SockModel>(`SELECT * FROM sock_model ${where} ORDER BY sort ASC, id ASC`)
+  return query<SockModel>(`SELECT ${LIST_COLS} FROM sock_model ${where} ORDER BY sort ASC, id ASC`)
 }
 
 export async function getSock(id: number): Promise<SockModel | null> {

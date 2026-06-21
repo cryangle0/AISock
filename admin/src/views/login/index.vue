@@ -141,13 +141,21 @@ function setCharRef(key: string, el: any) {
   charRefs[key] = (el as HTMLElement) || null
 }
 
-// 每个角色的瞳孔偏移 + 眨眼状态
+// 每个角色的瞳孔偏移 + 眼睛整体偏移(faceX/Y) + 身体倾斜(lean) + 眨眼状态
 const pupil = reactive<Record<string, { x: number; y: number }>>({
   purple: { x: 0, y: 0 }, black: { x: 0, y: 0 }, orange: { x: 0, y: 0 }, yellow: { x: 0, y: 0 },
 })
+// 眼睛组随鼠标整体平移（脸朝向鼠标）
+const face = reactive<Record<string, { x: number; y: number }>>({
+  purple: { x: 0, y: 0 }, black: { x: 0, y: 0 }, orange: { x: 0, y: 0 }, yellow: { x: 0, y: 0 },
+})
+// 身体随鼠标左右倾斜（skewX 角度，底部不动）
+const lean = reactive<Record<string, number>>({ purple: 0, black: 0, orange: 0, yellow: 0 })
 const blink = reactive<Record<string, boolean>>({ purple: false, black: false })
 const isTyping = ref(false)
 const peeking = ref(false)
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
 
 function onMouseMove(e: MouseEvent) {
   for (const c of characters) {
@@ -158,13 +166,20 @@ function onMouseMove(e: MouseEvent) {
     const cy = r.top + r.height / 3
     const dx = e.clientX - cx
     const dy = e.clientY - cy
+    // 瞳孔在眼白内的小幅位移
     const dist = Math.min(Math.hypot(dx, dy), MAX_DIST)
     const ang = Math.atan2(dy, dx)
     pupil[c.key] = { x: Math.cos(ang) * dist, y: Math.sin(ang) * dist }
+    // 眼睛整体朝鼠标偏移（更明显的“看向”效果）
+    face[c.key] = { x: clamp(dx / 20, -15, 15), y: clamp(dy / 30, -10, 10) }
+    // 身体朝鼠标方向倾斜（负号使其朝鼠标侧倾，底边保持不动）
+    lean[c.key] = clamp(-dx / 120, -6, 6)
   }
 }
 
 function charStyle(c: CharDef) {
+  const ln = lean[c.key] || 0
+  const peek = c.key === 'purple' && peeking.value ? ' translateY(-6px)' : ''
   return {
     left: c.left + 'px',
     width: c.width + 'px',
@@ -172,10 +187,12 @@ function charStyle(c: CharDef) {
     background: c.color,
     borderRadius: c.radius,
     zIndex: String(c.z),
+    transform: `skewX(${ln}deg)${peek}`,
   }
 }
 function eyesStyle(c: CharDef) {
-  return { left: c.eyeLeft + 'px', top: c.eyeTop + 'px', gap: c.gap + 'px' }
+  const f = face[c.key] || { x: 0, y: 0 }
+  return { left: c.eyeLeft + f.x + 'px', top: c.eyeTop + f.y + 'px', gap: c.gap + 'px' }
 }
 function pupilStyle(c: CharDef) {
   const p = pupil[c.key] || { x: 0, y: 0 }
@@ -303,17 +320,14 @@ async function onSubmit() {
 .lp-char {
   position: absolute;
   bottom: 0;
-  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s ease;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s ease;
   transform-origin: bottom center;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
-}
-.lp-char.peeking {
-  transform: translateY(-6px);
 }
 .lp-eyes {
   position: absolute;
   display: flex;
-  transition: left 0.4s ease, top 0.4s ease;
+  transition: left 0.25s ease, top 0.25s ease;
 }
 .lp-eyeball {
   position: relative;

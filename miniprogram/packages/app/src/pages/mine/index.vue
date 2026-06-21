@@ -117,6 +117,14 @@ function onSettings() {
 }
 
 async function onLogout() {
+  const r = await uni.showModal({
+    title: '退出登录',
+    content: '确定要退出当前账号吗？',
+    confirmText: '退出',
+    confirmColor: '#8e4f43',
+    cancelText: '取消',
+  })
+  if (!r.confirm) return
   await userStore.logout()
   uni.showToast({ title: '已退出', icon: 'none' })
   overview.designs = 0

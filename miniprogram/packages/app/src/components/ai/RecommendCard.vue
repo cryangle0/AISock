@@ -9,8 +9,21 @@
     </view>
 
     <view class="rec-visual">
-      <view class="rec-main" :style="{ background: main.bg }">
-        <image v-if="main.url" class="rec-main-img" :src="main.url" mode="aspectFill" />
+      <!-- 大框：袜版预览（把选中花型渲染到袜子上）。对齐需求：大框=袜版，右侧小卡=花型 -->
+      <view class="rec-main">
+        <SockCanvas
+          v-if="!previewHidden"
+          :print-image="main.url || null"
+          :pattern-id="null"
+          :sock-type-id="sockTypeId || null"
+          :params="previewParams"
+          :colors="previewColors"
+          mode="preview"
+          :reserve-tag-space="!!sockName"
+        />
+        <!-- 抽屉打开时隐藏原生 canvas（否则会盖住抽屉），用普通 image 兜底显示花型 -->
+        <image v-else-if="main.url" class="rec-fallback" :src="main.url" mode="aspectFit" />
+        <view v-if="sockName && !previewHidden" class="rec-socktag">袜型 · {{ sockName }}</view>
       </view>
       <view class="rec-cands">
         <view
@@ -30,7 +43,7 @@
     <view class="rec-actions">
       <view class="ra-tools">
         <view class="ra-tool" @tap="$emit('pickSock')">
-          <AppIcon name="socks" :size="32" color="#5b5650" />
+          <AppIcon name="sock-template" :size="34" />
           <text class="ra-text">袜版选择</text>
         </view>
         <view class="ra-tool" @tap="$emit('recolor')">
@@ -49,9 +62,10 @@
 
 <script setup lang="ts">
 import AppIcon from '@/components/ui/AppIcon.vue'
+import SockCanvas from '@/components/editor/SockCanvas.vue'
 
-export interface Candidate { id: string; name: string; bg: string; url?: string }
-defineProps<{ main: Candidate; candidates: Candidate[] }>()
+export interface Candidate { id: string; name: string; bg: string; url?: string; customized?: boolean }
+defineProps<{ main: Candidate; candidates: Candidate[]; sockTypeId?: string; sockName?: string; previewHidden?: boolean }>()
 defineEmits<{
   refresh: []
   pick: [c: Candidate]
@@ -60,6 +74,10 @@ defineEmits<{
   customize: []
   order: []
 }>()
+
+// 袜版预览使用默认配色，核心是把推荐花型真实贴合到当前袜版 geometry 上。
+const previewColors = { bodyHex: null, weltHex: null, heelHex: null, toeHex: null }
+const previewParams = { density: 100, rotation: 0, singleMode: false, tileDensity: 4 }
 </script>
 
 <style scoped lang="scss">
@@ -95,14 +113,32 @@ defineEmits<{
   display: flex;
   gap: 16rpx;
   margin-top: 20rpx;
+  align-items: stretch;
 }
 .rec-main {
+  position: relative;
   flex: 1;
-  height: 296rpx;
+  height: 360rpx;
   border-radius: $mp-radius-lg;
   overflow: hidden;
+  background: linear-gradient(180deg, #f6efe2 0%, #efe4cc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.rec-main-img {
+.rec-socktag {
+  position: absolute;
+  left: 16rpx;
+  top: 16rpx;
+  z-index: 2;
+  padding: 6rpx 16rpx;
+  border-radius: $mp-radius-pill;
+  background-color: rgba(142, 79, 67, 0.88);
+  color: #fff;
+  font-size: 20rpx;
+  font-family: $mp-font-serif;
+}
+.rec-fallback {
   width: 100%;
   height: 100%;
 }

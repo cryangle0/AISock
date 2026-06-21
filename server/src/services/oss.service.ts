@@ -8,6 +8,7 @@
  *   StringToSign  = VERB\nContent-MD5\nContent-Type\nDate\nCanonicalizedOSSHeaders+CanonicalizedResource
  */
 import { createHmac, createHash, randomBytes } from 'node:crypto'
+import { sniffImageMime } from './imageProxy.service.js'
 
 export function ossEnabled(): boolean {
   return !!(
@@ -76,14 +77,6 @@ export async function putObject(objectKey: string, data: Buffer, mime = 'applica
   return publicUrl(objectKey)
 }
 
-const MIME_BY_EXT: Record<string, string> = {
-  png: 'image/png',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  webp: 'image/webp',
-  gif: 'image/gif',
-}
-
 /**
  * 抓取远程图片并转存到 OSS（用于 AI 出图等临时 URL 落地）。
  * 失败时返回原始 URL，保证不阻断业务。
@@ -94,10 +87,7 @@ export async function persistRemoteImage(remoteUrl: string, prefix = 'ai'): Prom
     const resp = await fetch(remoteUrl, { signal: AbortSignal.timeout(45_000) })
     if (!resp.ok) throw new Error(`下载源图 ${resp.status}`)
     const buf = Buffer.from(await resp.arrayBuffer())
-    const ctype = resp.headers.get('content-type') || ''
-    let ext = (remoteUrl.split('?')[0].match(/\.([a-z0-9]{1,5})$/i)?.[1] || '').toLowerCase()
-    if (!ext) ext = ctype.includes('jpeg') ? 'jpg' : ctype.includes('webp') ? 'webp' : 'png'
-    const mime = MIME_BY_EXT[ext] || ctype || 'image/png'
+    const { mime, ext } = sniffImageMime(buf)
     const key = genObjectKey(prefix, ext)
     return await putObject(key, buf, mime)
   } catch (err: any) {

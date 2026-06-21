@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 647.12 840.99">
+  <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: none;
+        opacity: .18;
+        stroke: #919191;
+        stroke-miterlimit: 10;
+        stroke-width: .31px;
+      }
+
+      .st1 {
+        fill: #8c8c8c;
+      }
+
+      .st2 {
+        filter: url(#drop-shadow-3);
+      }
+
+      .st2, .st3 {
+        fill: #fcfdff;
+      }
+
+      .st3 {
+        filter: url(#drop-shadow-4);
+      }
+    </style>
+    <filter id="drop-shadow-3" x="265.13" y="270.1" width="152.64" height="298.56" filterUnits="userSpaceOnUse">
+      <feOffset dx="4.13" dy="4.13"/>
+      <feGaussianBlur result="blur" stdDeviation="6.89"/>
+      <feFlood flood-color="#7f7f80" flood-opacity=".75"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <filter id="drop-shadow-4" x="281.75" y="286.7" width="115.03" height="4.13" filterUnits="userSpaceOnUse">
+      <feOffset dx="4.13" dy="4.13"/>
+      <feGaussianBlur result="blur1" stdDeviation="6.89"/>
+      <feFlood flood-color="#7f7f80" flood-opacity=".75"/>
+      <feComposite in2="blur1" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect class="st1" x="-655.61" y="-11.27" width="1347.4" height="859.99"/>
+  <g>
+    <path class="st2" d="M281.75,286.7h110.9v255.9c0,.33,0,.68-.03,1.05h-110.9c-.02-.37-.03-.72-.03-1.05v-3.34"/>
+    <line class="st3" x1="392.65" y1="286.7" x2="281.75" y2="286.7"/>
+    <line class="st0" x1="281.71" y1="286.72" x2="392.67" y2="286.72"/>
+  </g>
+</svg>

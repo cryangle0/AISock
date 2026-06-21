@@ -3,13 +3,13 @@
     <NavBar title="我的设计" show-back variant="solid" />
     <scroll-view class="designs-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <view v-if="list.length === 0" class="empty">
-      <text class="empty-icon">🧦</text>
+      <view class="empty-icon"><AppIcon name="socks" :size="72" color="#c8b89a" /></view>
       <text class="empty-text">暂无设计稿</text>
       <button class="empty-btn" @tap="goEditor">去创建第一个袜版</button>
     </view>
     <template v-else>
       <view class="search-bar">
-        <text class="search-icon">🔍</text>
+        <AppIcon name="search" :size="32" color="#8a8378" />
         <input v-model="query" placeholder="搜索设计名称" />
       </view>
       <view class="summary">已保存 {{ list.length }} 个袜版</view>
@@ -18,15 +18,15 @@
         <view v-for="d in filtered" :key="d.id" class="card">
           <view class="cover" @tap="editDesign(d.id)">
             <image v-if="d.cover_url" :src="d.cover_url" mode="aspectFill" class="cover-img" lazy-load />
-            <view v-else class="cover-empty">🧦</view>
+            <view v-else class="cover-empty"><AppIcon name="socks" :size="56" color="#c8b89a" /></view>
           </view>
           <view class="meta">
             <text class="name">{{ d.name }}</text>
             <text class="date">{{ (d.created_at || '').slice(0, 10) }}</text>
           </view>
           <view class="actions">
-            <view class="icon-btn" @tap="editDesign(d.id)">✨</view>
-            <view class="icon-btn danger" @tap="onDelete(d.id)">🗑</view>
+            <view class="icon-btn" @tap="editDesign(d.id)"><AppIcon name="sparkle" :size="28" color="#8e4f43" /></view>
+            <view class="icon-btn danger" @tap="onDelete(d.id)"><AppIcon name="trash" :size="28" color="#c0504a" /></view>
           </view>
         </view>
       </view>
@@ -44,6 +44,7 @@ import { designApi } from '@aisock/service'
 import { navigateTo } from '@aisock/common/utils'
 import type { Design } from '@aisock/common/types'
 import NavBar from '@/components/ui/NavBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const list = ref<Design[]>([])
 const query = ref('')
@@ -130,12 +131,12 @@ const goEditor = () => navigateTo('/pkg/editor/index')
   margin-bottom: 16rpx;
 }
 .grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
 }
 .card {
-  width: calc(50% - 10rpx);
+  box-sizing: border-box;
   background: $mp-bg-card;
   border: 1rpx solid $mp-border;
   border-radius: 20rpx;

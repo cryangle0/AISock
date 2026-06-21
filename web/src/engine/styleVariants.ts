@@ -4,8 +4,9 @@
  */
 import { PATTERN_LIST } from '@/data/editor'
 import { patternToImageURL } from './patternImage'
-import { renderSockToDataURL } from './sockRenderer'
-import type { SockColors, SockParams, SockResources } from './types'
+import { renderVectorSockToDataURL } from './vectorSock'
+import type { ParsedGeometry } from './vectorSock'
+import type { SockColors, SockParams } from './types'
 
 export interface DesignVariant {
   id: string
@@ -54,9 +55,9 @@ function shuffle<T>(arr: T[], seed: number): T[] {
 export async function deriveStyleVariants(
   baseDesign: BaseDesign,
   count: number,
-  resources: SockResources | null,
+  geometry: ParsedGeometry | null,
 ): Promise<DesignVariant[]> {
-  if (!resources?.ready) return []
+  if (!geometry?.ready) return []
   const seed = Date.now() % 9999
   const patterns = shuffle(PATTERN_LIST, seed).slice(0, count)
   const schemes = shuffle(COLOR_SCHEMES, seed + 1).slice(0, count)
@@ -76,7 +77,7 @@ export async function deriveStyleVariants(
       }
       const printImage = patternToImageURL(p.id, 320)
       const printName = `${p.name}·${scheme.name}`
-      const cover = await renderSockToDataURL(resources, printImage, colors, params)
+      const cover = await renderVectorSockToDataURL(geometry, printImage, colors, params)
       return {
         id: `${p.id}-${scheme.id}-${i}`,
         label: printName,
@@ -95,9 +96,9 @@ export async function deriveStyleVariants(
 /** 亲子袜：成人款（保留当前设计）+ 儿童款（更柔的配色 + 更密平铺） */
 export async function deriveFamilyPair(
   baseDesign: BaseDesign,
-  resources: SockResources | null,
+  geometry: ParsedGeometry | null,
 ): Promise<DesignVariant[]> {
-  if (!resources?.ready) return []
+  if (!geometry?.ready) return []
   const printName = baseDesign.printName || '亲子款'
   const printImage = patternToImageURL('p-flower-big', 320)
 
@@ -119,8 +120,8 @@ export async function deriveFamilyPair(
   const kidParams: SockParams = { density: 80, rotation: 0, singleMode: false, tileDensity: 4, debugMode: false }
 
   const [adultCover, kidCover] = await Promise.all([
-    renderSockToDataURL(resources, printImage, adultColors, adultParams),
-    renderSockToDataURL(resources, printImage, kidColors, kidParams),
+    renderVectorSockToDataURL(geometry, printImage, adultColors, adultParams),
+    renderVectorSockToDataURL(geometry, printImage, kidColors, kidParams),
   ])
 
   return [

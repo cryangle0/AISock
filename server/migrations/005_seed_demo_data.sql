@@ -5,7 +5,7 @@
 --   2) 仅初始化"业务数据"：袜型 / 花型 / Banner / 资讯 / 演示用户 / 演示订单 / 物流
 --   3) 不触碰"按 UI 设计稿渲染"的运营配置（app_config 的 home_themes/home_zones/home_cases
 --      与 site_config/ai_generation 均不改），首页主题/案例/AI 推荐官界面保持设计稿原样
---   4) 图片：复用客户 OSS(cdn.onnsa.cn) 已生成的真实图 + placehold 占位，客户可在后台替换
+--   4) 图片：全部复用 cdn.onnsa.cn 已生成的真实花型图（均已验证可访问），客户可在后台替换
 -- ============================================================
 SET NAMES utf8mb4;
 
@@ -37,21 +37,21 @@ SELECT * FROM (
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='国潮纹样'), NULL, '九色神鹿',
          'https://cdn.onnsa.cn/ai/202606/08d66227021421b8.png', 'https://cdn.onnsa.cn/ai/202606/08d66227021421b8.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='国潮纹样'), NULL, '祥云回纹',
-         'https://placehold.co/600x600/8e4f43/ffffff.png', 'https://placehold.co/300x300/8e4f43/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202606/6447fec1c6c7ab66.png', 'https://cdn.onnsa.cn/ai/202606/6447fec1c6c7ab66.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='浪漫花卉'), NULL, '水彩碎花',
-         'https://placehold.co/600x600/d98aa0/ffffff.png', 'https://placehold.co/300x300/d98aa0/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202606/ea233bf37a221cc6.png', 'https://cdn.onnsa.cn/ai/202606/ea233bf37a221cc6.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='浪漫花卉'), NULL, '玫瑰花影',
-         'https://placehold.co/600x600/c77b8e/ffffff.png', 'https://placehold.co/300x300/c77b8e/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202605/00f2ef0bcfe79a4a.png', 'https://cdn.onnsa.cn/ai/202605/00f2ef0bcfe79a4a.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='几何线条'), NULL, '复古格纹',
-         'https://placehold.co/600x600/a8854e/ffffff.png', 'https://placehold.co/300x300/a8854e/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202605/d01657d42cf31bc4.png', 'https://cdn.onnsa.cn/ai/202605/d01657d42cf31bc4.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='几何线条'), NULL, '极简条纹',
-         'https://placehold.co/600x600/5b9bb8/ffffff.png', 'https://placehold.co/300x300/5b9bb8/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202605/2e847ce8bde6f320.png', 'https://cdn.onnsa.cn/ai/202605/2e847ce8bde6f320.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='萌趣卡通'), NULL, '萌趣小猫',
-         'https://placehold.co/600x600/e0a85a/ffffff.png', 'https://placehold.co/300x300/e0a85a/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202605/caef26c49c3aa44f.png', 'https://cdn.onnsa.cn/ai/202605/caef26c49c3aa44f.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='节气文创'), NULL, '二十四节气·立春',
-         'https://placehold.co/600x600/5a8a7d/ffffff.png', 'https://placehold.co/300x300/5a8a7d/ffffff.png', 1, 'public', 1
+         'https://cdn.onnsa.cn/ai/202605/51cc203d4e3ba386.png', 'https://cdn.onnsa.cn/ai/202605/51cc203d4e3ba386.png', 1, 'public', 1
   UNION ALL SELECT (SELECT id FROM `pattern_category` WHERE name='简约纯色'), NULL, '燕麦米白',
-         'https://placehold.co/600x600/c9b89a/ffffff.png', 'https://placehold.co/300x300/c9b89a/ffffff.png', 0, 'public', 1
+         'https://cdn.onnsa.cn/ai/202605/fc1d607356073e3c.png', 'https://cdn.onnsa.cn/ai/202605/fc1d607356073e3c.png', 0, 'public', 1
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `pattern` WHERE name='敦煌飞天' AND owner_id IS NULL);
 
@@ -63,7 +63,7 @@ SELECT * FROM (
   UNION ALL SELECT '九色神鹿 · 限定系列', 'AI 生成花型，独一无二',
          'https://cdn.onnsa.cn/ai/202606/08d66227021421b8.png', '/pages/ai/index', 2, 1
   UNION ALL SELECT '新人专享 · 每日免费生图', '注册即享 5 次 AI 生图',
-         'https://placehold.co/750x320/8e4f43/ffffff.png', '/pages/ai/index', 3, 1
+         'https://cdn.onnsa.cn/ai/202605/e5caa3b895c2863f.png', '/pages/ai/index', 3, 1
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `banner` WHERE title='敦煌入梦 · 国潮新生');
 
@@ -74,11 +74,11 @@ SELECT * FROM (
          '灵动蝶舞，点亮夏日穿搭' AS summary, '蝶舞系列以轻盈的蝴蝶纹样搭配清新配色，适合日常与出行。' AS content, '新品' AS tag, 1 AS sort, 1 AS status, NOW() AS published_at
   UNION ALL SELECT 'feed', '松弛田园 · 花影系列', 'https://cdn.onnsa.cn/ai/202606/08d66227021421b8.png',
          '柔和花影，松弛随性', '花影系列融合水彩花卉与莫兰迪配色，温柔耐看。', '热销', 2, 1, NOW()
-  UNION ALL SELECT 'feed', '国潮新生 · 祥瑞系列', 'https://placehold.co/600x400/a05a3c/ffffff.png',
+  UNION ALL SELECT 'feed', '国潮新生 · 祥瑞系列', 'https://cdn.onnsa.cn/ai/202605/18c888da3022b166.png',
          '祥云瑞兽，国风新潮', '祥瑞系列取材传统纹样，重新演绎国潮气质。', '国潮', 3, 1, NOW()
-  UNION ALL SELECT 'news', '爱花型 AI 袜版设计平台正式上线', 'https://placehold.co/600x400/8e4f43/ffffff.png',
+  UNION ALL SELECT 'news', '爱花型 AI 袜版设计平台正式上线', 'https://cdn.onnsa.cn/ai/202606/6447fec1c6c7ab66.png',
          '从灵感到成品，一站式 AI 定制', '平台支持 AI 文生图、图生图改色、款式衍生、亲子袜等多种玩法。', '公告', 1, 1, NOW()
-  UNION ALL SELECT 'news', '如何用一句话生成专属袜款花型', 'https://placehold.co/600x400/5a8a7d/ffffff.png',
+  UNION ALL SELECT 'news', '如何用一句话生成专属袜款花型', 'https://cdn.onnsa.cn/ai/202606/ea233bf37a221cc6.png',
          '输入描述，AI 帮你画', '在 AI 设计页用文字或语音描述需求，即可生成花型并一键定制。', '教程', 2, 1, NOW()
   UNION ALL SELECT 'faq', '起订量和价格是怎样的？', NULL,
          '不同袜型起订量与单价不同', '各袜型起订量一般为 50 双（童袜 30 双），单价随材质与工艺浮动，详见下单页试算。', NULL, 1, 1, NOW()

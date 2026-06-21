@@ -27,7 +27,7 @@
 import { ref } from 'vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 
-export interface StyleItem { id: string; name: string; bg: string; img?: string }
+export interface StyleItem { id: string; tagId: number; name: string; bg: string; img?: string }
 const props = defineProps<{ items: StyleItem[] }>()
 defineEmits<{ confirm: [ids: string[]]; skip: [] }>()
 

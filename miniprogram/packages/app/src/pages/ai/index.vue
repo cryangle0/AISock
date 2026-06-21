@@ -13,7 +13,7 @@
       <view class="ai-body">
         <!-- 吉祥物问候 -->
         <view class="mascot">
-          <view class="mascot-avatar"><image class="ma-img" src="/static/images/mascot.webp" mode="aspectFill" /></view>
+          <view class="mascot-avatar"><image class="ma-img" src="/static/images/ai-avatar.png" mode="aspectFill" /></view>
           <text class="mascot-title">嗨！我是你的袜品推荐官～</text>
           <text class="mascot-sub">帮你找到舒适好穿、风格百搭的心动袜子</text>
         </view>
@@ -40,6 +40,9 @@
             <RecommendCard
               :main="recMain"
               :candidates="candidates"
+              :sock-type-id="selectedSockId"
+              :sock-name="selectedSockName"
+              :preview-hidden="previewBlocked"
               @refresh="onShuffle"
               @pick="recMain = $event"
               @recolor="goRecolor"
@@ -56,54 +59,156 @@
 
     <!-- 底部输入 -->
     <view class="ai-foot">
-      <ChatInput :cats="cats" :disabled="isProcessing" @send="onSend" @cat="onCat" />
+      <ChatInput :disabled="isProcessing" @send="onSend" />
     </view>
+
+    <!-- 袜版选择 抽屉：点「袜版选择」先挑袜型，再带推荐花型进编辑器 -->
+    <BottomSheet v-if="sockSheetOpen" title="选择袜版" subtitle="先选板型，再点尺寸即可在花型推荐中预览" @close="sockSheetOpen = false">
+      <view class="sock-pick">
+        <view v-if="sockFamilies.length > 1" class="sock-fam-tabs">
+          <view
+            v-for="f in sockFamilies"
+            :key="f"
+            :class="['sock-fam-tab', { active: activeSockFamily === f }]"
+            @tap="activeSockFamily = f"
+          >{{ f }}</view>
+        </view>
+        <scroll-view scroll-y class="sock-pick-list" :show-scrollbar="false">
+          <view
+            v-for="s in shownSockPicks"
+            :key="s.id"
+            :class="['sock-pick-item', { active: s.id === selectedSockId }]"
+            @tap="confirmPickSock(s.id)"
+          >
+            <view class="sp-info">
+              <text class="sp-name">{{ sockPickName(s) }}</text>
+              <text class="sp-desc">{{ s.desc }}</text>
+            </view>
+            <AppIcon v-if="s.id === selectedSockId" name="check" :size="32" color="#8e4f43" />
+            <text v-else class="sp-arrow">›</text>
+          </view>
+        </scroll-view>
+      </view>
+    </BottomSheet>
+
+    <!-- 一键换色 抽屉：当前印花 + AI 指令改底色，就地不跳页 -->
+    <RecolorSheet
+      v-if="recolorSheetOpen"
+      :print-image="recMain.url"
+      :print-name="recMain.name"
+      @close="recolorSheetOpen = false"
+      @applied="onRecolorApply"
+    />
 
     <custom-tab-bar current="editor" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { SOCK_TYPES } from '@aisock/common'
 import { navigateTo } from '@aisock/common/utils'
 import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
+import { catalogApi, type Tag } from '@aisock/service'
 import NavBar from '@/components/ui/NavBar.vue'
+import BottomSheet from '@/components/BottomSheet.vue'
+import RecolorSheet from '@/components/editor/RecolorSheet.vue'
 import { cdnImg } from '@/config/cdn'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import GiftGrid, { type GiftItem } from '@/components/ai/GiftGrid.vue'
 import StyleGrid, { type StyleItem } from '@/components/ai/StyleGrid.vue'
 import RecommendCard, { type Candidate } from '@/components/ai/RecommendCard.vue'
-import ChatInput, { type Cat } from '@/components/ai/ChatInput.vue'
+import ChatInput from '@/components/ai/ChatInput.vue'
 import ChatMessage from './components/ChatMessage.vue'
 import { useAiChat } from './composables/useAiChat'
 import { useAiRecommend } from './composables/useAiRecommend'
 
 // ========== 数据配置 ==========
-const gifts: GiftItem[] = [
-  { id: 'lover', title: '送爱人/恋人', desc: '甜蜜心意，温暖相伴', bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/gift-lover.webp' },
-  { id: 'bff', title: '送闺蜜/朋友', desc: '一起出行，默契加倍', bg: 'linear-gradient(135deg,#CFE0D6,#8FB3A0)', img: '/static/images/gift-bff.webp' },
-  { id: 'elder', title: '送长辈/家人', desc: '贴心守护，舒服相伴', bg: 'linear-gradient(135deg,#E6D7B8,#C6A857)', img: '/static/images/gift-elder.webp' },
-  { id: 'self', title: '送给自己', desc: '取悦自己，从脚开始', bg: 'linear-gradient(135deg,#C9C2E0,#9387C4)', img: '/static/images/gift-self.webp' },
+// 视觉兜底：后台「标签管理」只配名称/排序/显隐；渐变与本地图按 code 套用，设计不丢。
+const DEFAULT_VISUAL = { bg: 'linear-gradient(135deg,#E3DACB,#C2B49A)', img: '' }
+const SCENE_VISUALS: Record<string, { bg: string; img: string }> = {
+  lover: { bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/gift-lover.jpg' },
+  bff: { bg: 'linear-gradient(135deg,#CFE0D6,#8FB3A0)', img: '/static/images/gift-bff.jpg' },
+  elder: { bg: 'linear-gradient(135deg,#E6D7B8,#C6A857)', img: '/static/images/gift-elder.jpg' },
+  self: { bg: 'linear-gradient(135deg,#C9C2E0,#9387C4)', img: '/static/images/gift-self.jpg' },
+}
+const STYLE_VISUALS: Record<string, { bg: string; img: string }> = {
+  floral: { bg: 'linear-gradient(135deg,#F0C9D4,#D98AA0)', img: '/static/images/style-floral.jpg' },
+  couple: { bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/style-couple.jpg' },
+  sport: { bg: 'linear-gradient(135deg,#A9D2E0,#5B9BB8)', img: '/static/images/style-sport.jpg' },
+  retro: { bg: 'linear-gradient(135deg,#D8C49C,#A8854E)', img: '/static/images/style-retro.jpg' },
+  solid: { bg: 'linear-gradient(135deg,#DDD6CB,#B4A98F)', img: '/static/images/style-solid.jpg' },
+  cartoon: { bg: 'linear-gradient(135deg,#F2D8A8,#E0A85A)', img: '/static/images/style-cartoon.jpg' },
+  illust: { bg: 'linear-gradient(135deg,#CBBBD9,#9B82B8)', img: '/static/images/style-illust.jpg' },
+  guochao: { bg: 'linear-gradient(135deg,#D99A8A,#A8503C)', img: '/static/images/style-guochao.jpg' },
+  more: { bg: 'linear-gradient(135deg,#E3DACB,#C2B49A)', img: '/static/images/style-more.jpg' },
+}
+
+// 「更多」是前端入口（不入库）：固定置于风格末尾；tagId=0 → 不参与标签筛选
+const MORE_STYLE: StyleItem = { id: 'more', tagId: 0, name: '更多', bg: STYLE_VISUALS.more.bg, img: cdnImg(STYLE_VISUALS.more.img) }
+
+/** 本地静态图走 CDN；后台 icon_url 为 http 直链 */
+function resolveCardImg(url?: string | null, fallbackLocal?: string): string {
+  const u = url || fallbackLocal || ''
+  if (!u) return ''
+  if (/^https?:/i.test(u)) return u
+  return cdnImg(u.startsWith('/') ? u : `/${u}`)
+}
+
+// 接口失败/为空时的兜底（tagId=0 → 推荐自动回退为不按标签筛选，功能仍可用）
+const FALLBACK_GIFTS: GiftItem[] = [
+  { id: 'lover', tagId: 0, title: '送爱人/恋人', desc: '甜蜜心意，温暖相伴', bg: SCENE_VISUALS.lover.bg, img: resolveCardImg(SCENE_VISUALS.lover.img) },
+  { id: 'bff', tagId: 0, title: '送闺蜜/朋友', desc: '一起出行，默契加倍', bg: SCENE_VISUALS.bff.bg, img: resolveCardImg(SCENE_VISUALS.bff.img) },
+  { id: 'elder', tagId: 0, title: '送长辈/家人', desc: '贴心守护，舒服相伴', bg: SCENE_VISUALS.elder.bg, img: resolveCardImg(SCENE_VISUALS.elder.img) },
+  { id: 'self', tagId: 0, title: '送给自己', desc: '取悦自己，从脚开始', bg: SCENE_VISUALS.self.bg, img: resolveCardImg(SCENE_VISUALS.self.img) },
+]
+const FALLBACK_STYLES: StyleItem[] = [
+  { id: 'floral', tagId: 0, name: '浪漫花卉', bg: STYLE_VISUALS.floral.bg, img: resolveCardImg(STYLE_VISUALS.floral.img) },
+  { id: 'couple', tagId: 0, name: '爱心情侣', bg: STYLE_VISUALS.couple.bg, img: resolveCardImg(STYLE_VISUALS.couple.img) },
+  { id: 'sport', tagId: 0, name: '运动活力', bg: STYLE_VISUALS.sport.bg, img: resolveCardImg(STYLE_VISUALS.sport.img) },
+  { id: 'retro', tagId: 0, name: '复古格纹', bg: STYLE_VISUALS.retro.bg, img: resolveCardImg(STYLE_VISUALS.retro.img) },
+  { id: 'solid', tagId: 0, name: '简约纯色', bg: STYLE_VISUALS.solid.bg, img: resolveCardImg(STYLE_VISUALS.solid.img) },
+  { id: 'cartoon', tagId: 0, name: '萌趣卡通', bg: STYLE_VISUALS.cartoon.bg, img: resolveCardImg(STYLE_VISUALS.cartoon.img) },
+  { id: 'illust', tagId: 0, name: '艺术插画', bg: STYLE_VISUALS.illust.bg, img: resolveCardImg(STYLE_VISUALS.illust.img) },
+  { id: 'guochao', tagId: 0, name: '国潮纹样', bg: STYLE_VISUALS.guochao.bg, img: resolveCardImg(STYLE_VISUALS.guochao.img) },
+  MORE_STYLE,
 ]
 
-const styles: StyleItem[] = [
-  { id: 'floral', name: '浪漫花卉', bg: 'linear-gradient(135deg,#F0C9D4,#D98AA0)', img: '/static/images/style-floral.webp' },
-  { id: 'couple', name: '爱心情侣', bg: 'linear-gradient(135deg,#E7B7C0,#C77B8E)', img: '/static/images/style-couple.webp' },
-  { id: 'sport', name: '运动活力', bg: 'linear-gradient(135deg,#A9D2E0,#5B9BB8)', img: '/static/images/style-sport.webp' },
-  { id: 'retro', name: '复古格纹', bg: 'linear-gradient(135deg,#D8C49C,#A8854E)', img: '/static/images/style-retro.webp' },
-  { id: 'solid', name: '简约纯色', bg: 'linear-gradient(135deg,#DDD6CB,#B4A98F)', img: '/static/images/style-solid.webp' },
-  { id: 'cartoon', name: '萌趣卡通', bg: 'linear-gradient(135deg,#F2D8A8,#E0A85A)', img: '/static/images/style-cartoon.webp' },
-  { id: 'illust', name: '艺术插画', bg: 'linear-gradient(135deg,#CBBBD9,#9B82B8)', img: '/static/images/style-illust.webp' },
-  { id: 'guochao', name: '国潮纹样', bg: 'linear-gradient(135deg,#D99A8A,#A8503C)', img: '/static/images/style-guochao.webp' },
-  { id: 'more', name: '更多', bg: 'linear-gradient(135deg,#E3DACB,#C2B49A)', img: '/static/images/style-more.webp' },
-]
+// 后台可配：礼赠场景 / 风格（空或失败时用本地兜底，保证不空白）
+const gifts = ref<GiftItem[]>([...FALLBACK_GIFTS])
+const styles = ref<StyleItem[]>([...FALLBACK_STYLES])
 
-const cats: Cat[] = [
-  { id: 'sport', name: '运动袜', icon: 'sport' },
-  { id: 'couple', name: '情侣袜', icon: 'love' },
-  { id: 'crew', name: '中筒袜', icon: 'socks' },
-  { id: 'gift', name: '礼盒装', icon: 'gift' },
-]
+function toGift(t: Tag): GiftItem {
+  const v = SCENE_VISUALS[t.code] || DEFAULT_VISUAL
+  return { id: t.code, tagId: t.id, title: t.name, desc: t.description || '', bg: v.bg, img: resolveCardImg(t.icon_url, v.img) }
+}
+function toStyle(t: Tag): StyleItem {
+  const v = STYLE_VISUALS[t.code] || DEFAULT_VISUAL
+  return { id: t.code, tagId: t.id, name: t.name, bg: v.bg, img: resolveCardImg(t.icon_url, v.img) }
+}
+
+let tagsLoaded = false
+async function loadTags() {
+  try {
+    const [sceneRes, styleRes] = await Promise.all([
+      catalogApi.listTags('scene'),
+      catalogApi.listTags('style'),
+    ])
+    const scenes = sceneRes.data || []
+    const sts = styleRes.data || []
+    if (scenes.length) gifts.value = scenes.map(toGift)
+    // 真实风格 + 末尾固定「更多」入口
+    if (sts.length) styles.value = [...sts.map(toStyle), MORE_STYLE]
+    tagsLoaded = true
+  } catch {
+    /* 保留本地兜底 */
+  }
+}
+onShow(() => {
+  if (!tagsLoaded) loadTags()
+  ensureCatalog().then(selectDefaultSock)
+})
 
 // ========== Composables ==========
 const { messages, context, isProcessing, sendMessage, setScene, setStyles, retryLastMessage } = useAiChat()
@@ -116,6 +221,8 @@ const showRecommend = ref(false)
 const anchor = ref('')
 const recMain = ref<Candidate>({ id: 'main', name: '推荐花型', bg: 'linear-gradient(135deg,#C9B89A,#8E4F43)', url: cdnImg('/static/images/rec-main.webp') })
 const candidates = ref<Candidate[]>([])
+// 已选风格标签 id（真实筛选用；「更多」等 tagId=0 不计入）
+const selectedStyleTagIds = ref<number[]>([])
 
 // ========== 滚动控制 ==========
 function scrollBottom() {
@@ -134,6 +241,7 @@ async function onGift(g: GiftItem) {
   selectedGift.value = g
   showStyles.value = false
   showRecommend.value = false
+  selectedStyleTagIds.value = []
   
   // 更新上下文
   setScene(g.id)
@@ -151,10 +259,13 @@ async function onStylesConfirm(ids: string[]) {
   if (isProcessing.value) return
   showStyles.value = false
 
-  const names = styles.filter((s) => ids.includes(s.id)).map((s) => s.name)
+  const selectedStyles = styles.value.filter((s) => ids.includes(s.id))
+  const names = selectedStyles.map((s) => s.name)
+  // 记录风格标签 id（真实筛选用，排除「更多」等 tagId=0）
+  selectedStyleTagIds.value = selectedStyles.map((s) => s.tagId).filter((n) => n > 0)
   const userMessage = names.length ? `我喜欢：${names.join('、')}` : '需要推荐'
 
-  // 更新上下文：存风格「名称」（推荐与文案逻辑均按名称匹配）
+  // 更新上下文：存风格「名称」（对话文案按名称匹配）
   setStyles(names)
 
   // 发送用户选择并获取 AI 回复（结构化选择，无需消耗 AI 配额）
@@ -168,6 +279,7 @@ async function onStylesConfirm(ids: string[]) {
 async function onStylesSkip() {
   if (isProcessing.value) return
   showStyles.value = false
+  selectedStyleTagIds.value = []
 
   await sendMessage('直接推荐吧', scrollBottom)
   await loadRecommendations()
@@ -182,18 +294,16 @@ async function onSend(text: string) {
   await loadRecommendations()
 }
 
-/** 快捷分类 */
-function onCat(c: Cat) {
-  onSend(`想要${c.name}`)
-}
-
 /** 加载推荐结果 */
 async function loadRecommendations() {
   try {
     const recommendation = await recommend(
-      context.value.intent || '',
-      context.value.scene,
-      context.value.styles,
+      {
+        sceneCode: context.value.scene,
+        sceneTagId: selectedGift.value?.tagId,
+        styleTagIds: selectedStyleTagIds.value,
+        keyword: context.value.intent || undefined,
+      },
       3,
     )
 
@@ -226,9 +336,12 @@ async function onShuffle() {
   try {
     const currentIds = candidates.value.map(c => c.id)
     const recommendation = await shuffle(
-      context.value.intent || '',
-      context.value.scene,
-      context.value.styles,
+      {
+        sceneCode: context.value.scene,
+        sceneTagId: selectedGift.value?.tagId,
+        styleTagIds: selectedStyleTagIds.value,
+        keyword: context.value.intent || undefined,
+      },
       3,
       currentIds,
     )
@@ -255,33 +368,113 @@ async function onShuffle() {
 /** 当前推荐花型转为可下单商品（推荐候选 id 即后端花型 id） */
 function currentProduct() {
   const pid = Number(recMain.value.id)
+  // 已换色/换图视为自定义印花：不再上报来源花型 id（避免来源与实际图不符）
+  const usePattern = !recMain.value.customized && Number.isInteger(pid) && pid > 0
   return {
     name: recMain.value.name || '推荐花型',
     cover: recMain.value.url,
-    patternId: Number.isInteger(pid) && pid > 0 ? pid : undefined,
+    patternId: usePattern ? pid : undefined,
   }
 }
 
-/** 袜版选择：带上推荐图，跳转到 upload 页面选择袜版 */
+/** 袜版选择：弹「选择袜版」（数据来自后台 22 个真实袜版），先挑板型再挑尺寸 */
+interface AiSockOption {
+  id: string
+  name: string
+  desc: string
+  family: string | null
+  _id: number
+}
+
+const fallbackSockTypes: AiSockOption[] = SOCK_TYPES.map((s) => ({
+  id: s.id,
+  name: s.name,
+  desc: s.desc,
+  family: null,
+  _id: 0,
+}))
+const sockTypes = ref<AiSockOption[]>(fallbackSockTypes)
+let sockCatalogLoaded = false
+let sockCatalogLoading: Promise<void> | null = null
+
+function ensureCatalog(): Promise<void> {
+  if (sockCatalogLoaded) return Promise.resolve()
+  if (!sockCatalogLoading) {
+    sockCatalogLoading = catalogApi.listSocks()
+      .then((res) => {
+        if (res.data?.length) {
+          sockTypes.value = res.data.map((s) => ({
+            id: s.code || String(s.id),
+            name: s.name,
+            desc: s.craft || `起订 ${s.min_order} 双`,
+            family: s.family ?? null,
+            _id: s.id,
+          }))
+          selectDefaultSock()
+        }
+      })
+      .catch(() => {
+        sockTypes.value = fallbackSockTypes
+        selectDefaultSock()
+      })
+      .finally(() => {
+        sockCatalogLoaded = true
+        sockCatalogLoading = null
+      })
+  }
+  return sockCatalogLoading
+}
+const sockSheetOpen = ref(false)
+const selectedSockId = ref('')
+const selectedSockName = computed(() => sockTypes.value.find((s) => s.id === selectedSockId.value)?.name || '')
+const sockFamilies = computed(() => {
+  const set = [...new Set(sockTypes.value.map((s) => s.family).filter(Boolean))] as string[]
+  return set.sort((a, b) => (a === '直板' ? -1 : b === '直板' ? 1 : 0))
+})
+const activeSockFamily = ref('直板')
+const shownSockPicks = computed(() =>
+  sockFamilies.value.length ? sockTypes.value.filter((s) => s.family === activeSockFamily.value) : sockTypes.value,
+)
+function selectDefaultSock() {
+  if (selectedSockId.value && sockTypes.value.some((s) => s.id === selectedSockId.value)) return
+  const first = sockTypes.value[0]
+  if (!first) return
+  selectedSockId.value = first.id
+  activeSockFamily.value = first.family || '直板'
+}
+function sockPickName(s: { name: string; family: string | null }) {
+  return s.family ? s.name.replace(new RegExp('^' + s.family + '[·\\s]*'), '') : s.name
+}
 function goPickSock() {
-  stashCustomizeCover(recMain.value.url)
-  navigateTo('/pkg/upload/index')
+  ensureCatalog()
+  sockSheetOpen.value = true
+}
+/** 选定袜型：直接在「花型推荐」区域回显（不跳页），并记下袜型供去定制/下单沿用 */
+function confirmPickSock(sockId: string) {
+  selectedSockId.value = sockId
+  uni.setStorageSync('aisock_sock_type', sockId)
+  sockSheetOpen.value = false
 }
 
-/** 一键换色：带上推荐图，进入编辑器做改色/微调 */
+/** 一键换色：就地弹「款式衍生」抽屉，基于当前推荐花型生成配色变体，选中后更新预览（不跳页） */
+const recolorSheetOpen = ref(false)
+// 任一抽屉打开时隐藏推荐卡的原生袜版 canvas，避免它盖住抽屉（微信原生组件层级最高，z-index 无效）
+const previewBlocked = computed(() => sockSheetOpen.value || recolorSheetOpen.value)
 function goRecolor() {
-  stashCustomizeCover(recMain.value.url)
-  navigateTo('/pkg/editor/index')
+  recolorSheetOpen.value = true
 }
 
-/** 去定制：把推荐官收集到的意图带入编辑器 */
+/** 应用换色：用 AI 改色 / 换图后的新印花图刷新推荐卡预览，并标记为自定义印花 */
+function onRecolorApply(url: string) {
+  recMain.value = { ...recMain.value, url, customized: true }
+}
+
+/** 去定制：进入「袜版定制 · 花型设计」页（upload），带上推荐花型，自由上传/生成后定制 */
 function goCustomize() {
-  const parts: string[] = []
-  if (recMain.value.name && recMain.value.name !== '推荐花型') parts.push(recMain.value.name)
-  if (context.value.intent) parts.push(context.value.intent)
-  const prompt = parts.join('，')
-  if (prompt) uni.setStorageSync('aisock_ai_prompt', prompt)
-  navigateTo('/pkg/editor/index')
+  stashCustomizeCover(recMain.value.url)
+  // 带上当前选中袜型，让「袜版定制」页把选中的袜版 + 花型渲染到上方预览
+  if (selectedSockId.value) uni.setStorageSync('aisock_sock_type', selectedSockId.value)
+  navigateTo('/pkg/upload/index')
 }
 
 /** 一键下单：携带真实花型封面直达购买页，可直接成单 */
@@ -330,8 +523,8 @@ function goPurchase() {
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background: $mp-header-gradient;
-  padding: 6rpx;
+  background: transparent;
+  padding: 0;
   box-sizing: border-box;
   box-shadow: 0 8rpx 20rpx rgba(142, 79, 67, 0.3);
 }
@@ -434,5 +627,69 @@ function goPurchase() {
 
 .ai-foot {
   flex-shrink: 0;
+}
+
+/* 选择袜版抽屉列表 */
+.sock-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.sock-fam-tabs {
+  display: flex;
+  gap: 8rpx;
+  background: #f1ebe0;
+  border-radius: 999rpx;
+  padding: 6rpx;
+}
+.sock-fam-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: $mp-text-secondary;
+}
+.sock-fam-tab.active {
+  background: $mp-primary;
+  color: #fff;
+}
+.sock-pick-list {
+  max-height: 52vh;
+}
+.sock-pick-list .sock-pick-item {
+  margin-bottom: 16rpx;
+}
+.sock-pick-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  border: 1rpx solid $mp-border;
+  border-radius: 16rpx;
+  background: $mp-bg-card;
+}
+.sock-pick-item.active {
+  border-color: $mp-primary;
+  background: $mp-primary-soft;
+}
+.sp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.sp-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $mp-text-primary;
+  font-family: $mp-font-serif;
+}
+.sp-desc {
+  font-size: 22rpx;
+  color: $mp-text-muted;
+}
+.sp-arrow {
+  font-size: 36rpx;
+  color: $mp-text-muted;
 }
 </style>

@@ -87,10 +87,18 @@ function resolveChatTarget(): { apiUrl: string; apiKey: string; model: string } 
 export async function* streamChat(
   messages: ChatTurn[],
   ctx: ChatContext,
-  _platform: AiPlatform = 'default',
+  platform: AiPlatform = 'default',
   signal?: AbortSignal,
 ): AsyncGenerator<string> {
-  const target = resolveChatTarget()
+  // 后台配置的 provider（openai/豆包/dashscope/nanobanana）优先；否则回退环境变量逻辑
+  let target: { apiUrl: string; apiKey: string; model: string } | null = null
+  try {
+    const { resolvePlatformConfig, resolveTextTarget } = await import('./aiConfig.service.js')
+    target = resolveTextTarget(await resolvePlatformConfig(platform))
+  } catch {
+    /* 回退 env */
+  }
+  if (!target) target = resolveChatTarget()
   if (!target) throw new Error('AI_TEXT_NOT_CONFIGURED')
   const { apiUrl, apiKey, model } = target
 

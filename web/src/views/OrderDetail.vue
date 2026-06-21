@@ -2,6 +2,8 @@
   <div class="od" v-if="order">
     <button class="back" @click="$router.back()">‹ 返回订单列表</button>
 
+    <div class="od-grid">
+    <div class="od-main">
     <!-- 状态进度 -->
     <div class="card status-card">
       <div class="status-head">
@@ -51,7 +53,9 @@
       <div class="row"><span>下单时间</span><b>{{ order.created_at }}</b></div>
       <div v-if="order.paid_at" class="row"><span>支付时间</span><b>{{ order.paid_at }}</b></div>
     </div>
+    </div>
 
+    <div class="od-side">
     <!-- 订单附件 -->
     <div class="card">
       <OrderAttachments :order-id="order.id" :editable="canEdit" @toast="showToast" />
@@ -77,33 +81,55 @@
     <!-- 操作 -->
     <div class="actions">
       <button class="cta secondary" @click="onContact">联系客服</button>
-      <button v-if="order.status === 'pending'" class="cta primary" :disabled="paying" @click="onPay">
-        {{ paying ? '支付中…' : '去支付' }}
+      <button v-if="order.status === 'pending'" class="cta primary" @click="repayOpen = true">
+        去支付
       </button>
     </div>
+    </div>
+    </div>
+
+    <!-- 继续支付 -->
+    <PaymentModal
+      v-if="repayOpen && order"
+      :existing-order="{ id: order.id, orderNo: order.order_no, amount: Number(order.total_amount), designName: order.design_name || undefined }"
+      @cancel="repayOpen = false"
+      @paid="onRepaid"
+    />
 
     <Transition name="toast">
       <div v-if="toast" class="od-toast">{{ toast }}</div>
     </Transition>
   </div>
 
-  <div v-else class="loading">加载中…</div>
+  <div v-else class="od">
+    <div class="od-grid">
+      <div class="od-main">
+        <div class="od-skel" style="height: 130px" />
+        <div class="od-skel" style="height: 380px" />
+      </div>
+      <div class="od-side">
+        <div class="od-skel" style="height: 160px" />
+        <div class="od-skel" style="height: 90px" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { orderApi, type Order, type Shipment } from '@/api'
-import { payExistingOrder } from '@/composables/useOrderPay'
-import { SUPPORT_PHONE } from '@/data/order'
+import { useServiceQr } from '@/composables/useServiceQr'
 import OrderAttachments from '@/components/order/OrderAttachments.vue'
+import PaymentModal from '@/components/order/PaymentModal.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { openServiceQr } = useServiceQr()
 
 const order = ref<Order | null>(null)
 const shipment = ref<Shipment | null>(null)
-const paying = ref(false)
+const repayOpen = ref(false)
 const editing = ref(false)
 const draftRemark = ref('')
 const draftAddress = ref('')
@@ -174,25 +200,13 @@ async function load() {
   }
 }
 
-async function onPay() {
-  if (!order.value || paying.value) return
-  paying.value = true
-  try {
-    const r = await payExistingOrder(order.value.id, order.value.order_no)
-    if (r.paid) {
-      await load()
-    } else {
-      alert('请在微信内完成支付')
-    }
-  } catch (e) {
-    alert((e as Error).message || '支付失败，请重试')
-  } finally {
-    paying.value = false
-  }
+async function onRepaid() {
+  repayOpen.value = false
+  await load()
 }
 
 function onContact() {
-  alert(`客服电话：${SUPPORT_PHONE}`)
+  openServiceQr()
 }
 
 onMounted(load)
@@ -200,10 +214,17 @@ onMounted(load)
 
 <style scoped>
 .od {
-  max-width: 720px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px;
 }
+.od-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.od-main, .od-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .back {
   border: none;
   background: none;
@@ -214,10 +235,9 @@ onMounted(load)
 }
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
   padding: 20px;
-  margin-bottom: 16px;
 }
 .status-head {
   display: flex;
@@ -247,6 +267,8 @@ onMounted(load)
   position: relative;
 }
 .flow-dot {
+  position: relative;
+  z-index: 1;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -262,6 +284,18 @@ onMounted(load)
   background: var(--primary);
   color: #fff;
 }
+/* 进度连接横线：每步左侧连到上一步圆点中心；已完成段为绿色 */
+.flow-step:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  top: 13px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border-strong);
+  z-index: 0;
+}
+.flow-step.done:not(:first-child)::before { background: var(--primary); }
 .flow-label {
   font-size: 12px;
   color: var(--text-2);
@@ -348,8 +382,9 @@ onMounted(load)
   max-width: 70%;
 }
 .row .amt {
-  color: var(--pink);
+  color: var(--ink);
   font-size: 16px;
+  font-weight: 800;
 }
 .traces {
   margin-top: 10px;
@@ -407,4 +442,10 @@ onMounted(load)
   padding: 80px;
   color: var(--text-3);
 }
+.od-skel {
+  border-radius: var(--r-card);
+  background: linear-gradient(100deg, var(--surface-2) 30%, var(--bg-hover) 50%, var(--surface-2) 70%);
+  background-size: 280% 100%; animation: od-sh 1.3s linear infinite;
+}
+@keyframes od-sh { 0% { background-position: 180% 0; } 100% { background-position: -80% 0; } }
 </style>

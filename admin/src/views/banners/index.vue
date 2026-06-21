@@ -51,7 +51,7 @@
       <a-form :model="form" layout="vertical">
         <a-form-item label="标题"><a-input v-model="form.title" /></a-form-item>
         <a-form-item label="副标题"><a-input v-model="form.subtitle" /></a-form-item>
-        <a-form-item label="图片 URL"><a-input v-model="form.imageUrl" /></a-form-item>
+        <a-form-item label="图片 URL"><ImageUploadInput v-model="form.imageUrl" /></a-form-item>
         <a-form-item label="跳转链接"><a-input v-model="form.link" /></a-form-item>
         <a-row :gutter="12">
           <a-col :span="12"><a-form-item label="排序"><a-input-number v-model="form.sort" :min="0" /></a-form-item></a-col>
@@ -70,6 +70,7 @@
 import { computed, onActivated, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listBanners, createBanner, updateBanner, deleteBanner, type Banner } from '@/api/banners'
+import ImageUploadInput from '@/components/ImageUploadInput.vue'
 
 const list = ref<Banner[]>([])
 const loading = ref(false)

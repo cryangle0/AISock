@@ -16,7 +16,7 @@ const SYSTEM_PROMPT = [
   '只输出优化后的提示词本身，不要解释、不要引号、不超过 60 字。',
 ].join('')
 
-const TIMEOUT_MS = 15000
+const TIMEOUT_MS = 35000
 // 推理模型预算：reasoning + 正式输出，留足避免正式提示词被截断
 const MAX_TOKENS = 1024
 const MAX_PROMPT_LEN = 80
@@ -50,15 +50,33 @@ export async function optimizePrompt(userPrompt: string, platform: AiPlatform = 
     /* 用环境变量 */
   }
 
-  // 端点/密钥：后台配置 > AI_TEXT_* > DashScope 千问（OpenAI 兼容端点）
+  // 端点/密钥：后台完整配置 > DashScope（qwen 系 / provider=dashscope）> 旧 AI_TEXT_* 环境变量
+  const { resolveTextTarget, PROVIDER_DEFAULT_BASE } = await import('./aiConfig.service.js')
+  const target = resolveTextTarget(cfg)
   const dashKey = cfg?.apiKey || process.env.DASHSCOPE_API_KEY
-  const dashBase = (cfg?.provider === 'dashscope' && cfg?.apiBaseUrl) || process.env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com'
-  const apiUrl = process.env.AI_TEXT_API_URL || (dashKey ? `${dashBase}/compatible-mode/v1` : '')
-  const apiKey = process.env.AI_TEXT_API_KEY || dashKey
+  const dashBase = (cfg?.provider === 'dashscope' && cfg?.apiBaseUrl)
+    || process.env.DASHSCOPE_BASE_URL
+    || PROVIDER_DEFAULT_BASE.dashscope
+
+  // 模型：后台该平台 textModel 优先，其次环境变量，最后兜底 qwen3.7-max（DashScope 兼容模式）
+  const model = target?.model || cfg?.textModel || process.env.AI_TEXT_MODEL || 'qwen3.7-max'
+  const useDashScope = cfg?.provider === 'dashscope' || /qwen/i.test(model)
+
+  let apiUrl: string
+  let apiKey: string
+  if (target) {
+    apiUrl = target.apiUrl
+    apiKey = target.apiKey
+  } else if (useDashScope && dashKey) {
+    apiUrl = `${dashBase.replace(/\/$/, '')}/compatible-mode/v1`
+    apiKey = dashKey
+  } else {
+    apiUrl = process.env.AI_TEXT_API_URL || (dashKey ? `${dashBase.replace(/\/$/, '')}/compatible-mode/v1` : '')
+    apiKey = process.env.AI_TEXT_API_KEY || dashKey || ''
+  }
   if (!apiUrl || !apiKey) return raw
 
-  // 模型：后台该平台 textModel 优先，其次环境变量，最后兜底 qwen-plus
-  const model = cfg?.textModel || process.env.AI_TEXT_MODEL || 'qwen-plus'
+  const isQwen37 = /qwen3\.7/i.test(model)
 
   try {
     const controller = new AbortController()
@@ -75,18 +93,21 @@ export async function optimizePrompt(userPrompt: string, platform: AiPlatform = 
         temperature: 0.7,
         max_tokens: MAX_TOKENS,
         stream: false,
+        // qwen3.7 非 OpenAI 标准参数，兼容模式须走 extra_body
+        ...(isQwen37 ? { extra_body: { enable_thinking: false } } : {}),
       }),
       signal: controller.signal,
     })
     clearTimeout(timer)
     if (!resp.ok) return raw
     const data = (await resp.json()) as {
-      choices?: Array<{ finish_reason?: string; message?: { content?: string } }>
+      choices?: Array<{ finish_reason?: string; message?: { content?: string; reasoning_content?: string } }>
     }
     const choice = data.choices?.[0]
     // 正式输出被 token 预算截断 → 不可靠，回退原文
     if (choice?.finish_reason === 'length') return raw
-    const optimized = sanitize(choice?.message?.content || '')
+    const msg = choice?.message
+    const optimized = sanitize(msg?.content || msg?.reasoning_content || '')
     return optimized || raw
   } catch {
     return raw // 失败回退原输入，不阻断生图

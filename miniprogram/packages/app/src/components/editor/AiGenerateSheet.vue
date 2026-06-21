@@ -19,8 +19,8 @@
       <!-- 输入区 -->
       <view class="input-card">
         <view class="input-head">
-          <view class="input-spark">
-            <AppIcon name="sparkle" :size="36" color="#8e4f43" />
+          <view class="input-spark" @tap="onPickImage">
+            <AppIcon name="upload" :size="36" color="#8e4f43" />
           </view>
           <textarea
             v-model="prompt"
@@ -31,6 +31,17 @@
             auto-height
           />
         </view>
+        <view v-if="refImages.length" class="ref-grid">
+          <view v-for="(img, i) in refImages" :key="`${i}-${img}`" class="ref-item">
+            <image class="ref-img" :src="img" mode="aspectFill" />
+            <text class="ref-badge">{{ i + 1 }}</text>
+            <view class="ref-remove" @tap.stop="removeRef(i)">×</view>
+          </view>
+          <view v-if="refImages.length < MAX_REF" class="ref-add" @tap="onPickImage">
+            <AppIcon name="plus" :size="28" color="#8e4f43" />
+          </view>
+        </view>
+        <text v-if="refImages.length" class="ref-hint">已选 {{ refImages.length }}/{{ MAX_REF }} 张参考图</text>
         <text class="input-count">{{ prompt.length }} / 200</text>
       </view>
 
@@ -65,10 +76,21 @@
 import { ref } from 'vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import VoiceRecordOverlay from '@/components/ai/VoiceRecordOverlay.vue'
-import { useVoiceInput } from '@aisock/composition'
+import { useVoiceInput, useUserStore } from '@aisock/composition'
+import { STORAGE_KEYS } from '@aisock/common/constants'
+import { uploadApi } from '@aisock/service'
 
 const props = defineProps<{ initialPrompt?: string }>()
-const emit = defineEmits<{ close: []; generate: [prompt: string] }>()
+const emit = defineEmits<{
+  close: []
+  generate: [prompt: string, refImages: string[]]
+  /** 本地临时路径预览（选图后、上传完成前） */
+  preview: [path: string]
+}>()
+
+const userStore = useUserStore()
+const MAX_REF = 9
+const refImages = ref<string[]>([])
 
 const tags = ['水墨', '几何', '碎花', '国潮', '唐三彩', '极简', '插画']
 const activeTag = ref('')
@@ -90,7 +112,62 @@ function onTag(t: string) {
 function onGenerate() {
   const p = prompt.value.trim()
   if (!p) return
-  emit('generate', p)
+  emit('generate', p, [...refImages.value])
+}
+
+function removeRef(i: number) {
+  refImages.value.splice(i, 1)
+  if (!refImages.value.length) emit('preview', '')
+}
+
+function rememberLoginReturn() {
+  try {
+    const pages = getCurrentPages()
+    const top = pages[pages.length - 1] as { route?: string; options?: Record<string, string> } | undefined
+    if (top?.route && !top.route.includes('pages/login/')) {
+      const qs = Object.entries(top.options || {})
+        .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+        .join('&')
+      uni.setStorageSync(STORAGE_KEYS.LOGIN_RETURN_TO, `/${top.route}${qs ? `?${qs}` : ''}`)
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function onPickImage() {
+  if (!userStore.isLogin) {
+    rememberLoginReturn()
+    uni.showToast({ title: '请先登录', icon: 'none' })
+    setTimeout(() => uni.reLaunch({ url: '/pages/login/index' }), 600)
+    return
+  }
+  const room = MAX_REF - refImages.value.length
+  if (room <= 0) {
+    uni.showToast({ title: `最多 ${MAX_REF} 张参考图`, icon: 'none' })
+    return
+  }
+  uni.chooseImage({
+    count: room,
+    sourceType: ['album', 'camera'],
+    success: async (res) => {
+      const paths = res.tempFilePaths || []
+      if (!paths.length) return
+      emit('preview', paths[0])
+      try {
+        uni.showLoading({ title: '上传中…', mask: true })
+        for (const path of paths) {
+          const up = await uploadApi.uploadFile(path)
+          refImages.value.push(up.url)
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : '上传失败，请重试'
+        uni.showToast({ title: msg, icon: 'none' })
+      } finally {
+        uni.hideLoading()
+      }
+    },
+  })
 }
 </script>
 
@@ -107,6 +184,7 @@ function onGenerate() {
 }
 .ai-panel {
   width: 100%;
+  box-sizing: border-box;
   background: #fff;
   border-radius: 40rpx 40rpx 0 0;
   padding: 20rpx 32rpx calc(40rpx + env(safe-area-inset-bottom));
@@ -172,6 +250,69 @@ function onGenerate() {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: $mp-shadow-sm;
+  cursor: pointer;
+  overflow: hidden;
+}
+.spark-thumb {
+  width: 100%;
+  height: 100%;
+}
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+.ref-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: $mp-radius-sm;
+  overflow: hidden;
+  background: #fff;
+  border: 1rpx solid $mp-border;
+}
+.ref-img { width: 100%; height: 100%; display: block; }
+.ref-badge {
+  position: absolute;
+  left: 8rpx;
+  top: 8rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  padding: 0 8rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 18rpx;
+  line-height: 28rpx;
+  text-align: center;
+}
+.ref-remove {
+  position: absolute;
+  right: 6rpx;
+  top: 6rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  text-align: center;
+}
+.ref-add {
+  aspect-ratio: 1;
+  border-radius: $mp-radius-sm;
+  border: 2rpx dashed $mp-border;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ref-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: $mp-text-muted;
 }
 .input-area {
   flex: 1;

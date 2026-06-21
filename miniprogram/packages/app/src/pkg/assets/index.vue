@@ -3,7 +3,7 @@
     <NavBar title="素材库" show-back variant="solid" />
     <scroll-view class="assets-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
     <view class="search-bar">
-      <text class="search-icon">🔍</text>
+      <AppIcon name="search" :size="32" color="#8a8378" />
       <input v-model="query" placeholder="搜索花型 / 标签" />
     </view>
 
@@ -35,7 +35,7 @@
     <!-- 我的 -->
     <template v-else>
       <view v-if="mine.length === 0" class="mine-empty">
-        <text class="empty-icon">🖼</text>
+        <view class="empty-icon"><AppIcon name="image" :size="64" color="#c8b89a" /></view>
         <text>个人素材库为空</text>
         <button class="empty-btn" @tap="onUpload">上传第一张素材</button>
       </view>
@@ -44,7 +44,7 @@
           <view class="thumb"><image :src="m.url" mode="aspectFill" class="thumb-img" lazy-load /></view>
           <text class="asset-name">{{ m.name }}</text>
           <view class="tags"><text class="tag mine">我的</text></view>
-          <view class="remove" @tap="onRemove(m.id)">🗑</view>
+          <view class="remove" @tap="onRemove(m.id)"><AppIcon name="trash" :size="24" color="#c0504a" /></view>
         </view>
       </view>
     </template>
@@ -61,9 +61,10 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { catalogApi, uploadApi } from '@aisock/service'
 import { useUserStore } from '@aisock/composition'
-import { useCatalog } from '@/pkg/composables/useCatalog'
+import { useCatalog } from '@/composables/useCatalog'
 import PatternThumb from '@/components/PatternThumb.vue'
 import NavBar from '@/components/ui/NavBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const userStore = useUserStore()
 const { patterns: publicItems, ensureLoaded: ensureCatalog } = useCatalog()
@@ -176,12 +177,12 @@ async function onRemove(id: number) {
   border-color: $mp-primary;
 }
 .asset-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
 }
 .asset-card {
-  width: calc((100% - 32rpx) / 3);
+  box-sizing: border-box;
   background: $mp-bg-card;
   border: 1rpx solid $mp-border;
   border-radius: 16rpx;

@@ -8,8 +8,10 @@ import { getUserId } from '../../utils/context.js'
 import { assertRateLimit } from '../../utils/rate-limit.js'
 import { queryOne } from '../../db.js'
 import {
-  createTask, listTasks, getRemainingQuota, computeDailyLimit,
+  createTask, listTasks, deleteTask, getRemainingQuota, computeDailyLimit, normalizeRefImages, MAX_REF_IMAGES,
 } from '../../services/ai.service.js'
+import { getPageQuery } from '../../utils/context.js'
+import { paginated } from '../../utils/response.js'
 import { deriveStyleVariants, deriveFamilyPair } from '../../services/variant.service.js'
 
 export const aiRouter = new Hono()
@@ -33,23 +35,45 @@ aiRouter.get('/quota', async (c) => {
 
 /** 创建生图任务 */
 aiRouter.post('/generate', async (c) => {
-  const body = await c.req.json<{ type?: string; prompt?: string; refImage?: string; platform?: string }>()
+  const body = await c.req.json<{
+    type?: string
+    prompt?: string
+    refImage?: string
+    refImages?: string[]
+    platform?: string
+  }>()
   const type = (body.type || 'text2img') as 'text2img' | 'img2img' | 'remix' | 'style'
   if (type === 'text2img' && !body.prompt) return fail(c, '提示词不能为空')
+  const refs = normalizeRefImages(body)
+  if ((type === 'img2img' || type === 'remix') && !refs.length) return fail(c, '请上传参考图')
+  if (refs.length > MAX_REF_IMAGES) return fail(c, `参考图最多 ${MAX_REF_IMAGES} 张`)
   const platform = (body.platform === 'miniprogram' || body.platform === 'web') ? body.platform : 'default'
   const userId = getUserId(c)
   const task = await createTask(userId, await dailyLimit(userId), {
     type,
     prompt: body.prompt,
     refImage: body.refImage,
+    refImages: refs,
     platform,
   })
   return ok(c, task)
 })
 
-/** 我的生成历史 */
+/** 我的生成历史（分页，默认每页 10 条；q= 按提示词搜索） */
 aiRouter.get('/tasks', async (c) => {
-  return ok(c, await listTasks(getUserId(c)))
+  const { pageNum, pageSize } = getPageQuery(c, 10)
+  const q = c.req.query('q')?.trim()
+  const { list, total } = await listTasks(getUserId(c), { pageNum, pageSize, q })
+  return paginated(c, list, total, pageNum, pageSize)
+})
+
+/** 删除一条生成历史 */
+aiRouter.delete('/tasks/:id', async (c) => {
+  const taskId = Number(c.req.param('id'))
+  if (!taskId) return fail(c, '无效的任务 ID')
+  const okDel = await deleteTask(getUserId(c), taskId)
+  if (!okDel) return fail(c, '记录不存在或无权删除', 404)
+  return ok(c, { id: taskId })
 })
 
 /** 意图分析：把模糊指令优化成高质量提示词（DeepSeek，失败回退原文） */

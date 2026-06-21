@@ -7,6 +7,7 @@ export interface ConfigItem {
   en?: string
   icon?: string
   bg?: string
+  themeKey?: string
   link?: string
   [k: string]: unknown
 }
@@ -21,4 +22,9 @@ export interface HomeConfig {
 export function getHomeConfig() {
   // 启动期非关键请求：静默 + 8s 快速超时，失败回退默认配置，不打断首屏
   return http.get<HomeConfig>('/api/v1/app/config/home', undefined, { showLoading: false, silent: true, timeout: 8000 })
+}
+
+/** 按 key 读取单个运营配置块（如 upload_refs 灵感参考） */
+export function getConfigBlock(key: string) {
+  return http.get<ConfigItem[]>(`/api/v1/app/config/${key}`, undefined, { showLoading: false, silent: true, timeout: 8000 })
 }

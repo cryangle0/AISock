@@ -49,5 +49,16 @@ unpackage/
 # Deploy artifacts (contain real secrets — never commit to public repo)
 .deploy-*
 
+# 构建/部署产物 tar 包（非源码，不入库）
+*.tar
+
+# 临时截图与一次性脚本（调试用，不入库）
+.tmp-shots/
+.tmp-*.sh
+.fix-*.sh
+
+# 支付凭证 / 支付敏感配置归档（含真实 appsecret、商户号、RDS 地址等，禁止入库）
+docs/支付/
+
 # 设计稿资源（体积大，不入库）
 FigmaUI/

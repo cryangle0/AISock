@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 647.12 840.99">
+  <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
+  <defs>
+    <style>
+      .st0, .st1, .st2 {
+        fill: #fcfdff;
+      }
+
+      .st3 {
+        fill: #8c8c8c;
+      }
+
+      .st4 {
+        fill: #070001;
+      }
+
+      .st1 {
+        filter: url(#drop-shadow-3);
+      }
+
+      .st2 {
+        filter: url(#drop-shadow-2);
+      }
+    </style>
+    <filter id="drop-shadow-2" x="146.76" y="521.51" width="28.32" height="28.56" filterUnits="userSpaceOnUse">
+      <feOffset dx="2.81" dy="2.81"/>
+      <feGaussianBlur result="blur" stdDeviation="4.68"/>
+      <feFlood flood-color="#7f7f80" flood-opacity=".75"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <filter id="drop-shadow-3" x="283.08" y="198.71" width="144.96" height="29.28" filterUnits="userSpaceOnUse">
+      <feOffset dx="2.81" dy="2.81"/>
+      <feGaussianBlur result="blur1" stdDeviation="4.68"/>
+      <feFlood flood-color="#7f7f80" flood-opacity=".75"/>
+      <feComposite in2="blur1" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect class="st3" x="0" y="0" width="647.12" height="840.99"/>
+  <g>
+    <path class="st2" d="M158.14,532.85h0c-.02.07-.04.12-.06.18.02-.06.03-.12.05-.18Z"/>
+    <path class="st0" d="M414.8,396.85l-5.06,2.04-.43.17-57.98,22.9,26.99,72.25c-7.94,3.95-15.47,8.22-21.54,13.48-15.81,13.72-17.73,10.86-44.02,41.51-25.27,29.47-40.48,45.38-58.52,54.98l-17.38-60.85c-2.91-10.17-11.66-17.58-22.16-18.79l-49.82-5.73-1.07-.13c8.71-16.69,23.52-31.05,39.47-42.53,22.37-16.11,69.17-52.59,83.54-73.85,9.66-14.3,7.47-59.38,7.47-59.38l-.89-132.92h117.76s-44.43.15-44.43.15l-72.2.24h-.12v.55h.12l116.63-.38c-.09,47.64-.11,152.51,1.46,174.1.38,5.33,1.13,9.1,2.18,12.19Z"/>
+    <path class="st1" d="M411.16,210.56l-116.63.38h-.11v-.55s.11,0,.11,0l72.2-.24,44.43-.14c.01.18.01.37,0,.55Z"/>
+    <path class="st4" d="M422.43,529.01c.13-.3.26-.27.38.01-.13,0-.25,0-.38-.01Z"/>
+    <path class="st4" d="M423.37,528.99c.11-.15.21-.29.32-.44.02.24.03.46-.32.44Z"/>
+  </g>
+</svg>

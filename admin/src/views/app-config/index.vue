@@ -2,8 +2,8 @@
   <div class="page-container">
     <div class="page-toolbar">
       <div>
-        <h2>小程序首页配置</h2>
-        <p class="sub">配置小程序首页的主题、功能区、案例展示，保存后约 1 分钟内自动生效</p>
+        <h2>小程序 / Web 首页配置</h2>
+        <p class="sub">管理通用配置项；首页主题与底部轮播请到「首页主题配置」，浏览页内容请到「浏览页配置」</p>
       </div>
       <a-button @click="fetchList">
         <template #icon><icon-refresh /></template>刷新
@@ -13,7 +13,7 @@
     <a-spin :loading="loading" style="width: 100%">
       <a-empty v-if="!loading && configs.length === 0" description="暂无配置，请先执行数据库迁移 003_app_config.sql" />
       <ConfigBlockCard
-        v-for="cfg in configs"
+        v-for="cfg in visibleConfigs"
         :key="cfg.config_key"
         :config="cfg"
         @saved="fetchList"
@@ -24,16 +24,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { listConfigs, updateConfigValue, type AppConfig } from '@/api/config'
 import ConfigBlockCard from './ConfigBlockCard.vue'
 
 const configs = ref<AppConfig[]>([])
 const loading = ref(false)
+const visibleConfigs = computed(() => configs.value.filter((c) => c.config_key !== 'home_themes' && c.config_key !== 'home_cases'))
 
-// 固定展示顺序：主题 → 功能区 → 案例；未在列表中的配置项排到最后
-const ORDER = ['home_themes', 'home_zones', 'home_cases']
+// 固定展示顺序：功能区 → 定制灵感 → 发现页配图 → 商品详情；未在列表中的配置项排到最后
+const ORDER = ['home_zones', 'upload_refs', 'feed_discover', 'product_detail']
 /** 取排序权重：已知 key 用其下标，未知 key 排末尾 */
 function orderRank(key: string): number {
   const i = ORDER.indexOf(key)

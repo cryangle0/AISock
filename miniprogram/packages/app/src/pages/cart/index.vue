@@ -3,13 +3,13 @@
     <NavBar brand title="购物车" variant="solid" />
     <scroll-view class="cart-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
       <view v-if="!userStore.isLogin" class="empty">
-        <text class="empty-icon">🛒</text>
+        <view class="empty-icon"><AppIcon name="bag" :size="72" color="#c8b89a" /></view>
         <text class="empty-text">登录后查看购物车与订单</text>
         <button class="empty-btn" @tap="goLogin">去登录</button>
       </view>
       <template v-else>
         <view v-if="orders.length === 0" class="empty">
-          <text class="empty-icon">🛒</text>
+          <view class="empty-icon"><AppIcon name="bag" :size="72" color="#c8b89a" /></view>
           <text class="empty-text">还没有订单，去设计一双吧</text>
           <button class="empty-btn" @tap="goEditor">开始设计</button>
         </view>
@@ -41,6 +41,7 @@ import { ORDER_STATUS_TEXT } from '@aisock/common/constants'
 import { switchTab, navigateTo, reLaunch } from '@aisock/common/utils'
 import type { Order } from '@aisock/common/types'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import NavBar from '@/components/ui/NavBar.vue'
 const userStore = useUserStore()
 const orders = ref<Order[]>([])

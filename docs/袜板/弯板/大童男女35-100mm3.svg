@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 647.12 840.99">
+  <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
+  <defs>
+    <style>
+      .st0, .st1 {
+        fill: #fcfdff;
+      }
+
+      .st2 {
+        fill: #8c8c8c;
+      }
+
+      .st1 {
+        filter: url(#drop-shadow-2);
+      }
+    </style>
+    <filter id="drop-shadow-2" x="185.75" y="339.13" width="262.8" height="229.2" filterUnits="userSpaceOnUse">
+      <feOffset dx="2.79" dy="2.79"/>
+      <feGaussianBlur result="blur" stdDeviation="4.65"/>
+      <feFlood flood-color="#7f7f80" flood-opacity=".75"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect class="st2" width="647.12" height="840.99"/>
+  <g>
+    <path class="st1" d="M383.09,370.43l26.78,71.67c-7.88,3.92-15.36,8.15-21.37,13.37-15.68,13.61-17.58,10.77-43.66,41.18-25.08,29.23-40.16,45.01-58.06,54.54l-17.25-60.36c-2.88-10.08-11.56-17.45-21.98-18.64l-49.42-5.68-1.07-.11c7.95-15.25,21.03-28.53,35.39-39.42,1.25-.95,2.5-1.87,3.76-2.79,6.38-4.6,14.77-10.87,23.83-17.97,0,0,.01,0,.02-.01,22.32-17.51,48.65-40.06,58.89-55.08.05-.07.09-.13.13-.2.09-.14.2-.29.28-.44,11.33,3.78,37.11,11.47,59.26,11.47,3.11,0,6.15-.16,9.06-.49,14.57-1.68,30.65-5.98,43.79-10.15l-48.4,19.11Z"/>
+    <path class="st0" d="M453.62,476.63c.13-.3.26-.26.38,0-.13,0-.25,0-.38,0Z"/>
+    <path class="st0" d="M454.54,476.61c.1-.14.21-.29.31-.43.02.23.02.46-.31.43Z"/>
+  </g>
+</svg>

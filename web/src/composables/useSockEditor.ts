@@ -41,6 +41,59 @@ export function useSockEditor() {
 
   const hasPrint = computed(() => !!printImage.value)
 
+  // ── 撤销 / 重做历史（快照式，记录离散操作：应用印花/花型、清除、重置、应用衍生）──
+  interface Snapshot {
+    sockTypeId: string
+    printImage: string | null
+    printName: string
+    params: SockParams
+    colors: SockColors
+    paletteId: string | null
+    paletteStrength: number
+  }
+  const history = ref<Snapshot[]>([])
+  const future = ref<Snapshot[]>([])
+  function snapshot(): Snapshot {
+    return {
+      sockTypeId: sockTypeId.value,
+      printImage: printImage.value,
+      printName: printName.value,
+      params: { ...params },
+      colors: { ...colors },
+      paletteId: paletteId.value,
+      paletteStrength: paletteStrength.value,
+    }
+  }
+  /** 变更前记录当前状态，供撤销；新操作清空重做栈 */
+  function commit() {
+    history.value.push(snapshot())
+    if (history.value.length > 50) history.value.shift()
+    future.value = []
+  }
+  function applySnapshot(s: Snapshot) {
+    sockTypeId.value = s.sockTypeId
+    printImage.value = s.printImage
+    printName.value = s.printName
+    Object.assign(params, s.params)
+    Object.assign(colors, s.colors)
+    paletteId.value = s.paletteId
+    paletteStrength.value = s.paletteStrength
+  }
+  function undo() {
+    const prev = history.value.pop()
+    if (!prev) return
+    future.value.push(snapshot())
+    applySnapshot(prev)
+  }
+  function redo() {
+    const next = future.value.pop()
+    if (!next) return
+    history.value.push(snapshot())
+    applySnapshot(next)
+  }
+  const canUndo = computed(() => history.value.length > 0)
+  const canRedo = computed(() => future.value.length > 0)
+
   // ── 色卡映射：异步算图 → mappedImage，派生 finalPrintImage ──
   const mappedImage = ref<{ key: string; url: string | null }>({ key: '', url: null })
   const mappingKey = computed(() => {
@@ -66,7 +119,8 @@ export function useSockEditor() {
   })
 
   // ── 应用印花：图片 URL / 内置花型 id（pattern:xxx 或裸 id）统一转图 ──
-  function applyImage(url: string, name = '') {
+  function applyImage(url: string, name = '', nextParams?: Partial<SockParams>) {
+    commit()
     if (url?.startsWith('pattern:')) {
       const pid = url.slice('pattern:'.length)
       printImage.value = patternToImageURL(pid, 480) || null
@@ -76,18 +130,22 @@ export function useSockEditor() {
       printImage.value = url || null
     }
     printName.value = name || ''
+    if (nextParams) Object.assign(params, nextParams)
   }
   function applyPattern(patternId: string, name = '') {
+    commit()
     printImage.value = patternToImageURL(patternId, 480) || null
     printName.value = name || ''
   }
 
   function clearPrint() {
+    commit()
     printImage.value = null
     printName.value = ''
     paletteId.value = null
   }
   function resetParams() {
+    commit()
     Object.assign(params, DEFAULT_PARAMS)
     Object.assign(colors, DEFAULT_COLORS)
     paletteId.value = null
@@ -102,6 +160,7 @@ export function useSockEditor() {
 
   /** 应用衍生 / 亲子设计：一次性回填整套设计 */
   function applyDesign(design: AppliedDesign) {
+    commit()
     if (design.printImage !== undefined) printImage.value = design.printImage
     if (design.printName !== undefined) printName.value = design.printName
     Object.assign(colors, DEFAULT_COLORS, design.colors || {})
@@ -126,6 +185,8 @@ export function useSockEditor() {
     if (snap.colors) Object.assign(colors, DEFAULT_COLORS, snap.colors)
     paletteId.value = snap.paletteId ?? null
     if (typeof snap.paletteStrength === 'number') paletteStrength.value = snap.paletteStrength
+    history.value = []
+    future.value = []
   }
 
   const composeName = () => (printName.value ? `${printName.value} 袜款` : '未命名袜版')
@@ -152,5 +213,10 @@ export function useSockEditor() {
     setParams,
     applyDesign,
     restoreSnapshot,
+    // 历史
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   }
 }

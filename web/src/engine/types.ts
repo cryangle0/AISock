@@ -9,6 +9,8 @@ export interface SockParams {
   rotation: number
   /** true=单张居中；false=平铺 */
   singleMode: boolean
+  /** true 时单图按 cover 铺满印花区（避免上下留白） */
+  coverMode?: boolean
   /** 开发态：显示蒙版 */
   debugMode?: boolean
 }
@@ -68,9 +70,10 @@ export const EMPTY_RESOURCES: SockResources = {
 
 export const DEFAULT_PARAMS: SockParams = {
   density: 100,
-  tileDensity: 3,
+  tileDensity: 4,
   rotation: 0,
-  singleMode: true,
+  singleMode: false,
+  coverMode: true,
   debugMode: false,
 }
 

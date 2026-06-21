@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `design` (
   `sock_model_id` BIGINT UNSIGNED DEFAULT NULL,
   `name`        VARCHAR(64)     NOT NULL,
   `regions`     JSON            DEFAULT NULL COMMENT '四区域花型/底色配置',
-  `cover_url`   VARCHAR(512)    DEFAULT NULL,
+  `cover_url`   MEDIUMTEXT      DEFAULT NULL COMMENT '封面：可存 dataURL 快照或图片 URL',
   `from_preset` TINYINT         NOT NULL DEFAULT 0,
   `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

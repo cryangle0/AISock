@@ -8,7 +8,7 @@
  *
  * 仅「体积较大的内容图」走 CDN；图标、缩略小图等仍留本地（保证核心 UI 在 CDN 未就绪时不受影响）。
  */
-export const CDN_BASE = 'https://cdn.onnsa.cn/aisock'
+export const CDN_BASE = 'https://onnsa.cn/aisock'
 
 /** 把本地静态路径映射为 CDN 完整地址 */
 export function cdnImg(localPath: string): string {

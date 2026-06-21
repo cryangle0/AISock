@@ -1,40 +1,63 @@
 <template>
   <div class="ai-tab">
-    <!-- 文生图 -->
-    <div class="ai-hint">
-      描述想要的花型，AI 先帮你优化意图再生成
-      <span v-if="quota.loaded" class="ai-quota">今日剩 {{ quota.remaining }} 次</span>
-    </div>
-    <textarea
-      v-model="prompt"
-      class="ai-textarea"
-      placeholder="如：春日樱花飘落，粉色为主，少量金色点缀"
-      :disabled="busy"
-    />
-    <button class="ai-submit" :disabled="!prompt.trim() || busy" @click="onGenerate">
-      {{ generating && mode === 'gen' ? '生成中…' : '✨ 生成花型' }}
-    </button>
-    <div class="ai-presets">
-      <button v-for="p in presets" :key="p" class="ai-preset" :disabled="busy" @click="prompt = p">{{ p }}</button>
+    <!-- 快速选择（单选） -->
+    <div class="qs-card">
+      <div class="qs-head"><span class="qs-title">快速选择</span><span class="qs-sub">（单选）</span></div>
+      <div class="qs-chips">
+        <button
+          v-for="s in STYLE_CHIPS"
+          :key="s"
+          :class="['qs-chip', { on: selected === s }]"
+          :disabled="busy"
+          @click="selectStyle(s)"
+        >{{ s }}</button>
+        <button class="qs-chip custom" :disabled="busy" @click="focusPrompt">
+          <AppIcon name="plus" :size="10" /> 自定义
+        </button>
+      </div>
     </div>
 
-    <!-- 指令改色 / 改背景（基于当前印花图）-->
-    <div v-if="currentImage" class="ai-recolor">
-      <div class="ai-recolor-head">
-        <span class="ai-recolor-title">🎨 指令改色 / 改背景</span>
-        <span class="ai-recolor-sub">基于当前印花图</span>
+    <!-- 上传参考图 + 描述 -->
+    <div class="up-card">
+      <div class="up-head">
+        <button class="up-row" :disabled="busy || refImages.length >= MAX_REF" @click="pickRef">
+          <span class="up-ico"><AppIcon name="plus" :size="16" color="var(--primary)" /></span>
+          <span class="up-label">上传参考图</span>
+          <span v-if="refImages.length" class="up-count">{{ refImages.length }}/{{ MAX_REF }}</span>
+        </button>
+        <span class="up-hint">最多 {{ MAX_REF }} 张，按顺序作为多图参考</span>
       </div>
-      <img :src="currentImage" alt="当前印花" class="ai-recolor-thumb" />
-      <input
-        v-model="recolorPrompt"
-        class="ai-recolor-input"
-        placeholder="如：背景换成米白色 / 整体偏冷色调"
+      <div v-if="refImages.length" class="ref-grid">
+        <div v-for="(img, i) in refImages" :key="`${i}-${img.slice(0, 24)}`" class="ref-item">
+          <img :src="img" :alt="`参考图 ${i + 1}`" />
+          <span class="ref-badge">{{ i + 1 }}</span>
+          <button type="button" class="ref-remove" :disabled="busy" aria-label="移除" @click="removeRef(i)">×</button>
+        </div>
+        <button
+          v-if="refImages.length < MAX_REF"
+          type="button"
+          class="ref-add"
+          :disabled="busy"
+          aria-label="继续添加"
+          @click="pickRef"
+        >
+          <AppIcon name="plus" :size="18" color="var(--primary)" />
+        </button>
+      </div>
+      <textarea
+        ref="promptEl"
+        v-model="prompt"
+        class="up-textarea"
+        placeholder="如：春日樱花飘落，粉色为主，少量金色点缀"
         :disabled="busy"
       />
-      <button class="ai-recolor-btn" :disabled="!recolorPrompt.trim() || busy" @click="onRecolor">
-        {{ generating && mode === 'recolor' ? '改色中…' : '套用指令改色' }}
-      </button>
+      <input ref="fileInput" type="file" accept="image/*" multiple hidden @change="onRefFiles" />
     </div>
+
+    <!-- 生成花型 -->
+    <button class="gen-btn" :disabled="busy || !hasInput" @click="onGenerate">
+      {{ generating ? '生成中…' : '生成花型' }}
+    </button>
 
     <!-- 意图分析确认 -->
     <BaseModal
@@ -61,48 +84,86 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
-import { AI_PRESETS } from '@/data/editor'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { useAiDesign } from '@/composables/useAiDesign'
 
-const props = defineProps<{
-  /** 当前画布印花图，用于「指令改色」的参考图；无则隐藏改色入口 */
+defineProps<{
+  /** 当前画布印花图（保留 prop 兼容上层调用，AI 生成以参考图/描述为准） */
   currentImage?: string | null
 }>()
 
 const emit = defineEmits<{
-  /** 生成 / 改色成功：url 结果图，prompt 描述 */
   generated: [url: string, prompt: string]
   toast: [msg: string]
 }>()
 
-const presets = AI_PRESETS
-const prompt = ref('')
-const recolorPrompt = ref('')
-const mode = ref<'gen' | 'recolor'>('gen')
+/** wan2.7-image-pro 官方多图参考上限 */
+const MAX_REF = 9
 
-const { quota, generating, refreshQuota, optimize, generate, recolor } = useAiDesign()
+/** 设计稿快速选择风格（单选） */
+const STYLE_CHIPS = ['春日樱花', '复古条纹', '蓝色清爽', '简约几何', '金色奢华', '薄荷清新']
+
+const selected = ref('')
+const prompt = ref('')
+const refImages = ref<string[]>([])
+const promptEl = ref<HTMLTextAreaElement | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const { generating, refreshQuota, optimize, generate, remix } = useAiDesign()
 refreshQuota()
 
 const busy = computed(() => generating.value || optimizeModal.value.open)
-const currentImage = computed(() => props.currentImage ?? null)
+const hasInput = computed(() => !!prompt.value.trim() || !!selected.value)
 
-// ── 意图分析确认弹窗（Promise 化，等待用户选择）──
-const optimizeModal = ref<{ open: boolean; original: string; optimized: string }>({
-  open: false,
-  original: '',
-  optimized: '',
-})
+function selectStyle(s: string) {
+  selected.value = selected.value === s ? '' : s
+}
+function focusPrompt() { nextTick(() => promptEl.value?.focus()) }
+function pickRef() {
+  if (refImages.value.length >= MAX_REF) {
+    emit('toast', `最多上传 ${MAX_REF} 张参考图`)
+    return
+  }
+  fileInput.value?.click()
+}
+function onRefFiles(e: Event) {
+  const input = e.target as HTMLInputElement
+  const files = [...(input.files || [])]
+  input.value = ''
+  if (!files.length) return
+  const room = MAX_REF - refImages.value.length
+  if (room <= 0) return
+  for (const f of files.slice(0, room)) {
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string
+      if (url && refImages.value.length < MAX_REF) refImages.value.push(url)
+    }
+    reader.readAsDataURL(f)
+  }
+}
+function removeRef(i: number) {
+  refImages.value.splice(i, 1)
+}
+
+/** 选中风格 + 自定义描述合成最终提示词 */
+function buildPrompt(): string {
+  const parts = selected.value ? [selected.value] : []
+  const custom = prompt.value.trim()
+  if (custom) parts.push(custom)
+  return parts.join('，')
+}
+
+// ── 意图分析确认弹窗 ──
+const optimizeModal = ref<{ open: boolean; original: string; optimized: string }>({ open: false, original: '', optimized: '' })
 let optimizeResolver: ((useOptimized: boolean) => void) | null = null
-
 function resolveOptimize(useOptimized: boolean) {
   optimizeModal.value.open = false
   optimizeResolver?.(useOptimized)
   optimizeResolver = null
 }
-
-/** 意图分析：优化提示词，若有变化则弹窗让用户确认，返回最终采用的提示词 */
 async function confirmPrompt(raw: string): Promise<string> {
   const optimized = await optimize(raw)
   if (!optimized || optimized === raw) return raw
@@ -113,189 +174,124 @@ async function confirmPrompt(raw: string): Promise<string> {
 }
 
 async function onGenerate() {
-  const raw = prompt.value.trim()
+  const raw = buildPrompt()
   if (!raw || busy.value) return
-  mode.value = 'gen'
   try {
-    const finalPrompt = await confirmPrompt(raw)
-    const url = await generate(finalPrompt)
-    if (url) emit('generated', url, raw)
-    else emit('toast', '生成失败，请重试')
-  } catch (e) {
-    emit('toast', (e as Error).message || '生成失败')
-  }
-}
-
-async function onRecolor() {
-  const ref0 = currentImage.value
-  const instruction = recolorPrompt.value.trim()
-  if (!ref0 || !instruction || busy.value) return
-  mode.value = 'recolor'
-  try {
-    const url = await recolor(ref0, instruction)
-    if (url) {
-      emit('generated', url, instruction)
-      recolorPrompt.value = ''
+    if (refImages.value.length) {
+      const url = await remix([...refImages.value], raw)
+      if (url) emit('generated', url, raw)
+      else emit('toast', '生成失败，请重试')
     } else {
-      emit('toast', '改色失败，请重试')
+      const finalPrompt = await confirmPrompt(raw)
+      const url = await generate(finalPrompt)
+      if (url) emit('generated', url, raw)
+      else emit('toast', '生成失败，请重试')
     }
   } catch (e) {
-    emit('toast', (e as Error).message || '改色失败')
+    emit('toast', (e as Error).message || '生成失败')
   }
 }
 </script>
 
 <style scoped>
-.ai-tab {
-  display: flex;
-  flex-direction: column;
+.ai-tab { display: flex; flex-direction: column; gap: 12px; }
+
+/* 快速选择卡 r16 #f5faf9 */
+.qs-card { background: var(--surface); border-radius: var(--r-card); padding: 16px; }
+.qs-head { display: flex; align-items: baseline; gap: 4px; margin-bottom: 12px; }
+.qs-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+.qs-sub { font-size: 12px; color: #999999; }
+.qs-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.qs-chip {
+  height: 30px; padding: 0 14px; border-radius: 9999px;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--text-strong);
+  background: var(--bg-card); border: 1px solid var(--border-strong);
+  transition: all 0.15s;
 }
-.ai-hint {
-  font-size: 12px;
-  color: var(--text-2);
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.qs-chip:hover { border-color: var(--primary); }
+.qs-chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+.qs-chip.custom { color: var(--text-2); }
+.qs-chip:disabled { opacity: 0.6; }
+
+/* 上传参考图 + 描述 r16 虚线卡 */
+.up-card {
+  border: 1.5px dashed var(--border-strong); border-radius: var(--r-card);
+  padding: 14px; display: flex; flex-direction: column; gap: 12px;
+  min-height: 300px;
+}
+.up-head { display: flex; flex-direction: column; gap: 6px; }
+.up-row { display: flex; align-items: center; gap: 12px; text-align: left; }
+.up-ico {
+  width: 40px; height: 40px; border-radius: var(--r-12);
+  background: var(--surface); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.up-label { font-size: 14px; font-weight: 500; color: var(--text-strong); }
+.up-count {
+  margin-left: auto; font-size: 11px; font-weight: 600; color: var(--primary);
+  background: rgba(46, 125, 90, 0.1); padding: 2px 8px; border-radius: 999px;
+}
+.up-hint { font-size: 11px; color: var(--text-3); padding-left: 52px; }
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
-.ai-quota {
-  font-size: 11px;
-  color: var(--primary);
-  background: var(--primary-soft);
-  padding: 2px 8px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-.ai-textarea {
-  width: 100%;
-  height: 90px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 12px;
-  resize: vertical;
-  font-family: inherit;
-}
-.ai-submit {
-  width: 100%;
-  height: 36px;
-  margin-top: 10px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.ai-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.ai-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-.ai-preset {
-  font-size: 11px;
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg-card);
-  color: var(--text-2);
-  cursor: pointer;
-}
-.ai-preset:disabled {
-  opacity: 0.5;
-}
-/* 指令改色 */
-.ai-recolor {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px dashed var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.ai-recolor-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-.ai-recolor-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-1);
-}
-.ai-recolor-sub {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.ai-recolor-thumb {
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
-  object-fit: cover;
+.ref-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--r-8);
+  overflow: hidden;
+  background: var(--surface);
   border: 1px solid var(--border);
 }
-.ai-recolor-input {
-  width: 100%;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 10px;
-  font-size: 12px;
+.ref-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ref-badge {
+  position: absolute; left: 6px; top: 6px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: rgba(0,0,0,0.55); color: #fff;
+  font-size: 10px; font-weight: 600; line-height: 18px; text-align: center;
 }
-.ai-recolor-btn {
-  height: 34px;
-  border: 1px solid var(--primary);
-  background: var(--bg-card);
-  color: var(--primary);
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+.ref-remove {
+  position: absolute; right: 4px; top: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.55); color: #fff; font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
 }
-.ai-recolor-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.ref-item:hover .ref-remove { opacity: 1; }
+.ref-add {
+  aspect-ratio: 1;
+  border-radius: var(--r-8);
+  border: 1.5px dashed var(--border-strong);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
 }
+.ref-add:hover { border-color: var(--primary); background: #fff; }
+
+.up-textarea {
+  flex: 1; min-height: 80px; border: none; background: transparent; resize: none;
+  font-size: 12px; line-height: 1.6; color: var(--text); font-family: inherit;
+}
+.up-textarea::placeholder { color: #c9c9c9; }
+
+/* 生成花型 r16 绿 */
+.gen-btn {
+  height: 47px; border-radius: var(--r-card);
+  background: var(--primary); color: #fff; font-size: 12px; font-weight: 500;
+  transition: background 0.16s;
+}
+.gen-btn:hover { background: var(--primary-hover); }
+.gen-btn:disabled { opacity: 0.5; }
+
 /* 意图分析弹窗 */
-.opt-block + .opt-block {
-  margin-top: 12px;
-}
-.opt-label {
-  font-size: 11px;
-  color: var(--text-3);
-  margin-bottom: 4px;
-}
-.opt-text {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-1);
-}
-.opt-text.muted {
-  color: var(--text-2);
-}
-.opt-btn {
-  flex: 1;
-  height: 38px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.opt-btn.ghost {
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-2);
-}
-.opt-btn.primary {
-  border: none;
-  background: var(--primary);
-  color: #fff;
-}
+.opt-block + .opt-block { margin-top: 12px; }
+.opt-label { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+.opt-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+.opt-text.muted { color: var(--text-2); }
+.opt-btn { flex: 1; height: 38px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.opt-btn.ghost { border: 1px solid var(--border); background: #fff; color: var(--text-2); }
+.opt-btn.primary { background: var(--primary); color: #fff; }
 </style>

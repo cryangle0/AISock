@@ -14,7 +14,7 @@
     </view>
 
     <view v-if="list.length === 0" class="empty">
-      <text class="empty-icon">📦</text>
+      <view class="empty-icon"><AppIcon name="bag" :size="72" color="#c8b89a" /></view>
       <text class="empty-text">暂无订单</text>
     </view>
     <view v-else class="list">
@@ -52,6 +52,7 @@ import { ORDER_STATUS_TEXT } from '@aisock/common/constants'
 import type { Order } from '@aisock/common/types'
 import { payOrderById, pollOrderPaid } from '@/composables/usePayment'
 import NavBar from '@/components/ui/NavBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const statusTabs = [
   { key: '', label: '全部' },
@@ -150,13 +151,16 @@ function goDetail(id: number) {
 }
 .tabs {
   display: flex;
-  gap: 16rpx;
+  gap: 10rpx;
   margin-bottom: 24rpx;
 }
 .tab {
-  padding: 12rpx 28rpx;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  padding: 14rpx 0;
   border-radius: 999rpx;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: $mp-text-secondary;
   background: $mp-bg-card;
   border: 1rpx solid $mp-border;

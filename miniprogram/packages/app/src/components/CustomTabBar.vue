@@ -32,7 +32,7 @@
     <!-- 中间浮起 AI 设计入口（吉祥物头像） -->
     <view :class="['fab', { active: current === 'editor' }]" @tap="onTap(editorTab)">
       <view class="fab-ring">
-        <image class="fab-avatar" src="/static/images/mascot.webp" mode="aspectFill" />
+        <image class="fab-avatar" src="/static/images/ai-avatar.png" mode="aspectFill" />
       </view>
     </view>
 
@@ -134,10 +134,10 @@ function onTap(item: Tab) {
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
-  background: $mp-header-gradient;
-  padding: 5rpx;
+  background: transparent;
+  padding: 0;
   box-sizing: border-box;
-  box-shadow: 0 10rpx 24rpx rgba(142, 79, 67, 0.45), 0 0 0 7rpx #fff;
+  box-shadow: 0 10rpx 24rpx rgba(142, 79, 67, 0.45);
   transition: transform 0.2s ease;
 }
 .fab.active .fab-ring {

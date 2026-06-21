@@ -6,8 +6,18 @@ export interface Pattern {
   name: string
   image_url: string
   thumb_url: string | null
+  display_config: PatternDisplayConfig | null
   source: string
   status: number
+}
+
+export interface PatternDisplayConfig {
+  feedTitle?: string
+  feedCover?: string
+  detailTitle?: string
+  detailDescription?: string
+  detailSlides?: string[]
+  detailGallery?: string[]
 }
 
 export interface PatternCategory {
@@ -41,15 +51,21 @@ export function deleteCategory(id: number) {
   return axios.delete(`/api/v1/admin/patterns/categories/${id}`)
 }
 
-export function listPatterns(params: { pageNum?: number; pageSize?: number; categoryId?: number; keyword?: string }) {
-  return axios.get<PageResult<Pattern>>('/api/v1/admin/patterns', { params })
+export function listPatterns(params: { pageNum?: number; pageSize?: number; categoryId?: number; keyword?: string; themeIds?: number[] }) {
+  const { themeIds, ...rest } = params
+  return axios.get<PageResult<Pattern>>('/api/v1/admin/patterns', {
+    params: {
+      ...rest,
+      ...(themeIds?.length ? { themeIds: themeIds.join(',') } : {}),
+    },
+  })
 }
 
-export function createPattern(data: { name: string; imageUrl: string; thumbUrl?: string; categoryId?: number }) {
+export function createPattern(data: { name: string; imageUrl: string; thumbUrl?: string; categoryId?: number; displayConfig?: PatternDisplayConfig | null }) {
   return axios.post<{ id: number }>('/api/v1/admin/patterns', data)
 }
 
-export function updatePattern(id: number, data: { name?: string; imageUrl?: string; thumbUrl?: string; categoryId?: number | null }) {
+export function updatePattern(id: number, data: { name?: string; imageUrl?: string; thumbUrl?: string; categoryId?: number | null; displayConfig?: PatternDisplayConfig | null }) {
   return axios.put(`/api/v1/admin/patterns/${id}`, data)
 }
 

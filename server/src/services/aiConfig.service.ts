@@ -9,10 +9,26 @@ import { getPublicValue, upsertConfig } from './config.service.js'
 
 export type AiPlatform = 'miniprogram' | 'web' | 'default'
 
+/** 图像服务提供方 */
+export type AiProvider = 'dashscope' | 'kie' | 'generic' | 'openai' | 'nanobanana' | 'doubao'
+
+/**
+ * 各提供方默认接口基址（后台「接口基址」留空时用）。
+ * 模型名一律不写死，由后台填写 / 「拉取模型」动态获取，确保始终能用各家最新模型。
+ */
+export const PROVIDER_DEFAULT_BASE: Record<AiProvider, string> = {
+  openai: 'https://api.openai.com/v1',
+  nanobanana: 'https://generativelanguage.googleapis.com/v1beta',
+  doubao: 'https://ark.cn-beijing.volces.com/api/v3',
+  dashscope: 'https://dashscope.aliyuncs.com',
+  kie: 'https://api.kie.ai',
+  generic: '',
+}
+
 /** 单平台的 AI 生成参数 */
 export interface AiPlatformConfig {
-  /** 图像服务提供方：dashscope=阿里万相 / kie=KIE nano-banana / generic=通用接口 */
-  provider: 'dashscope' | 'kie' | 'generic'
+  /** 图像服务提供方：dashscope=阿里万相 / kie=KIE / openai / nanobanana=Gemini / doubao=火山方舟 / generic=通用接口 */
+  provider: AiProvider
   /** 文生图模型（如 万相 wan2.7-t2i-preview） */
   text2imgModel: string
   /** 图生图 / 图像编辑模型（如 万相 wan2.7-image-edit） */
@@ -40,11 +56,12 @@ export interface AiGenerationConfig {
 
 export const AI_CONFIG_KEY = 'ai_generation'
 
-/** 内置默认：千问/万相最新（模型名后台可改，端点固定不易出错） */
+/** 内置默认：通义万相 wan2.7 统一图像模型（已对线上 DashScope 账号实测可用；后台可改）。
+ *  wan2.7-image-pro 统一文生图/图像编辑，走 multimodal-generation 同步接口。 */
 export const BUILTIN_DEFAULT: AiPlatformConfig = {
   provider: 'dashscope',
-  text2imgModel: 'wan2.7-t2i-preview',
-  img2imgModel: 'wan2.7-image-edit',
+  text2imgModel: 'wan2.7-image-pro',
+  img2imgModel: 'wan2.7-image-pro',
   textModel: 'qwen3.7-max',
   asrModel: 'qwen3-asr-flash',
   promptTemplate: '袜款印花图案，{prompt}，平铺无缝，高清细节，flat lay',
@@ -102,6 +119,32 @@ export function renderPrompt(template: string, userPrompt: string): string {
   const p = userPrompt || '装饰纹样'
   if (template.includes('{prompt}')) return template.replace(/\{prompt\}/g, p)
   return `${template}，${p}`
+}
+
+/**
+ * 文本/对话端点解析（OpenAI 兼容 chat/completions）。
+ * 后台配置了 openai / doubao / dashscope / nanobanana 且填了密钥 + 文本模型时返回端点，
+ * 否则返回 null，调用方回退到原有环境变量逻辑（DeepSeek / DashScope），不破坏现网。
+ * 返回的 apiUrl 为基址，调用方自行拼接 `/chat/completions`。
+ * 这些新模型多为多模态，可在 messages 里附带图片（OpenAI 兼容的 image_url 格式）。
+ */
+export function resolveTextTarget(cfg: AiPlatformConfig | null): { apiUrl: string; apiKey: string; model: string } | null {
+  if (!cfg || !cfg.apiKey || !cfg.textModel) return null
+  const key = cfg.apiKey
+  const model = cfg.textModel
+  const base = (cfg.apiBaseUrl || PROVIDER_DEFAULT_BASE[cfg.provider] || '').replace(/\/$/, '')
+  switch (cfg.provider) {
+    case 'openai':
+    case 'doubao':
+      return base ? { apiUrl: base, apiKey: key, model } : null
+    case 'nanobanana':
+      // Google Gemini 的 OpenAI 兼容端点
+      return { apiUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', apiKey: key, model }
+    case 'dashscope':
+      return { apiUrl: `${base}/compatible-mode/v1`, apiKey: key, model }
+    default:
+      return null
+  }
 }
 
 /** 规范化：保证 default 各字段齐全（空串不覆盖内置默认），去除平台覆盖里的空字符串。

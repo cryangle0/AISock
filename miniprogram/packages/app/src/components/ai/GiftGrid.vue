@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-export interface GiftItem { id: string; title: string; desc: string; bg: string; img?: string }
+export interface GiftItem { id: string; tagId: number; title: string; desc: string; bg: string; img?: string }
 
 defineProps<{ items: GiftItem[]; active?: string }>()
 defineEmits<{ select: [g: GiftItem] }>()
@@ -46,9 +46,9 @@ defineEmits<{ select: [g: GiftItem] }>()
   border-color: $mp-primary;
 }
 .gift-ico {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: $mp-radius-xs;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $mp-radius-md;
   flex-shrink: 0;
   overflow: hidden;
 }

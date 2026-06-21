@@ -1,35 +1,29 @@
 <template>
   <view class="chat-input">
-    <!-- 分类快捷 chips -->
-    <scroll-view scroll-x class="cat-row" :show-scrollbar="false">
-      <view v-for="c in cats" :key="c.id" class="cat" @tap="$emit('cat', c)">
-        <AppIcon :name="c.icon" :size="28" color="#222222" />
-        <text class="cat-text">{{ c.name }}</text>
-      </view>
-    </scroll-view>
-
-    <!-- 输入栏 -->
-    <view class="bar">
-      <view
-        class="bar-voice"
-        :class="{ rec: recording }"
-        @touchstart="start"
-        @touchmove="move"
-        @touchend="stop"
-        @touchcancel="cancel"
-      >
-        <AppIcon name="voice" :size="36" :color="recording ? '#8e4f43' : '#8a8378'" />
-      </view>
-      <input
-        v-model="text"
-        class="bar-input"
-        :placeholder="recording ? '松开识别…' : '描述想要的花型，发给推荐官'"
-        placeholder-class="bar-ph"
-        confirm-type="send"
-        @confirm="onSend"
-      />
-      <view class="bar-send" @tap="onSend">
-        <AppIcon name="send" :size="34" color="#ffffff" />
+    <!-- 输入栏白色面板：与底部 tabBar 同底色，和 tabBar 连成一片 -->
+    <view class="input-panel">
+      <view class="bar">
+        <view
+          class="bar-voice"
+          :class="{ rec: recording }"
+          @touchstart="start"
+          @touchmove="move"
+          @touchend="stop"
+          @touchcancel="cancel"
+        >
+          <AppIcon name="voice" :size="36" :color="recording ? '#8e4f43' : '#8a8378'" />
+        </view>
+        <input
+          v-model="text"
+          class="bar-input"
+          :placeholder="recording ? '松开识别…' : '描述想要的花型，发给推荐官'"
+          placeholder-class="bar-ph"
+          confirm-type="send"
+          @confirm="onSend"
+        />
+        <view class="bar-send" @tap="onSend">
+          <AppIcon name="send" :size="34" color="#ffffff" />
+        </view>
       </view>
     </view>
 
@@ -44,9 +38,8 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 import VoiceRecordOverlay from '@/components/ai/VoiceRecordOverlay.vue'
 import { useVoiceInput } from '@aisock/composition'
 
-export interface Cat { id: string; name: string; icon: string }
-const props = defineProps<{ cats: Cat[]; disabled?: boolean }>()
-const emit = defineEmits<{ send: [text: string]; cat: [c: Cat] }>()
+const props = defineProps<{ disabled?: boolean }>()
+const emit = defineEmits<{ send: [text: string] }>()
 
 const text = ref('')
 // 按住说话 → 识别文本追加进输入框，用户可二次编辑后发送
@@ -70,26 +63,12 @@ function onSend() {
 @import '@aisock/common/styles/variables.scss';
 
 .chat-input {
-  background: rgba(255, 255, 255, 0.96);
-  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
-  box-shadow: 0 -2rpx 20rpx rgba(94, 60, 30, 0.06);
+  position: relative;
 }
-.cat-row {
-  white-space: nowrap;
-  margin-bottom: 14rpx;
-}
-.cat {
-  display: inline-flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 10rpx 22rpx;
-  margin-right: 14rpx;
-  background: $mp-bg-tint;
-  border-radius: $mp-radius-sm;
-}
-.cat-text {
-  font-size: 24rpx;
-  color: $mp-text-strong;
+.input-panel {
+  background: #fff;
+  box-shadow: 0 -2rpx 24rpx rgba(94, 60, 30, 0.06);
+  padding: 14rpx 24rpx 16rpx;
 }
 .bar {
   display: flex;

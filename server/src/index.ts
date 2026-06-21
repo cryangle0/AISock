@@ -18,6 +18,7 @@ import { userRouter } from './routes/app/user.js'
 import { homeRouter } from './routes/app/home.js'
 import { socksRouter } from './routes/app/socks.js'
 import { patternsRouter } from './routes/app/patterns.js'
+import { tagsRouter } from './routes/app/tags.js'
 import { designsRouter } from './routes/app/designs.js'
 import { ordersRouter } from './routes/app/orders.js'
 import { aiRouter } from './routes/app/ai.js'
@@ -28,11 +29,13 @@ import { shipmentRouter } from './routes/app/shipment.js'
 import { appConfigRouter } from './routes/app/config.js'
 import { siteConfigRouter } from './routes/app/site-config.js'
 import { qrLoginRouter } from './routes/app/qr-login.js'
+import { mediaRouter } from './routes/app/media.js'
 
 // Admin 路由
 import { adminAuthRouter } from './routes/admin/auth.js'
 import { adminSocksRouter } from './routes/admin/socks.js'
 import { adminPatternsRouter } from './routes/admin/patterns.js'
+import { adminTagsRouter } from './routes/admin/tags.js'
 import { adminOrdersRouter } from './routes/admin/orders.js'
 import { adminUsersRouter } from './routes/admin/users.js'
 import { adminBannersRouter } from './routes/admin/banners.js'
@@ -43,6 +46,7 @@ import { adminAiTasksRouter } from './routes/admin/ai-tasks.js'
 import { adminConfigRouter } from './routes/admin/config.js'
 import { adminAiConfigRouter } from './routes/admin/ai-config.js'
 import { adminSiteConfigRouter } from './routes/admin/site-config.js'
+import { adminUploadRouter } from './routes/admin/upload.js'
 
 const app = new Hono()
 
@@ -79,6 +83,7 @@ app.route('/api/v1/app/user', userRouter)
 app.route('/api/v1/app/home', homeRouter)
 app.route('/api/v1/app/socks', socksRouter)
 app.route('/api/v1/app/patterns', patternsRouter)
+app.route('/api/v1/app/tags', tagsRouter)
 app.route('/api/v1/app/designs', designsRouter)
 app.route('/api/v1/app/orders', ordersRouter)
 app.route('/api/v1/app/ai', aiRouter)
@@ -89,11 +94,13 @@ app.route('/api/v1/app/config', appConfigRouter)
 app.route('/api/v1/app/site-config', siteConfigRouter)
 app.route('/api/v1/app/qr-login', qrLoginRouter)
 app.route('/api/v1/app/shipment', shipmentRouter)
+app.route('/api/v1/app', mediaRouter)
 
 // === Admin 路由 ===
 app.route('/api/v1/admin/auth', adminAuthRouter)
 app.route('/api/v1/admin/socks', adminSocksRouter)
 app.route('/api/v1/admin/patterns', adminPatternsRouter)
+app.route('/api/v1/admin/tags', adminTagsRouter)
 app.route('/api/v1/admin/orders', adminOrdersRouter)
 app.route('/api/v1/admin/users', adminUsersRouter)
 app.route('/api/v1/admin/banners', adminBannersRouter)
@@ -104,6 +111,7 @@ app.route('/api/v1/admin/ai-tasks', adminAiTasksRouter)
 app.route('/api/v1/admin/ai-config', adminAiConfigRouter)
 app.route('/api/v1/admin/site-config', adminSiteConfigRouter)
 app.route('/api/v1/admin/config', adminConfigRouter)
+app.route('/api/v1/admin/upload', adminUploadRouter)
 
 // 健康检查
 app.get('/api/health', async (c) => {

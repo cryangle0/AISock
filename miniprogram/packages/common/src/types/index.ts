@@ -28,10 +28,15 @@ export interface SockModel {
   id: number
   code: string
   name: string
+  family: string | null
   svg_url: string | null
+  thumb_url: string | null
+  geometry_json: string | null
   craft: string | null
   min_order: number
   unit_price: number
+  phys_width_mm: number | null
+  phys_height_mm: number | null
 }
 
 export interface Pattern {
@@ -40,6 +45,16 @@ export interface Pattern {
   image_url: string
   thumb_url: string | null
   category_id: number | null
+  display_config?: PatternDisplayConfig | null
+}
+
+export interface PatternDisplayConfig {
+  feedTitle?: string
+  feedCover?: string
+  detailTitle?: string
+  detailDescription?: string
+  detailSlides?: string[]
+  detailGallery?: string[]
 }
 
 export interface PatternCategory {
@@ -73,6 +88,8 @@ export interface AiTask {
   id: number
   type: string
   prompt: string | null
+  ref_image?: string | null
+  ref_images?: string[]
   result_urls: string[] | null
   status: string
   /** status === 'failed' 时的失败原因（服务端落库，HTTP 仍为 200） */

@@ -1,20 +1,28 @@
 <template>
   <div class="page-container">
     <div class="page-toolbar">
-      <h2>袜型管理</h2>
+      <h2>袜版管理</h2>
       <a-space>
         <a-input-search v-model="keyword" placeholder="搜索编码 / 名称 / 工艺" :style="{ width: '240px' }" allow-clear @input="onSearch" />
         <a-button type="primary" @click="openCreate">
           <template #icon><icon-plus /></template>
-          新增袜型
+          新增袜版
         </a-button>
       </a-space>
     </div>
 
-    <a-table :data="pagedList" :loading="loading" :pagination="false" row-key="id">
+    <a-table :data="pagedList" :loading="loading" :pagination="false" row-key="id" :scroll="{ x: 1100 }">
       <template #columns>
         <a-table-column title="编码" data-index="code" :width="120" />
         <a-table-column title="名称" data-index="name" :width="120" />
+        <a-table-column title="缩略图" :width="96">
+          <template #cell="{ record }">
+            <div class="sock-thumb-cell">
+              <img v-if="record.thumb_url" :src="record.thumb_url" :alt="record.name" />
+              <span v-else>-</span>
+            </div>
+          </template>
+        </a-table-column>
         <a-table-column title="工艺" data-index="craft" :width="100" />
         <a-table-column title="起订量" data-index="min_order" :width="90" />
         <a-table-column title="单价(元)" data-index="unit_price" :width="100" />
@@ -31,7 +39,7 @@
           <template #cell="{ record }">
             <a-space>
               <a-button type="text" size="small" @click="openEdit(record)">编辑</a-button>
-              <a-popconfirm content="确定删除该袜型？" @ok="onDelete(record.id)">
+              <a-popconfirm content="确定删除该袜版？" @ok="onDelete(record.id)">
                 <a-button type="text" status="danger" size="small">删除</a-button>
               </a-popconfirm>
             </a-space>
@@ -55,7 +63,7 @@
 
     <a-modal
       v-model:visible="modalVisible"
-      :title="editing ? '编辑袜型' : '新增袜型'"
+      :title="editing ? '编辑袜版' : '新增袜版'"
       :on-before-ok="onSubmit"
       @cancel="modalVisible = false"
     >
@@ -81,7 +89,7 @@
           <a-col :span="12"><a-form-item label="排序"><a-input-number v-model="form.sort" :min="0" /></a-form-item></a-col>
         </a-row>
         <a-divider :margin="8" orientation="left">渲染资源（编辑器用，可留空走默认几何）</a-divider>
-        <a-form-item label="袜型 SVG URL"><a-input v-model="form.svg_url" placeholder="矢量袜形，可选" /></a-form-item>
+        <a-form-item label="袜版 SVG URL"><a-input v-model="form.svg_url" placeholder="矢量袜形，可选" /></a-form-item>
         <a-form-item label="蒙版 Mask URL"><a-input v-model="form.mask_url" placeholder="分区蒙版图，可选" /></a-form-item>
         <a-form-item label="线稿 Lineart URL"><a-input v-model="form.lineart_url" placeholder="线稿叠加图，可选" /></a-form-item>
         <a-form-item label="状态">
@@ -208,3 +216,25 @@ async function onDelete(id: number) {
 // keep-alive 下首次激活与每次切回页面都会触发，保证数据不陈旧且首屏只拉一次
 onActivated(fetchList)
 </script>
+
+<style scoped>
+.sock-thumb-cell {
+  width: 56px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--color-text-4);
+  background: var(--color-fill-1);
+  border: 1px solid var(--color-border-2);
+  border-radius: 6px;
+}
+
+.sock-thumb-cell img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+</style>

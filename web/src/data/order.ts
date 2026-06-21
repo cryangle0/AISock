@@ -2,6 +2,9 @@
  * 下单 / 支付相关静态数据：材质、工艺、尺码、单价、加价、支付方式。
  * 与小程序保持一致，便于两端报价口径统一。
  */
+import wechatIcon from '@/assets/pay/wechat.webp'
+import alipayIcon from '@/assets/pay/alipay.webp'
+import corporateIcon from '@/assets/pay/corporate.webp'
 
 export interface OptionItem {
   value: string
@@ -40,12 +43,13 @@ export interface PayMethod {
   label: string
   tip: string
   accent: string
+  icon: string
 }
 
 export const PAY_METHODS: PayMethod[] = [
-  { value: 'wechat', label: '微信支付', tip: '推荐 · 即时到账', accent: '#1aad19' },
-  { value: 'alipay', label: '支付宝', tip: '安全便捷', accent: '#1677ff' },
-  { value: 'corporate', label: '对公转账', tip: '大额订单适用', accent: '#946d60' },
+  { value: 'wechat', label: '微信支付', tip: '推荐 · 即时到账', accent: '#1aad19', icon: wechatIcon },
+  { value: 'alipay', label: '支付宝', tip: '安全便捷', accent: '#1677ff', icon: alipayIcon },
+  { value: 'corporate', label: '对公转账', tip: '大额订单适用', accent: '#946d60', icon: corporateIcon },
 ]
 
 export const DEFAULT_SIZES: Record<string, number> = { S: 0, M: 50, L: 30, XL: 0 }

@@ -6,8 +6,9 @@ import { ok, fail } from '../../utils/response.js'
 import { requireRole } from '../../middleware/auth.js'
 import {
   getAiConfig, saveAiConfig, BUILTIN_DEFAULT,
-  type AiGenerationConfig,
+  type AiGenerationConfig, type AiPlatformConfig, type AiProvider,
 } from '../../services/aiConfig.service.js'
+import { listProviderModels, testProvider } from '../../services/ai.service.js'
 
 export const adminAiConfigRouter = new Hono()
 
@@ -28,4 +29,24 @@ adminAiConfigRouter.put('/', async (c) => {
   }
   await saveAiConfig(body)
   return ok(c, { saved: true })
+})
+
+/** 拉取某 provider 账号下可用的图像模型列表（填了 key 后动态获取，永远跟最新，不写死） */
+adminAiConfigRouter.post('/models', async (c) => {
+  const { provider, apiKey, apiBaseUrl } = await c.req.json<{ provider?: AiProvider; apiKey?: string; apiBaseUrl?: string }>()
+  if (!provider) return fail(c, '缺少 provider')
+  const models = await listProviderModels(provider, apiKey, apiBaseUrl)
+  return ok(c, { models })
+})
+
+/** 测试：用给定配置真实出一张测试图，返回结果图地址或真实错误信息（不消耗用户配额） */
+adminAiConfigRouter.post('/test', async (c) => {
+  const body = await c.req.json<Partial<AiPlatformConfig>>()
+  const cfg: AiPlatformConfig = {
+    ...BUILTIN_DEFAULT,
+    ...body,
+    provider: (body.provider as AiProvider) || BUILTIN_DEFAULT.provider,
+  }
+  const result = await testProvider(cfg)
+  return ok(c, result)
 })

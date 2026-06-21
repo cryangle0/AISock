@@ -10,10 +10,10 @@
 
     <!-- 中央品牌 -->
     <view class="brand">
-      <!-- 光环底衬 + 小程序 Logo -->
-      <view class="seal">
-        <view class="halo" />
-        <image class="logo-img" src="/static/logo.webp" mode="aspectFit" />
+      <!-- 全身 AI 形象（与登录页一致） -->
+      <view class="char-wrap">
+        <view class="char-halo" />
+        <image class="char" src="/static/images/ai-full.png" mode="aspectFit" />
       </view>
 
       <text class="name">爱花型</text>
@@ -131,39 +131,32 @@ function moteStyle(n: number) {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 印玺光环 + Logo */
-.seal {
+/* 全身 AI 形象 + 脚下投影光晕 */
+.char-wrap {
   position: relative;
-  width: 240rpx;
-  height: 240rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 36rpx;
+  margin-bottom: 18rpx;
 }
-.halo {
+.char-halo {
   position: absolute;
-  inset: 0;
+  bottom: 24rpx;
+  width: 380rpx;
+  height: 110rpx;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 245, 224, 0.5) 0%, rgba(255, 245, 224, 0.08) 55%, transparent 72%);
-  /* 仅 opacity 轻微呼吸（无缩放），柔和不抖 */
-  animation: halo-breathe 3.4s ease-in-out infinite;
+  background: radial-gradient(ellipse, rgba(86, 44, 30, 0.32) 0%, rgba(86, 44, 30, 0) 70%);
 }
-@keyframes halo-breathe {
-  0%, 100% { opacity: 0.75; }
-  50% { opacity: 1; }
-}
-.logo-img {
+.char {
   position: relative;
   z-index: 1;
-  width: 150rpx;
-  height: 150rpx;
-  border-radius: 36rpx;
-  box-shadow: 0 8rpx 28rpx rgba(86, 44, 30, 0.34);
+  width: 480rpx;
+  height: 600rpx;
+  filter: drop-shadow(0 16rpx 30rpx rgba(86, 44, 30, 0.38));
 }
 
 .name {
-  font-size: 76rpx;
+  font-size: 64rpx;
   font-weight: 700;
   color: #fff8ee;
   font-family: $mp-font-art;

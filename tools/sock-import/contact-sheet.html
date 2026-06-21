@@ -1,0 +1,54 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>袜版几何校验</title>
+<style>
+  body{margin:0;background:#f5faf9;font:12px/1.4 -apple-system,"Microsoft YaHei",sans-serif}
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px}
+  .cell{background:#fff;border-radius:8px;padding:6px;text-align:center;box-shadow:0 1px 3px #0001}
+  canvas{width:100%;height:auto;display:block;background:
+    linear-gradient(45deg,#eee 25%,transparent 25%),linear-gradient(-45deg,#eee 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#eee 75%),linear-gradient(-45deg,transparent 75%,#eee 75%);
+    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;border-radius:6px}
+  .lbl{margin-top:4px;font-weight:600;color:#292524}
+  .cnt{color:#a8a29e;font-size:11px}
+  .legend{padding:10px 16px;font-weight:600}
+  .legend span{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin:0 3px 0 12px}
+</style>
+<div class="legend">
+  分区校验：<span style="background:#00a46e"></span>袜身(body)
+  <span style="background:#ffab35"></span>螺口(welt)
+  <span style="background:#dd6e9e"></span>脚部(foot 跟/头)
+</div>
+<div class="grid" id="grid"></div>
+<script src="out/geometry.js"></script>
+<script>
+const COL = { body:'#00a46e', welt:'#ffab35', foot:'#dd6e9e' }
+const grid = document.getElementById('grid')
+const SCALE = 2 // 渲染分辨率倍数
+
+function fillPaths(ctx, paths, color){
+  ctx.fillStyle = color
+  for(const d of paths){ try{ ctx.fill(new Path2D(d)) }catch(e){} }
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(43,31,20,0.25)'
+  for(const d of paths){ try{ ctx.stroke(new Path2D(d)) }catch(e){} }
+}
+
+for(const s of window.SOCKS){
+  const [vw,vh] = s.viewBox
+  const cell = document.createElement('div'); cell.className='cell'
+  const cv = document.createElement('canvas')
+  const W = 240, H = Math.round(W*vh/vw)
+  cv.width = W*SCALE; cv.height = H*SCALE
+  const ctx = cv.getContext('2d')
+  ctx.scale(W*SCALE/vw, H*SCALE/vh) // viewBox 坐标直接绘制
+  fillPaths(ctx, s.geometry.body, COL.body)
+  fillPaths(ctx, s.geometry.welt, COL.welt)
+  fillPaths(ctx, s.geometry.foot, COL.foot)
+  cell.appendChild(cv)
+  const lbl = document.createElement('div'); lbl.className='lbl'; lbl.textContent = s.code
+  const cnt = document.createElement('div'); cnt.className='cnt'
+  cnt.textContent = `${s.name}  · b${s.geometry.body.length}/w${s.geometry.welt.length}/f${s.geometry.foot.length}`
+  cell.appendChild(lbl); cell.appendChild(cnt)
+  grid.appendChild(cell)
+}
+</script>

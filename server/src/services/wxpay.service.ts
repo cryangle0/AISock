@@ -8,9 +8,10 @@
  *   WXPAY_PRIVATE_KEY_PATH=/root/work/aisock/server/certs/apiclient_key.pem
  *   WX_SECRET=<小程序密钥>
  */
-import { execute, queryOne, transaction } from '../db.js'
+import { execute, queryOne } from '../db.js'
 import { canRealPay, buildJsapiPayParams } from './wxpay/signer.js'
-import { jsapiPrepay } from './wxpay/client.js'
+import { jsapiPrepay, nativePrepay } from './wxpay/client.js'
+import { upsertPendingPayment, setPrepayId, markPaid } from './payment.repo.js'
 
 export interface JsApiParams {
   timeStamp: string
@@ -97,6 +98,52 @@ export async function createPrepay(
   return { prepayId, outTradeNo, jsApi, real }
 }
 
+export interface NativePrepayResult {
+  /** 微信 Native 二维码链接（前端渲染二维码）；mock 模式为空串 */
+  codeUrl: string
+  outTradeNo: string
+  /** true=真实微信 Native 下单；false=演示 mock */
+  real: boolean
+}
+
+/** web Native（扫码）appid：默认复用公众号/网站应用 appid，回落到小程序 appid */
+function nativeAppid(): string {
+  return process.env.WXPAY_NATIVE_APPID || process.env.WX_APPID || ''
+}
+
+/**
+ * 创建微信 Native（扫码）预支付单 —— 供 web/PC 端使用。
+ * 落库 pending 流水，调用 Native 下单取 code_url；凭证缺失或失败回退 mock。
+ */
+export async function createNativePrepay(
+  orderId: number,
+  amountFen: number,
+  description: string,
+): Promise<NativePrepayResult> {
+  const appid = nativeAppid()
+  const { outTradeNo } = await upsertPendingPayment(orderId, amountFen, 'wechat', null)
+  let codeUrl = ''
+  let real = false
+
+  if (canRealPay() && appid) {
+    try {
+      codeUrl = await nativePrepay({
+        appid,
+        description,
+        outTradeNo,
+        amountFen,
+        notifyUrl: notifyUrl(),
+      })
+      await setPrepayId(outTradeNo, codeUrl)
+      real = true
+    } catch (err: any) {
+      console.warn(`[wxpay] Native 下单失败，回退 mock: ${err?.message || err}`)
+    }
+  }
+
+  return { codeUrl, outTradeNo, real }
+}
+
 /**
  * 处理支付成功（回调验签解密后 / dev mock 调用）：幂等标记 payment + order 已支付。
  * @param paidAmountFen 微信回调带回的实付金额（分）；提供时与下单金额比对，不符则拒绝（防篡改/串单）。
@@ -106,30 +153,5 @@ export async function handlePaidNotify(
   transactionId: string | null,
   paidAmountFen?: number,
 ): Promise<{ ok: boolean }> {
-  const row = await queryOne<{ id: number; order_id: number; status: string; amount_fen: number }>(
-    'SELECT id, order_id, status, amount_fen FROM payment WHERE out_trade_no = ?',
-    [outTradeNo],
-  )
-  if (!row) return { ok: false }
-  if (row.status === 'success') return { ok: true } // 幂等
-
-  // 金额校验：回调带回金额时必须与下单金额一致，防止伪造小额支付完成大额订单
-  if (typeof paidAmountFen === 'number' && paidAmountFen !== row.amount_fen) {
-    console.warn(`[wxpay] 金额不符，拒绝落库: out_trade_no=${outTradeNo} 期望=${row.amount_fen} 实收=${paidAmountFen}`)
-    return { ok: false }
-  }
-
-  // payment 与 order 在同一事务内更新，保证状态一致（避免支付成功但订单卡 pending）
-  await transaction(async (conn) => {
-    await conn.query(
-      'UPDATE payment SET status = ?, transaction_id = ?, paid_at = NOW() WHERE id = ? AND status != ?',
-      ['success', transactionId, row.id, 'success'],
-    )
-    await conn.query(
-      `UPDATE \`order\` SET status = 'paid', pay_method = '微信支付', paid_at = NOW()
-       WHERE id = ? AND status = 'pending'`,
-      [row.order_id],
-    )
-  })
-  return { ok: true }
+  return markPaid(outTradeNo, transactionId, paidAmountFen, '微信支付')
 }

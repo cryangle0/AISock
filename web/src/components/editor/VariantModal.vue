@@ -35,11 +35,15 @@
         </button>
       </template>
     </div>
-    <p v-if="loading" class="loading-tip">AI 正在创作并渲染预览…</p>
+    <p v-if="loading" class="loading-tip">AI 正在基于当前设计图创作并渲染预览…</p>
+    <div v-if="error" class="error-box">
+      <span>{{ error }}</span>
+      <button type="button" @click="load">重试</button>
+    </div>
 
     <template #footer>
       <button class="cta secondary" :disabled="loading" @click="$emit('close')">取消</button>
-      <button v-if="mode === 'family'" class="cta primary" :disabled="loading" @click="$emit('saveAll', variants)">
+      <button v-if="mode === 'family'" class="cta primary" :disabled="loading || !variants.length" @click="$emit('saveAll', variants)">
         保存套装到我的设计
       </button>
       <button v-else class="cta primary" :disabled="loading || !picked" @click="apply">应用此款</button>
@@ -50,20 +54,23 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import { aiApi } from '@/api'
 import {
-  deriveStyleVariants,
-  deriveFamilyPair,
+  DEFAULT_COLORS,
+  DEFAULT_PARAMS,
+  renderVectorSockToDataURL,
   STYLE_VARIANT_COUNTS,
   type DesignVariant,
   type SockColors,
   type SockParams,
-  type SockResources,
+  type ParsedGeometry,
 } from '@/engine'
 
 const props = defineProps<{
   mode: 'derive' | 'family'
   baseDesign: { printName: string; colors: SockColors; params: SockParams }
-  resources: SockResources | null
+  referenceImage: string
+  geometry: ParsedGeometry | null
 }>()
 const emit = defineEmits<{ close: []; apply: [v: DesignVariant]; saveAll: [vs: DesignVariant[]] }>()
 
@@ -72,16 +79,140 @@ const count = ref(2)
 const variants = ref<DesignVariant[]>([])
 const picked = ref<string | null>(null)
 const loading = ref(true)
+const error = ref('')
+
+const DERIVE_PROMPTS = [
+  '在保持参考袜版整体气质和主色调的基础上，衍生一款新的袜身印花图案。输出可直接用于袜身印花的高清图案，不要文字、不要水印、不要袜子轮廓、不要边框。',
+  '参考当前袜版设计，生成一款同系列但花纹构成不同的袜身印花图案。保留相近配色与风格，图案适合平铺到袜身，不要出现袜子模型、人物、文字。',
+  '基于参考图做款式延展，生成更精致的袜身图案素材。要求主题一致、细节更丰富、适合织造印花，纯图案输出，不要产品场景。',
+  '将参考袜版设计改造成同系列新款图案，强调可量产的袜身装饰纹样。只输出印花图案本身，不要袜子外形、背景、文字。',
+]
+
+const FAMILY_PROMPTS = [
+  {
+    tag: 'adult',
+    scheme: '成人款',
+    prompt: '基于参考袜版设计，生成亲子袜套装中的成人款袜身印花图案。保持当前设计的成熟质感和主色调，图案适合袜身印花，不要文字、水印、袜子轮廓或背景。',
+  },
+  {
+    tag: 'kid',
+    scheme: '儿童款',
+    prompt: '基于参考袜版设计，生成亲子袜套装中的儿童款袜身印花图案。与成人款同系列，但更活泼柔和、元素更圆润可爱，适合儿童袜身印花，不要文字、水印、袜子轮廓或背景。',
+  },
+]
+
+function baseColors(): SockColors {
+  return { ...DEFAULT_COLORS, ...(props.baseDesign.colors || {}) }
+}
+
+function baseParams(): SockParams {
+  return { ...DEFAULT_PARAMS, ...(props.baseDesign.params || {}) }
+}
+
+function paramsFor(index: number, tag?: string): SockParams {
+  const base = baseParams()
+  if (tag === 'kid') {
+    return {
+      ...base,
+      density: Math.max(60, Math.round((base.density || 100) * 0.82)),
+      singleMode: false,
+      tileDensity: Math.max(4, base.tileDensity || 4),
+    }
+  }
+  if (props.mode === 'derive') {
+    return {
+      ...base,
+      rotation: [0, 12, -12, 24][index % 4],
+      tileDensity: Math.max(2, (base.tileDensity || 3) + (index % 2)),
+    }
+  }
+  return base
+}
+
+function colorsFor(tag?: string): SockColors {
+  const colors = baseColors()
+  if (tag === 'kid') {
+    return {
+      ...colors,
+      bodyHex: colors.bodyHex || '#f6f1e7',
+      weltHex: '#a4d4b9',
+      heelHex: '#a4d4b9',
+      toeHex: '#a4d4b9',
+    }
+  }
+  return colors
+}
+
+async function createVariant(options: {
+  id: string
+  prompt: string
+  label: string
+  scheme: string
+  pattern: string
+  index?: number
+  tag?: string
+}): Promise<DesignVariant> {
+  const res = await aiApi.remix([props.referenceImage], options.prompt)
+  const printImage = res.data.result_urls?.[0]
+  if (!printImage) throw new Error('AI 未返回生成图')
+  const colors = colorsFor(options.tag)
+  const params = paramsFor(options.index || 0, options.tag)
+  const cover = props.geometry?.ready
+    ? await renderVectorSockToDataURL(props.geometry, printImage, colors, params)
+    : printImage
+  return {
+    id: options.id,
+    label: options.label,
+    scheme: options.scheme,
+    pattern: options.pattern,
+    printImage,
+    printName: options.label,
+    colors,
+    params,
+    cover,
+    tag: options.tag,
+  }
+}
 
 async function load() {
   loading.value = true
+  error.value = ''
   try {
+    if (!props.referenceImage) throw new Error('当前设计图为空，请重新打开衍生功能')
+    const baseName = props.baseDesign.printName || '当前设计'
     const res =
       props.mode === 'family'
-        ? await deriveFamilyPair(props.baseDesign, props.resources)
-        : await deriveStyleVariants(props.baseDesign, count.value, props.resources)
+        ? await Promise.all(
+            FAMILY_PROMPTS.map((item, index) =>
+              createVariant({
+                id: item.tag,
+                prompt: item.prompt,
+                label: `${baseName} · ${item.scheme}`,
+                scheme: item.scheme,
+                pattern: `${baseName} ${item.scheme}`,
+                index,
+                tag: item.tag,
+              }),
+            ),
+          )
+        : await Promise.all(
+            DERIVE_PROMPTS.slice(0, count.value).map((prompt, index) =>
+              createVariant({
+                id: `derive-${index + 1}`,
+                prompt,
+                label: `${baseName} · 衍生 ${index + 1}`,
+                scheme: 'AI 图生图',
+                pattern: `衍生 ${index + 1}`,
+                index,
+              }),
+            ),
+          )
     variants.value = res
     picked.value = res[0]?.id ?? null
+  } catch (e) {
+    variants.value = []
+    picked.value = null
+    error.value = e instanceof Error ? e.message : '生成失败，请稍后重试'
   } finally {
     loading.value = false
   }
@@ -183,6 +314,27 @@ function apply() {
   font-size: 12px;
   color: var(--text-3);
   margin-top: 14px;
+}
+.error-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(196, 90, 74, 0.08);
+  color: #c45a4a;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.error-box button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #c45a4a;
+  color: #fff;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
 }
 .cta {
   flex: 1;

@@ -37,11 +37,11 @@
             </a-row>
 
             <a-divider orientation="left">图标</a-divider>
-            <a-form-item label="Logo 图片 URL（留空用内置 logo）">
-              <a-input v-model="form.logoUrl" placeholder="https://cdn.onnsa.cn/xxx/logo.png" allow-clear />
+            <a-form-item label="Logo 图片（留空用内置 logo）">
+              <ImageUploadInput v-model="form.logoUrl" placeholder="https://… 或点上传 Logo" />
             </a-form-item>
-            <a-form-item label="Favicon 图片 URL（留空用 Logo / 内置）">
-              <a-input v-model="form.faviconUrl" placeholder="https://cdn.onnsa.cn/xxx/favicon.png" allow-clear />
+            <a-form-item label="Favicon 图片（留空用 Logo / 内置）">
+              <ImageUploadInput v-model="form.faviconUrl" placeholder="https://… 或点上传 Favicon" />
             </a-form-item>
 
             <a-divider orientation="left">登录页</a-divider>
@@ -92,6 +92,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { getSiteConfig, saveSiteConfig, type SiteConfig } from '@/api/site-config'
+import ImageUploadInput from '@/components/ImageUploadInput.vue'
 
 const FALLBACK_LOGO = '/logo.png'
 const loading = ref(false)

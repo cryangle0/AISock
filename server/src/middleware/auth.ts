@@ -78,6 +78,7 @@ const AUTH_WHITELIST = new Set<string>([
   '/api/v1/app/socks', // 袜型列表（访客可浏览）
   '/api/v1/app/patterns', // 花型列表
   '/api/v1/app/patterns/categories',
+  '/api/v1/app/tags', // 标签（礼赠场景/风格，访客可读）
   '/api/v1/app/feed',
   '/api/v1/app/feed/news',
   '/api/v1/app/feed/faq',
@@ -87,7 +88,9 @@ const AUTH_WHITELIST = new Set<string>([
   '/api/v1/app/orders/quote', // 价格试算（纯计算无副作用，访客可看价）
   '/api/v1/app/qr-login/create', // PC 扫码登录：创建会话（公开）
   '/api/v1/app/qr-login/poll', // PC 扫码登录：轮询（公开）
+  '/api/v1/app/image-proxy', // Canvas 同源图片代理（域名白名单，只读 GET）
   '/api/v1/app/pay/notify', // 微信支付回调（验签替代鉴权）
+  '/api/v1/app/pay/alipay/notify', // 支付宝回调（RSA2 验签替代鉴权）
   '/api/v1/admin/auth/login',
 ])
 

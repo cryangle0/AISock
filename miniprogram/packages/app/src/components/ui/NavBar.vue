@@ -7,7 +7,7 @@
       <view v-if="showBack" class="nav-back" @tap="onBack">
         <AppIcon name="chevron-left" :size="40" :color="iconColor" />
       </view>
-      <text class="nav-title" :class="{ 'nav-title--brand': brand }">{{ title }}</text>
+      <text class="nav-title" :class="{ 'nav-title--brand': brand }" :style="titleSize ? { fontSize: titleSize } : {}">{{ title }}</text>
       <view class="nav-right"><slot name="right" /></view>
     </view>
   </view>
@@ -28,6 +28,8 @@ const props = withDefaults(
     variant?: 'solid' | 'transparent'
     /** 文字/图标颜色（默认白） */
     color?: string
+    /** 标题字号（覆盖默认 36rpx，如 '42rpx'；brand 模式不受影响） */
+    titleSize?: string
   }>(),
   { title: '爱花型', brand: false, showBack: false, variant: 'solid', color: '#ffffff' },
 )

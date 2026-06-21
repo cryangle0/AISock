@@ -1,9 +1,14 @@
 import type { Router } from 'vue-router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 import { isLogin } from '@/utils/auth'
 import { useUserStore } from '@/store'
 
+NProgress.configure({ showSpinner: false, trickleSpeed: 120, minimum: 0.15 })
+
 export function setupRouterGuard(router: Router) {
   router.beforeEach(async (to, _from, next) => {
+    NProgress.start()
     const requiresAuth = to.meta.requiresAuth !== false
     if (!requiresAuth) {
       next()
@@ -30,5 +35,12 @@ export function setupRouterGuard(router: Router) {
       return
     }
     next()
+  })
+
+  router.afterEach(() => {
+    NProgress.done()
+  })
+  router.onError(() => {
+    NProgress.done()
   })
 }

@@ -3,7 +3,7 @@
     <!-- PC 扫码登录确认浮层 -->
     <view v-if="qrScene" class="qr-confirm-mask">
       <view class="qr-confirm-card">
-        <image class="qr-logo" src="/static/logo.webp" mode="aspectFit" />
+        <image class="qr-logo" src="/static/logo.png" mode="aspectFit" />
         <text class="qr-title">网页登录确认</text>
         <text class="qr-desc">是否授权登录「爱花型」电脑网页版？</text>
         <button class="qr-btn primary" :disabled="qrLoading" @tap="onQrConfirm">{{ qrLoading ? '处理中…' : '确认登录' }}</button>
@@ -14,9 +14,7 @@
     <scroll-view class="login-scroll" scroll-y :enhanced="true" :show-scrollbar="false">
       <view class="login-inner">
         <view class="hero">
-          <view class="logo-ring">
-            <image class="logo" src="/static/images/mascot.webp" mode="aspectFill" />
-          </view>
+          <image class="hero-char" src="/static/images/ai-full.png" mode="aspectFit" />
           <text class="brand">爱花型</text>
           <text class="slogan">创意由你，花型随心</text>
         </view>
@@ -50,7 +48,7 @@
 
           <view class="divider"><text>或</text></view>
           <button class="wechat" @tap="onWechat">
-            <image class="wechat-ico" src="/static/images/wechat.webp" mode="aspectFit" />
+            <image class="wechat-ico" src="/static/images/wechat.png" mode="aspectFit" />
             <text class="wechat-text">微信登录</text>
           </button>
         </view>
@@ -166,20 +164,8 @@ async function onWechat() {
   }
 }
 
-const AGREEMENTS = {
-  user: {
-    title: '用户协议',
-    content: '欢迎使用爱花型 AI 袜版定制服务。使用本服务即表示您同意：合法合规使用平台进行袜款设计与下单；尊重原创，不上传侵权素材；订单一经支付进入生产将不可随意取消。完整条款以正式发布版本为准。',
-  },
-  privacy: {
-    title: '隐私政策',
-    content: '我们仅收集为提供服务所必需的信息（手机号/微信标识、设计与订单数据），用于登录、下单、配送与售后。我们不会向无关第三方出售您的个人信息。您可随时联系客服注销账号。完整政策以正式发布版本为准。',
-  },
-} as const
-
 function openAgreement(key: 'user' | 'privacy') {
-  const a = AGREEMENTS[key]
-  uni.showModal({ title: a.title, content: a.content, showCancel: false, confirmText: '我已知晓' })
+  uni.navigateTo({ url: `/pages/agreement/index?type=${key}` })
 }
 
 function goBackOrHome() {
@@ -215,7 +201,7 @@ function goBackOrHome() {
 .login-inner {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 140rpx 48rpx calc(40rpx + env(safe-area-inset-bottom));
+  padding: 80rpx 48rpx calc(40rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -276,16 +262,12 @@ function goBackOrHome() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 52rpx;
+  margin-bottom: 40rpx;
 }
-.logo-ring {
-  width: 132rpx;
-  height: 132rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 6rpx;
-  box-sizing: border-box;
-  box-shadow: 0 12rpx 30rpx rgba(94, 60, 30, 0.28);
+.hero-char {
+  width: 360rpx;
+  height: 460rpx;
+  filter: drop-shadow(0 14rpx 26rpx rgba(94, 60, 30, 0.28));
 }
 .logo {
   width: 100%;
@@ -297,15 +279,15 @@ function goBackOrHome() {
   margin-top: 22rpx;
   font-size: 48rpx;
   font-weight: 900;
-  color: #fffaf0;
+  color: $mp-primary;
   letter-spacing: 0.06em;
   font-family: $mp-font-art;
-  text-shadow: 0 2rpx 8rpx rgba(43, 31, 20, 0.25);
+  text-shadow: 0 1rpx 0 rgba(255, 255, 255, 0.5);
 }
 .slogan {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: rgba(255, 250, 240, 0.85);
+  color: rgba(94, 60, 30, 0.65);
   font-family: $mp-font-serif;
 }
 .card {

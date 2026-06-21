@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>thumb render</title>
+<style>
+  html,body{margin:0;padding:0;background:transparent}
+  #grid{display:grid;grid-template-columns:repeat(6,300px);grid-auto-rows:390px;gap:0}
+  .cell{width:300px;height:390px}
+  canvas{display:block}
+</style>
+<div id="grid"></div>
+<script src="out/geometry.js"></script>
+<script>
+// 缩略图配色（与编辑器默认一致的中性奶白/驼色）
+const BODY='#efe4cc', WELT='#d9c8a8', FOOT='#d3bf9c', STROKE='rgba(43,31,20,0.22)'
+const CW=300, CH=390, PAD=26, S=2
+const grid=document.getElementById('grid')
+function fill(ctx,paths,color){ctx.fillStyle=color;for(const d of paths){try{ctx.fill(new Path2D(d))}catch(e){}}}
+function stroke(ctx,paths){ctx.lineWidth=1.4;ctx.strokeStyle=STROKE;for(const d of paths){try{ctx.stroke(new Path2D(d))}catch(e){}}}
+for(const s of window.SOCKS){
+  const [vw,vh]=s.viewBox
+  const cell=document.createElement('div');cell.className='cell'
+  const cv=document.createElement('canvas');cv.width=CW*S;cv.height=CH*S
+  const ctx=cv.getContext('2d')
+  cv.style.width=CW+'px';cv.style.height=CH+'px'
+  const sc=Math.min((CW-PAD*2)/vw,(CH-PAD*2)/vh)*S
+  const ox=(CW*S-vw*sc)/2, oy=(CH*S-vh*sc)/2
+  ctx.setTransform(sc,0,0,sc,ox,oy)
+  fill(ctx,s.geometry.body,BODY)
+  fill(ctx,s.geometry.foot,FOOT)
+  fill(ctx,s.geometry.welt,WELT)
+  stroke(ctx,[...s.geometry.body,...s.geometry.foot,...s.geometry.welt])
+  cell.appendChild(cv);grid.appendChild(cell)
+}
+// 暴露顺序给抓取脚本
+document.title='thumbs:'+window.SOCKS.map(s=>s.code).join(',')
+</script>

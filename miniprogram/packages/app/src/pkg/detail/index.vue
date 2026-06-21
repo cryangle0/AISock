@@ -10,11 +10,11 @@
         <!-- 主商品卡 -->
         <view class="hero-card">
           <view class="hero-card-img" :style="{ background: heroBg }">
-            <image v-if="cover" class="cover" :src="cover" mode="aspectFill" />
+            <image v-if="slideImages[slide]" class="cover" :src="slideImages[slide]" mode="aspectFill" />
           </view>
           <view class="dots">
             <view
-              v-for="(d, i) in 4"
+              v-for="(_, i) in slideImages"
               :key="i"
               :class="['dot', { active: i === slide }]"
               @tap="slide = i"
@@ -31,9 +31,9 @@
           <view class="design-grid">
             <SectionTitle title="设计展示" subtitle="原创设计 · 精准织造" color="#b8895a" :line-width="52" />
             <view class="grid">
-              <view class="grid-item"><image class="grid-img" :src="GRID_IMGS[0]" mode="aspectFill" /></view>
-              <view class="grid-item tall"><image class="grid-img" :src="GRID_IMGS[1]" mode="aspectFill" /></view>
-              <view class="grid-item"><image class="grid-img" :src="GRID_IMGS[2]" mode="aspectFill" /></view>
+              <view v-if="gridImages[0]" class="grid-item"><image class="grid-img" :src="gridImages[0]" mode="aspectFill" /></view>
+              <view v-if="gridImages[1]" class="grid-item tall"><image class="grid-img" :src="gridImages[1]" mode="aspectFill" /></view>
+              <view v-if="gridImages[2]" class="grid-item"><image class="grid-img" :src="gridImages[2]" mode="aspectFill" /></view>
             </view>
           </view>
         </view>
@@ -52,44 +52,136 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { navigateTo } from '@aisock/common/utils'
-import { purchaseRoute, stashCustomizeCover } from '@/domain/catalog'
+import type { Pattern } from '@aisock/common/types'
+import { catalogApi } from '@aisock/service'
+import { purchaseRoute, stashCustomizeCover, takeCaseDetail } from '@/domain/catalog'
 import NavBar from '@/components/ui/NavBar.vue'
 import SectionTitle from '@/components/ui/SectionTitle.vue'
 import { cdnImg } from '@/config/cdn'
 
-// 详情页按 Figma「袜版定制 · 杭城」设计稿固定呈现（标题 / 轮播 / 描述 / 设计展示图均为定稿内容）
-const seriesTitle = '杭城袜韵'
-const navTitle = '袜版定制 · 杭城'
-const description = '将杭州城市文化融入袜品设计\n舒适与美学兼具\n传递城市温度与品质生活'
-const cover = cdnImg('/pkg/static/detail/hangzhou-hero.webp')
+const DEFAULT_DETAIL = {
+  navTitle: '袜版定制 · 杭城',
+  seriesTitle: '杭城袜韵',
+  description: '将杭州城市文化融入袜品设计\n舒适与美学兼具\n传递城市温度与品质生活',
+  cover: cdnImg('/pkg/static/detail/hangzhou-hero.webp'),
+  slides: [
+    cdnImg('/pkg/static/detail/hangzhou-hero.webp'),
+    cdnImg('/pkg/static/detail/hangzhou-hero.webp'),
+    cdnImg('/pkg/static/detail/hangzhou-hero.webp'),
+    cdnImg('/pkg/static/detail/hangzhou-hero.webp'),
+  ],
+  gallery: [
+    cdnImg('/pkg/static/detail/hangzhou-1.webp'),
+    cdnImg('/pkg/static/detail/hangzhou-2.webp'),
+    cdnImg('/pkg/static/detail/hangzhou-3.webp'),
+  ],
+}
+
+const navTitle = ref(DEFAULT_DETAIL.navTitle)
+const seriesTitle = ref(DEFAULT_DETAIL.seriesTitle)
+const description = ref(DEFAULT_DETAIL.description)
+const cover = ref(DEFAULT_DETAIL.cover)
+const slideImages = ref<string[]>([...DEFAULT_DETAIL.slides])
+const gridImages = ref<string[]>([...DEFAULT_DETAIL.gallery])
 const slide = ref(0)
 const heroBg = 'linear-gradient(160deg,#d8c4a6 0%,#a4675a 100%)'
 
-// 设计展示图（Figma 定稿，已转 webp 优化加载，托管 CDN）
-const GRID_IMGS = [
-  cdnImg('/pkg/static/detail/hangzhou-1.webp'),
-  cdnImg('/pkg/static/detail/hangzhou-2.webp'),
-  cdnImg('/pkg/static/detail/hangzhou-3.webp'),
-]
-
-// 仅保留 patternId 用于「立即购买」关联具体花型；页面展示内容保持固定不被覆盖
 const patternId = ref<number | undefined>(undefined)
+
+function resolveCfgImg(url: string, fallback: string): string {
+  const u = url?.trim()
+  if (!u) return fallback
+  if (/^https?:/i.test(u)) return u
+  if (u.startsWith('/static/') || u.startsWith('/pkg/')) return cdnImg(u)
+  return u
+}
+
+function applyDetailConfig(detail: typeof DEFAULT_DETAIL) {
+  navTitle.value = detail.navTitle || DEFAULT_DETAIL.navTitle
+  seriesTitle.value = detail.seriesTitle || DEFAULT_DETAIL.seriesTitle
+  description.value = detail.description || DEFAULT_DETAIL.description
+  cover.value = resolveCfgImg(detail.cover, DEFAULT_DETAIL.cover)
+  slideImages.value = (detail.slides?.length ? detail.slides : DEFAULT_DETAIL.slides).map((u) => resolveCfgImg(u, cover.value))
+  gridImages.value = (detail.gallery?.length ? detail.gallery : DEFAULT_DETAIL.gallery).map((u, i) => resolveCfgImg(u, DEFAULT_DETAIL.gallery[i] || cover.value))
+  slide.value = 0
+}
+
+function hasPatternDisplayConfig(pattern: Pattern): boolean {
+  const cfg = pattern.display_config
+  return !!(
+    cfg?.detailTitle ||
+    cfg?.detailDescription ||
+    cfg?.detailSlides?.length ||
+    cfg?.detailGallery?.length
+  )
+}
+
+function applyPatternDisplayConfig(pattern: Pattern) {
+  if (!hasPatternDisplayConfig(pattern)) return
+  const cfg = pattern.display_config
+  if (!cfg) return
+  if (cfg.detailTitle?.trim()) seriesTitle.value = cfg.detailTitle.trim()
+  if (cfg.detailDescription?.trim()) description.value = cfg.detailDescription.trim()
+  if (cfg.detailSlides?.length) {
+    const slides = cfg.detailSlides.map((u) => resolveCfgImg(u, cover.value)).filter(Boolean)
+    if (slides.length) {
+      slideImages.value = slides
+      cover.value = slides[0]
+    }
+  }
+  if (cfg.detailGallery?.length) {
+    const gallery = cfg.detailGallery.map((u, i) => resolveCfgImg(u, DEFAULT_DETAIL.gallery[i] || cover.value)).filter(Boolean)
+    if (gallery.length) gridImages.value = gallery.slice(0, 3)
+  }
+  slide.value = 0
+}
+
+async function loadPageData(id?: number) {
+  if (id && Number.isInteger(id) && id > 0) patternId.value = id
+
+  try {
+    const res = await catalogApi.getFeedDiscover()
+    if (res.data?.detail) applyDetailConfig(res.data.detail)
+  } catch {
+    applyDetailConfig(DEFAULT_DETAIL)
+  }
+  if (!patternId.value) return
+  try {
+    const res = await catalogApi.getPattern(patternId.value)
+    if (res.data) applyPatternDisplayConfig(res.data)
+  } catch {
+    /* 花型展示配置读取失败时保留商品详情默认内容 */
+  }
+}
+
 onLoad((q?: Record<string, string>) => {
+  // 首页底部轮播跳转：优先用该轮播在后台「首页主题配置」里配的详情内容渲染
+  const stashed = takeCaseDetail()
+  if (stashed) {
+    applyDetailConfig({
+      ...DEFAULT_DETAIL,
+      navTitle: stashed.navTitle || DEFAULT_DETAIL.navTitle,
+      seriesTitle: stashed.seriesTitle || DEFAULT_DETAIL.seriesTitle,
+      description: stashed.description || DEFAULT_DETAIL.description,
+      cover: stashed.cover || DEFAULT_DETAIL.cover,
+      slides: stashed.slides?.length ? stashed.slides : stashed.cover ? [stashed.cover] : DEFAULT_DETAIL.slides,
+      gallery: stashed.gallery?.length ? stashed.gallery : DEFAULT_DETAIL.gallery,
+    })
+    return
+  }
   const id = q?.id ? Number(q.id) : NaN
-  if (Number.isInteger(id) && id > 0) patternId.value = id
+  loadPageData(Number.isInteger(id) && id > 0 ? id : undefined)
 })
 
 function onBuy() {
-  // 立即购买：携带封面 + patternId，购买页据此可直接成单
   navigateTo(purchaseRoute({
-    name: seriesTitle || '袜款',
-    cover,
+    name: seriesTitle.value || '袜款',
+    cover: cover.value,
     patternId: patternId.value,
   }))
 }
 function onCustomize() {
-  // 定制设计：把花型图带入袜版选择页（upload）做个性化定制
-  stashCustomizeCover(cover)
+  stashCustomizeCover(cover.value)
   navigateTo('/pkg/upload/index')
 }
 </script>

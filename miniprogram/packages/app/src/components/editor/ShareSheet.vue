@@ -4,7 +4,7 @@
     <view class="share-card">
       <view class="share-cover">
         <image v-if="cover" :src="cover" mode="aspectFill" class="cover-img" />
-        <view v-else class="cover-empty">🧦</view>
+        <view v-else class="cover-empty"><AppIcon name="socks" :size="56" color="#c8b89a" /></view>
       </view>
       <view class="share-meta">
         <text class="share-title">{{ design.name || '我的袜版' }}</text>
@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { SHARE_BASE_URL } from '@aisock/common/constants'
 
 const props = defineProps<{ design: { name?: string; printName?: string }; cover?: string | null }>()

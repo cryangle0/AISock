@@ -44,7 +44,7 @@
       <view class="paid-icon">✓</view>
       <text class="paid-title">支付成功</text>
       <text class="paid-amt">¥ {{ total.toFixed(2) }}</text>
-      <text class="paid-tip">订单 {{ orderNo }} 已提交工厂排产</text>
+      <text class="paid-tip">{{ paidTip }}</text>
     </view>
 
     <template v-if="phase === 'select'" #footer>
@@ -62,7 +62,7 @@ import { computed, ref, watchEffect } from 'vue'
 import BottomSheet from '@/components/BottomSheet.vue'
 import { PAY_METHODS } from '@aisock/common'
 import { orderApi } from '@aisock/service'
-import { createOrderAndPay } from '@/composables/usePayment'
+import { createOrderAndPay, pollOrderPaid } from '@/composables/usePayment'
 
 interface OrderForm {
   designName: string
@@ -87,6 +87,7 @@ const payMethods = PAY_METHODS
 const method = ref('wechat')
 const phase = ref<'select' | 'paying' | 'paid'>('select')
 const orderNo = ref('')
+const paidReal = ref(true)
 
 // 价格由服务端权威试算（与下单落库一致），前端不再本地计算金额
 const unit = ref(0)
@@ -118,6 +119,11 @@ watchEffect(() => {
 const subtitle = computed(
   () => `${props.order.designName} · ${props.order.total} 双 · ${props.order.material}${props.order.craft ? ' · ' + props.order.craft : ''}`,
 )
+const paidTip = computed(() =>
+  paidReal.value
+    ? `订单 ${orderNo.value} 已提交工厂排产`
+    : `演示模式：订单 ${orderNo.value} 已模拟支付成功`,
+)
 
 async function startPay() {
   phase.value = 'paying'
@@ -138,7 +144,18 @@ async function startPay() {
       uni.showToast({ title: '支付未完成', icon: 'none' })
       return
     }
+    if (result.real) {
+      uni.showLoading({ title: '确认支付结果…', mask: true })
+      const ok = await pollOrderPaid(result.orderId)
+      uni.hideLoading()
+      if (!ok) {
+        phase.value = 'select'
+        uni.showToast({ title: '支付处理中，请稍后到订单查看', icon: 'none' })
+        return
+      }
+    }
     orderNo.value = result.orderNo
+    paidReal.value = result.real
     phase.value = 'paid'
     setTimeout(() => {
       emit('paid', { orderId: result.orderId, orderNo: result.orderNo, amount: total.value, real: result.real })
